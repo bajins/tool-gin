@@ -1,7 +1,7 @@
 package pyutils
 
 import (
-	"key-go/utils"
+	"key-gin/utils"
 	"testing"
 )
 
