@@ -19,6 +19,8 @@ func ExecutePython(script string, args ...string) (result string, err error) {
 	// 把脚本和参数组合到一个字符串数组
 	args = append([]string{script}, args...)
 	out, err := exec.Command(name, args...).Output()
+	// exit status 2 一般是文件没有找到
+	// exit status 1 一般是命令执行错误
 	if err != nil {
 		return string(out), err
 	}
