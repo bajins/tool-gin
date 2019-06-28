@@ -189,3 +189,22 @@ func IsStringEmpty(str string) bool {
 	//}
 	return false
 }
+
+/**
+ * 字符串截取
+ *
+ * @param str 字符串
+ * @param pos 开始位置
+ * @param length 结束位置
+ * @return
+ * @author claer woytu.com
+ * @date 2019/6/29 3:27
+ */
+func Substring(str string, pos, length int) string {
+	runes := []rune(str)
+	l := pos + length
+	if l > len(runes) {
+		l = len(runes)
+	}
+	return string(runes[pos:l])
+}
