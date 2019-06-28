@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -291,7 +292,6 @@ func ParentDirectory(dirctory string) string {
  * @date 2019/6/28 15:53
  */
 func CurrentDirectory() string {
-	// sep := string(os.PathSeparator)
 	return strings.Replace(OsPath(), "\\", "/", -1)
 }
 
@@ -301,11 +301,34 @@ func CurrentDirectory() string {
  * @author claer woytu.com
  * @date 2019/6/29 3:22
  */
-func ContextPath(root string) string {
+func ContextPath(root string) (path string, err error) {
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
-	return Substring(dir, 0, strings.LastIndex(dir, root)+len(root))
+	index := strings.LastIndex(dir, root)
+	if len(dir) < len(root) || index <= 0 {
+		err = errors.New("错误：路径不正确")
+		return dir, err
+	}
+	return dir[0 : strings.LastIndex(dir, root)+len(root)], nil
+}
+
+/**
+ * 路径标准化拼接
+ *
+ * @param paths 可变路径参数
+ * @return
+ * @author claer woytu.com
+ * @date 2019/6/29 3:46
+ */
+func PathStitching(paths ...string) string {
+	sep := string(os.PathSeparator)
+	path := ""
+	for _, value := range paths {
+		fmt.Println(path)
+		path = path + sep + value
+	}
+	return path[1:]
 }
