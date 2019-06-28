@@ -3,5 +3,11 @@
 
 ## 使用
 ```bash
-key-gin 5000
+# Windows
+# 双击key-gin-windows.exe根据默认端口8000运行
+# 或者在cmd、power shell中
+key-gin-windows.exe
+
+# Linux
+nohup ./key-gin-linux -p 5000 >/dev/null 2>index.log &
 ```
