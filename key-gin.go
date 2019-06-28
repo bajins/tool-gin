@@ -106,8 +106,12 @@ func getKey(c *gin.Context) {
 		c.JSON(http.StatusOK, common.Error(300, "请选择版本"))
 		return
 	}
-
-	path := utils.ParentDirectory(utils.OsPath()) + "/pyutils"
+	path, err := utils.ContextPath("key-gin")
+	if err != nil {
+		c.JSON(http.StatusOK, common.Error(500, "获取key系统错误"))
+		return
+	}
+	path = utils.PathStitching(path, "pyutils")
 	if company == "netsarang" {
 		result, err := utils.ExecutePython(path+"/xshell_key.py", app, version)
 		if err != nil {
