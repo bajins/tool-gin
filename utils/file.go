@@ -312,7 +312,7 @@ func ContextPath(root string) (path string, err error) {
 		err = errors.New("错误：路径不正确")
 		return dir, err
 	}
-	return dir[0 : strings.LastIndex(dir, root)+len(root)], nil
+	return dir[0 : index+len(root)], nil
 }
 
 /**
