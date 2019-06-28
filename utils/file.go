@@ -327,7 +327,6 @@ func PathStitching(paths ...string) string {
 	sep := string(os.PathSeparator)
 	path := ""
 	for _, value := range paths {
-		fmt.Println(path)
 		path = path + sep + value
 	}
 	return path[1:]
