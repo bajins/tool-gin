@@ -274,15 +274,6 @@ func GetDirFile(filePath string) (dir, file string) {
 	return paths, fileName
 }
 
-func substr(s string, pos, length int) string {
-	runes := []rune(s)
-	l := pos + length
-	if l > len(runes) {
-		l = len(runes)
-	}
-	return string(runes[pos:l])
-}
-
 /**
  * 获取父级目录
  *
@@ -290,7 +281,6 @@ func substr(s string, pos, length int) string {
  * @date 2019/6/28 15:53
  */
 func ParentDirectory(dirctory string) string {
-	//return substr(dirctory, 0, strings.LastIndex(dirctory, "/"))
 	return path.Join(dirctory, "..")
 }
 
@@ -303,4 +293,19 @@ func ParentDirectory(dirctory string) string {
 func CurrentDirectory() string {
 	// sep := string(os.PathSeparator)
 	return strings.Replace(OsPath(), "\\", "/", -1)
+}
+
+/**
+ * 获取上下文路径，传入指定目录截取前一部分
+ *
+ * @author claer woytu.com
+ * @date 2019/6/29 3:22
+ */
+func ContextPath(root string) string {
+	// 获取当前绝对路径
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err)
+	}
+	return Substring(dir, 0, strings.LastIndex(dir, root)+len(root))
 }
