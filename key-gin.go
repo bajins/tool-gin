@@ -209,9 +209,9 @@ func WebRoot(c *gin.Context) {
  * @date 2019/6/28 15:31
  */
 func Port() (port string) {
-	flag.StringVar(&port, "p", ":8000", "默认端口:8000")
+	flag.StringVar(&port, "p", "8000", "默认端口:8000")
 	flag.Parse()
-	return port
+	return ":" + port
 
 	//if len(os.Args[1:]) == 0 {
 	//	return ":8000"
