@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"errors"
+	"fmt"
 	"os/exec"
 	"runtime"
 )
@@ -12,6 +14,10 @@ import (
  * @date 2019/6/28 14:19
  */
 func ExecutePython(script string, args ...string) (result string, err error) {
+	if !IsFile(script) {
+		err = errors.New(fmt.Sprintf(script, "error：%s", "文件不存在"))
+		return "", err
+	}
 	name := "python"
 	if runtime.GOOS == "linux" {
 		name = "python3"
@@ -25,8 +31,6 @@ func ExecutePython(script string, args ...string) (result string, err error) {
 		return string(out), err
 	}
 	result = string(out)
-	//if strings.Index(result, "success") != 0 {
-	//	err = errors.New(fmt.Sprintf(script, "error：%s", result))
-	//}
+
 	return result, nil
 }
