@@ -2,6 +2,7 @@ package pyutils
 
 import (
 	"key-gin/utils"
+	"runtime"
 	"testing"
 )
 
@@ -15,4 +16,7 @@ func TestCmdPython(t *testing.T) {
 		return
 	}
 	t.Log("转换成功", result)
+}
+func TestOS(t *testing.T) {
+	t.Log("转换成功", runtime.GOOS)
 }
