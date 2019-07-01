@@ -3,7 +3,7 @@ function selectCompany() {
     if (company == "netsarang") {
         $("#app").empty();
         //为Select追加一个Option(下拉项)
-        $("#app").append('<option value="Xmanager Power Suite">Xmanager Power Suite</option>');
+        $("#app").append('<option value="Xmanager">Xmanager Power Suite</option>');
         $("#app").append('<option value="Xshell">Xshell</option>');
         $("#app").append('<option value="Xlpd">Xlpd</option>');
         $("#app").append('<option value="Xftp">Xftp</option>');
