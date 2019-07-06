@@ -4,10 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"key-gin/common"
 	"key-gin/utils"
-	"log"
 	"net/http"
 	"os"
 	"strings"
@@ -106,15 +106,19 @@ func getKey(c *gin.Context) {
 		c.JSON(http.StatusOK, common.Error(300, "请选择版本"))
 		return
 	}
-	path, err := utils.ContextPath("key-gin")
+	// 获取当前绝对路径
+	dir, err := os.Getwd()
 	if err != nil {
+		log.Error(err)
 		c.JSON(http.StatusOK, common.Error(500, "获取key系统错误"))
 		return
 	}
-	path = utils.PathStitching(path, "pyutils")
+	path := utils.PathStitching(dir, "pyutils")
 	if company == "netsarang" {
 		result, err := utils.ExecutePython(path+"/xshell_key.py", app, version)
 		if err != nil {
+			log.Error(err)
+			fmt.Println(err)
 			c.JSON(http.StatusOK, common.Error(500, "获取key系统错误"))
 			return
 		}
@@ -161,13 +165,13 @@ func upload(c *gin.Context) {
 	fmt.Println(header.Filename)
 	out, err := os.Create("./tmp/" + filename + ".png")
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 	defer out.Close()
 	// 拷贝上传的文件信息到新建的out文件中
 	_, err = io.Copy(out, file)
 	if err != nil {
-		log.Fatal(err)
+		log.Error(err)
 	}
 }
 
@@ -221,6 +225,18 @@ func Port() (port string) {
 	//	return ":8000"
 	//}
 	//return ":" + os.Args[1]
+}
+
+func init() {
+	// 设置日志格式为json格式　自带的只有两种样式logrus.JSONFormatter{}和logrus.TextFormatter{}
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// 设置将日志输出到标准输出（默认的输出为stderr，标准错误）
+	// 日志消息输出可以是任意的io.writer类型
+	log.SetOutput(os.Stdout)
+
+	// 设置日志级别为warn以上
+	log.SetLevel(log.DebugLevel)
 }
 
 func main() {
