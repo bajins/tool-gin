@@ -80,7 +80,6 @@ function getKey() {
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             responseType: "blob",
             success: function (result, status, xhr) {
-                console.log(xhr.getAllResponseHeaders());
                 // 从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
                 let contentDisposition = xhr.getResponseHeader('Content-Disposition');
                 let patt = new RegExp("filename=([^;]+\\.[^\\.;]+);*");
@@ -93,8 +92,7 @@ function getKey() {
                     filename = patt.exec(contentDisposition)[1];
                 }
                 // 取文件名信息中的文件名,替换掉文件名中多余的符号
-                filename = replace(filename, "\\\\", "", true);
-                filename = replace(filename, "/", "", true);
+                filename = filename.replaceAll("\\\\|/|\"", "");
 
                 let downloadElement = document.createElement('a');
                 downloadElement.style.display = 'none';
