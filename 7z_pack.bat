@@ -1,10 +1,5 @@
 1>1/* :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-::  bajins 1.0.0  by bajins https://batch.bajins.com
-:: 首发兼更新地址:https://batch.bajins.com
-::
-:: 使用时请将bajins.bat放入任意一个PATH中的目录以便调用
-:: 但请确保bajins.bat拥有该目录的读写权限(因此最好不要选择system32)
-:: 建议新建一个目录专供bajins.bat使用,再将这个目录添加到PATH中
+:: by bajins https://www.bajins.com
 
 @echo off
 md "%~dp0$testAdmin$" 2>nul
@@ -48,7 +43,7 @@ for %%i in (%allList%) do (
 :: 使用7z压缩
 for %%i in (%allList%) do (
     set runFile=%root%%project%%%i
-    :: !!和%%是一样的意思，取变量的值，用这种方法的批处理文件前面一般有 setlocal EnableDelayedExpansion（延迟环境变量扩展） 语句
+    :: !!和%%都是取变量的值，用这种方法的批处理文件前面一般有setlocal EnableDelayedExpansion（延迟环境变量扩展）语句
     if exist "!runFile!" (
         :: 判断变量字符串中是否包含字符串
         echo %%i | findstr linux >nul && (
