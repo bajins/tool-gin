@@ -21,7 +21,7 @@ if not "%errorlevel%" == "0" (
 :: 需要打包的文件或文件夹根目录
 set root=%~dp0
 :: 需要打包的文件或文件夹
-set files=%root%pyutils %root%static %root%templates
+set files=pyutils static templates
 :: 打包完成的文件命名前一部分
 set project=key-gin
 :: 打包完成的文件命名后一部分，与前一部分进行组合
@@ -31,7 +31,7 @@ set allList=%allList%_linux_386,_linux_amd64,_linux_arm,_linux_mips,_linux_mips6
 
 for %%i in (%allList%) do (
     :: 如果二进制文件不存在则重新打包
-    if not exist "%root%%project%%%i" (
+    if not exist "%project%%%i" (
         go get github.com/mitchellh/gox
         gox
         :: 删除旧的压缩包文件
@@ -42,7 +42,7 @@ for %%i in (%allList%) do (
 
 :: 使用7z压缩
 for %%i in (%allList%) do (
-    set runFile=%root%%project%%%i
+    set runFile=%project%%%i
     :: !!和%%都是取变量的值，用这种方法的批处理文件前面一般有setlocal EnableDelayedExpansion（延迟环境变量扩展）语句
     if exist "!runFile!" (
         :: 判断变量字符串中是否包含字符串
