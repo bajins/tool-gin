@@ -30,7 +30,9 @@ set files=%root%pyutils %root%static %root%templates
 :: 打包完成的文件命名前一部分
 set project=key-gin
 :: 打包完成的文件命名后一部分，与前一部分进行组合
-set allList=_darwin_386,_darwin_amd64,_freebsd_386,_freebsd_amd64,_freebsd_arm,_netbsd_386,_netbsd_amd64,_netbsd_arm,_openbsd_386,_openbsd_amd64,_windows_386.exe,_windows_amd64.exe,_linux_386,_linux_amd64,_linux_arm,_linux_mips,_linux_mips64,_linux_mips64le,_linux_mipsle,_linux_s390x
+set allList=_darwin_386,_darwin_amd64,_freebsd_386,_freebsd_amd64,_freebsd_arm,_netbsd_386,_netbsd_amd64,_netbsd_arm,
+set allList=%allList%_openbsd_386,_openbsd_amd64,_windows_386.exe,_windows_amd64.exe,
+set allList=%allList%_linux_386,_linux_amd64,_linux_arm,_linux_mips,_linux_mips64,_linux_mips64le,_linux_mipsle,_linux_s390x
 
 for %%i in (%allList%) do (
     :: 如果二进制文件不存在则重新打包
@@ -43,34 +45,29 @@ for %%i in (%allList%) do (
 )
 
 
-set otherList=_darwin_386,_darwin_amd64,_freebsd_386,_freebsd_amd64,_freebsd_arm,_netbsd_386,_netbsd_amd64,_netbsd_arm,_openbsd_386,_openbsd_amd64,_windows_386.exe,_windows_amd64.exe
-:: 打包为zip
-for %%i in (%otherList%) do (
+:: 使用7z压缩
+for %%i in (%allList%) do (
     set runFile=%root%%project%%%i
     :: !!和%%是一样的意思，取变量的值，用这种方法的批处理文件前面一般有 setlocal EnableDelayedExpansion（延迟环境变量扩展） 语句
     if exist "!runFile!" (
-        :: 用7z压缩文件为zip
-        7za a %project%%%i.zip %files% !runFile!
-        :: 删除二进制文件
-        del !runFile!
+        :: 判断变量字符串中是否包含字符串
+        echo %%i | findstr linux >nul && (
+            :: 用7z压缩成tar
+            7za a -ttar %project%%%i.tar %files% !runFile!
+            :: 用7z把tar压缩成gz
+            7za a -tgzip %project%%%i.tar.gz %project%%%i.tar
+            :: 删除tar文件和二进制文件
+            del *.tar !runFile!
+            
+        ) || (
+            :: 用7z压缩文件为zip
+            7za a %project%%%i.zip %files% !runFile!
+            :: 删除二进制文件
+            del !runFile!
+        )
     )
 )
 
-
-set linuxList=_linux_386,_linux_amd64,_linux_arm,_linux_mips,_linux_mips64,_linux_mips64le,_linux_mipsle,_linux_s390x
-
-:: 打包为tar.gz
-for %%i in (%linuxList%) do (
-    set runFile=%root%%project%%%i
-    if exist "!runFile!" (
-        :: 用7z压缩成tar
-        7za a -ttar %project%%%i.tar %files% !runFile!
-        :: 用7z把tar压缩成gz
-        7za a -tgzip %project%%%i.tar.gz %project%%%i.tar
-        :: 删除tar文件和二进制文件
-        del *.tar !runFile!
-    )
-)
 
 
 goto :EXIT
