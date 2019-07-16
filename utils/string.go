@@ -9,22 +9,28 @@ import (
 )
 
 /**
-驼峰转下划线
-// 1. 普通使用
-log.Println(CamelCase("AAAA"))
-log.Println(CamelCase("IconUrl"))
-log.Println(CamelCase("iconUrl"))
-log.Println(CamelCase("parentId"))
-log.Println(CamelCase("a9b9Ba"))
-log.Println(CamelCase("_An"))
-// s输出
-//2019/03/20 16:34:25 a_a_a_a
-//2019/03/20 16:34:25 icon_url
-//2019/03/20 16:34:25 icon_url
-//2019/03/20 16:34:25 parent_id
-//2019/03/20 16:34:25 a9b9ba
-//2019/03/20 16:34:25 Xan
-*/
+ * 驼峰转下划线
+ * // 1. 普通使用
+ * log.Println(CamelCase("AAAA"))
+ * log.Println(CamelCase("IconUrl"))
+ * log.Println(CamelCase("iconUrl"))
+ * log.Println(CamelCase("parentId"))
+ * log.Println(CamelCase("a9b9Ba"))
+ * log.Println(CamelCase("_An"))
+ * // s输出
+ * //2019/03/20 16:34:25 a_a_a_a
+ * //2019/03/20 16:34:25 icon_url
+ * //2019/03/20 16:34:25 icon_url
+ * //2019/03/20 16:34:25 parent_id
+ * //2019/03/20 16:34:25 a9b9ba
+ * //2019/03/20 16:34:25 Xan
+ *
+ * @param s string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:24
+ */
 func CamelCase(s string) string {
 	if s == "" {
 		return ""
@@ -58,26 +64,58 @@ func CamelCase(s string) string {
 	}
 	return string(t)
 }
+
+/**
+ * 判断为ASCII编码大写
+ *
+ * @param c byte
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:26
+ */
 func isASCIIUpper(c byte) bool {
 	return 'A' <= c && c <= 'Z'
 }
 
+/**
+ * 判断为ASCII编码数字
+ *
+ * @param c byte
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:27
+ */
 func isASCIIDigit(c byte) bool {
 	return '0' <= c && c <= '9'
 }
 
-var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
-
 /**
-// 转换为snake
-*/
+ * 转换为snake
+ *
+ * @param str string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:27
+ */
 func ToSnakeCase(str string) string {
+	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 	snake := matchAllCap.ReplaceAllString(str, "${1}_${2}")
 	fmt.Println(snake)
 	return strings.ToLower(snake)
 }
 
-// 转换为驼峰
+/**
+ * 转换为驼峰
+ *
+ * @param str string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:28
+ */
 func ToCamelCase(str string) string {
 	temp := strings.Split(str, "-")
 	for i, r := range temp {
@@ -88,18 +126,32 @@ func ToCamelCase(str string) string {
 	return strings.Join(temp, "")
 }
 
-var re = regexp.MustCompile("(_|-)([a-zA-Z]+)")
-
-// 转驼峰 优化版
-func ToCamelCaseOptimization(str string) string {
-	camel := re.ReplaceAllString(str, " $2")
+/**
+ * 转换为驼峰，使用正则
+ *
+ * @param str string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:30
+ */
+func ToCamelCaseRegexp(str string) string {
+	var reg = regexp.MustCompile("(_|-)([a-zA-Z]+)")
+	camel := reg.ReplaceAllString(str, " $2")
 	camel = strings.Title(camel)
 	camel = strings.Replace(camel, " ", "", -1)
 	return camel
 }
 
-// 驼峰式写法转为下划线写法
-// https://github.com/polaris1119/goutils/blob/master/string.go
+/**
+ * 驼峰式写法转为下划线写法
+ *
+ * @param name string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:30
+ */
 func UnderscoreName(name string) string {
 	buffer := NewBuffer()
 	for i, r := range name {
@@ -115,13 +167,31 @@ func UnderscoreName(name string) string {
 	return buffer.String()
 }
 
-// 下划线写法转为驼峰写法
-func CamelName(name string) string {
-	name = strings.Replace(name, "_", " ", -1)
-	name = strings.Title(name)
-	return strings.Replace(name, " ", "", -1)
+/**
+ * 下划线写法转为驼峰写法
+ *
+ * @param str string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:31
+ */
+func CamelName(str string) string {
+	str = strings.Replace(str, "_", " ", -1)
+	str = strings.Title(str)
+	return strings.Replace(str, " ", "", -1)
 }
 
+/**
+ * 搜索字符串数组中是否存在指定字符串
+ *
+ * @param slice []string
+ * @param s string
+ * @return int 返回-1为未搜寻到
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:32
+ */
 func SearchString(slice []string, s string) int {
 	for i, v := range slice {
 		if s == v {
@@ -131,9 +201,17 @@ func SearchString(slice []string, s string) int {
 	return -1
 }
 
-// 蛇形字符串、驼峰字符串转换
-// snake string, XxYy to xx_yy , XxYY to xx_yy
-func snakeString(s string) string {
+/**
+ * 蛇形字符串
+ * snake string, XxYy to xx_yy , XxYY to xx_yy
+ *
+ * @param s string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:33
+ */
+func SnakeString(s string) string {
 	data := make([]byte, 0, len(s)*2)
 	j := false
 	num := len(s)
@@ -150,9 +228,16 @@ func snakeString(s string) string {
 	return strings.ToLower(string(data[:]))
 }
 
-// 蛇形字符串、驼峰字符串转换
-// camel string, xx_yy to XxYy
-func camelString(s string) string {
+/**
+ * 驼峰字符串转换
+ *
+ * @param s string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:35
+ */
+func CamelString(s string) string {
 	data := make([]byte, 0, len(s))
 	j := false
 	k := false
@@ -177,8 +262,14 @@ func camelString(s string) string {
 }
 
 /**
-判断字符串是否为空
-*/
+ * 判断字符串是否为空
+ *
+ * @param str string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:36
+ */
 func IsStringEmpty(str string) bool {
 	if str == "" || len(str) == 0 || strings.TrimSpace(str) == "" {
 		return true
@@ -207,4 +298,36 @@ func Substring(str string, pos, length int) string {
 		l = len(runes)
 	}
 	return string(runes[pos:l])
+}
+
+/**
+ * 首字母转大写
+ *
+ * @param null
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:19
+ */
+func ToUpper(str string) string {
+	for i, v := range str {
+		return string(unicode.ToUpper(v)) + str[i+1:]
+	}
+	return ""
+}
+
+/**
+ * 首字母转小写
+ *
+ * @param null
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/16 16:19
+ */
+func ToLower(str string) string {
+	for i, v := range str {
+		return string(unicode.ToLower(v)) + str[i+1:]
+	}
+	return ""
 }
