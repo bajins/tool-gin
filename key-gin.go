@@ -2,11 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"key-gin/common"
 	"key-gin/utils"
 	"net/http"
 	"os"
@@ -81,136 +78,6 @@ func Cors() gin.HandlerFunc {
 }
 
 /**
- * 获取key
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 15:04
- */
-func getKey(c *gin.Context) {
-	// GET 获取参数内容，没有则返回空字符串
-	//company := c.Query("company")
-	// POST 获取的所有参数内容的类型都是 string
-	company := c.PostForm("company")
-
-	if utils.IsStringEmpty(company) {
-		c.JSON(http.StatusOK, common.Error(300, "请选择公司"))
-		return
-	}
-	app := c.PostForm("app")
-	if utils.IsStringEmpty(app) {
-		c.JSON(http.StatusOK, common.Error(300, "请选择产品"))
-		return
-	}
-	version := c.PostForm("version")
-	if utils.IsStringEmpty(version) {
-		c.JSON(http.StatusOK, common.Error(300, "请选择版本"))
-		return
-	}
-	// 获取当前绝对路径
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusOK, common.Error(500, "获取key系统错误"))
-		return
-	}
-	path := utils.PathStitching(dir, "pyutils")
-	if company == "netsarang" {
-		result, err := utils.ExecutePython(path+"/xshell_key.py", app, version)
-		if err != nil {
-			log.Error(err)
-			fmt.Println(err)
-			c.JSON(http.StatusOK, common.Error(500, "获取key系统错误"))
-			return
-		}
-		res := make(map[string]string)
-		res["key"] = result
-		c.JSON(http.StatusOK, common.Success(200, "获取key成功", res))
-
-	} else if company == "mobatek" {
-
-		_, err := utils.ExecutePython(path+"/moba_xterm_Keygen.py", utils.OsPath(), version)
-		if err != nil {
-			c.JSON(http.StatusOK, common.Error(500, "获取key系统错误"))
-			return
-		}
-		c.Header("Content-Type", "application/octet-stream")
-		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
-		//c.Writer.Header().Set("Content-Type", "application/octet-stream")
-		//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
-		c.FileAttachment(utils.OsPath()+"/Custom.mxtpro", "Custom.mxtpro")
-
-	} else if company == "torchsoft" {
-		result, err := utils.ExecutePython(path+"/reg_workshop_keygen.py", version)
-		if err != nil {
-			c.JSON(http.StatusOK, common.Error(500, "获取key系统错误"))
-			return
-		}
-		res := make(map[string]string)
-		res["key"] = result
-		c.JSON(http.StatusOK, common.Success(200, "获取key成功", res))
-	}
-
-}
-
-/**
- * 文件上传请求
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 11:32
- */
-func upload(c *gin.Context) {
-	// 拿到上传的文件的信息
-	file, header, err := c.Request.FormFile("upload")
-	filename := header.Filename
-	fmt.Println(header.Filename)
-	out, err := os.Create("./tmp/" + filename + ".png")
-	if err != nil {
-		log.Error(err)
-	}
-	defer out.Close()
-	// 拷贝上传的文件信息到新建的out文件中
-	_, err = io.Copy(out, file)
-	if err != nil {
-		log.Error(err)
-	}
-}
-
-/**
- * 文件下载请求
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 11:33
- */
-func dowload(c *gin.Context) {
-	response, err := http.Get(c.Request.Host + "/static/public/favicon.ico")
-	if err != nil || response.StatusCode != http.StatusOK {
-		c.Status(http.StatusServiceUnavailable)
-		return
-	}
-
-	extraHeaders := map[string]string{
-		"Content-Disposition": `attachment; filename="favicon.ico"`,
-	}
-
-	c.DataFromReader(http.StatusOK, response.ContentLength, response.Header.Get("Content-Type"), response.Body, extraHeaders)
-}
-
-/**
- * 首页
- *
- * @Description
- * @author claer www.bajins.com
- * @date 2019/6/28 11:19
- */
-func WebRoot(c *gin.Context) {
-	// 301重定向
-	//c.Redirect(http.StatusMovedPermanently, "/static")
-	// 返回HTML页面
-	//c.HTML(http.StatusOK, "index.html", nil)
-	c.HTML(http.StatusOK, "index.html", gin.H{})
-}
-
-/**
  * 获取传入参数的端口，如果没传默认值为8000
  *
  * @author claer www.bajins.com
@@ -248,7 +115,8 @@ func main() {
 	//router.Use(Authorize())
 
 	// 注册接口
-	router.POST("/getKey", getKey)
+	router.POST("/getKey", GetKey)
+	router.POST("/SystemInfo", SystemInfo)
 	router.Any("/", WebRoot)
 
 	// 注册一个目录，gin 会把该目录当成一个静态的资源目录

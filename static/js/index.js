@@ -82,17 +82,14 @@ function getKey() {
             success: function (result, status, xhr) {
                 // 从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
                 let contentDisposition = xhr.getResponseHeader('Content-Disposition');
-                let patt = new RegExp("filename=([^;]+\\.[^\\.;]+);*");
                 let filename = "";
-                // 如果从Content-Disposition中取到的文件名为空
-                if (isEmpty(contentDisposition)) {
-                    let f = xhr.config.params.filePath.split("/");
-                    filename = f[f.length - 1];
-                } else {
-                    filename = patt.exec(contentDisposition)[1];
+                // 如果从Content-Disposition中取到的文件名不为空
+                if (!isEmpty(contentDisposition)) {
+                    let reg = new RegExp("filename=([^;]+\\.[^\\.;]+);*");
+                    filename = reg.exec(contentDisposition)[1];
+                    // 取文件名信息中的文件名,替换掉文件名中多余的符号
+                    filename = filename.replaceAll("\\\\|/|\"", "");
                 }
-                // 取文件名信息中的文件名,替换掉文件名中多余的符号
-                filename = filename.replaceAll("\\\\|/|\"", "");
 
                 let downloadElement = document.createElement('a');
                 downloadElement.style.display = 'none';
@@ -119,17 +116,16 @@ function getKey() {
             type: "POST",
             data: {company: company, app: app, version: version},
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-            dataType: "text",
+            dataType: "json",
             success: function (result) {
-                let res = JSON.parse(result);
                 let html = "<div style='width:100%;height:100%;padding:5%;'><p><b>产品：</b>" + app + "</p><hr />";
                 if (company == "torchsoft") {
                     html = html + "<p><b>许可证数量：</b>" + version + "</p><hr />";
                 } else {
                     html = html + "<p><b>版本：</b>" + version + "</p><hr />";
                 }
-                html = html + "<p><b>key：</b><pre style='background: black;color:#66FF66;padding:5%;'>" + res.data.key + "</pre></p><hr /></div>";
-                if (res.code == 200) {
+                html = html + "<p><b>key：</b><pre style='background: black;color:#66FF66;padding:5%;'>" + result.data.key + "</pre></p><hr /></div>";
+                if (result.code == 200) {
                     let area_width = "30%";
                     if (device.isMobile) {
                         area_width = "80%";
@@ -150,10 +146,21 @@ function getKey() {
                     });
                 } else {
                     //提示层
-                    layer.msg(res.message, {icon: 5});
+                    layer.msg(result.message, {icon: 5});
                 }
             }
         })
     }
 }
 
+
+$(function () {
+    $.ajax({
+        url: "/SystemInfo",
+        type: "POST",
+        dataType: "json",
+        success: function (result) {
+            $(".version").text(result.data.Version);
+        }
+    })
+})
