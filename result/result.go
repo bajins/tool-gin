@@ -1,4 +1,4 @@
-package common
+package result
 
 import (
 	"github.com/gin-gonic/gin"
