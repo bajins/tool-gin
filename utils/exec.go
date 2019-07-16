@@ -10,8 +10,13 @@ import (
 /**
  * 执行python脚本
  *
+ * @param script string 要执行的Python脚本，应该是完整的路径
+ * @param args ...string 命令参数
+ * @return result string 执行的结果
+ * @return err error 错误
+ * @Description
  * @author claer www.bajins.com
- * @date 2019/6/28 14:19
+ * @date 2019/7/16 16:52
  */
 func ExecutePython(script string, args ...string) (result string, err error) {
 	if !IsFile(script) {
