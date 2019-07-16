@@ -11,7 +11,8 @@ if not exist "%~dp0$testAdmin$" (
 :: 开启延迟环境变量扩展
 setlocal enabledelayedexpansion
 
-7za
+:: 执行7z命令，但是不输出，这是为了判断
+7za > nul
 :: 如果7z压缩命令行不存在，则下载
 if not "%errorlevel%" == "0" (
     :: cscript -nologo -e:jscript "%~f0" 这一段是执行命令，后面的是参数（组成方式：/key:value）
