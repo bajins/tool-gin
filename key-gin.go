@@ -21,27 +21,25 @@ const (
  * @author claer www.bajins.com
  * @date 2019/6/28 11:32
  */
-func Authorize() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		username := c.Query("username") // 用户名
-		ts := c.Query("ts")             // 时间戳
-		token := c.Query("token")       // 访问令牌
+func Authorize(c *gin.Context) {
+	username := c.Query("username") // 用户名
+	ts := c.Query("ts")             // 时间戳
+	token := c.Query("token")       // 访问令牌
 
-		if strings.ToLower(utils.MD5(username+ts+TokenSalt)) == strings.ToLower(token) {
-			// 验证通过，会继续访问下一个中间件
-			c.Next()
-		} else {
-			// 验证不通过，不再调用后续的函数处理
-			c.Abort()
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "访问未授权"})
-			// return可省略, 只要前面执行Abort()就可以让后面的handler函数不再执行
-			return
-		}
+	if strings.ToLower(utils.MD5(username+ts+TokenSalt)) == strings.ToLower(token) {
+		// 验证通过，会继续访问下一个中间件
+		c.Next()
+	} else {
+		// 验证不通过，不再调用后续的函数处理
+		c.Abort()
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "访问未授权"})
+		// return可省略, 只要前面执行Abort()就可以让后面的handler函数不再执行
+		return
 	}
 }
 
 // 禁止浏览器页面缓存
-var FilterNoCache = func(c *gin.Context) {
+func FilterNoCache(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Header("Pragma", "no-cache")
 	c.Header("Expires", "0")
@@ -50,31 +48,29 @@ var FilterNoCache = func(c *gin.Context) {
 }
 
 // 处理跨域请求,支持options访问
-func Cors() gin.HandlerFunc {
-	return func(c *gin.Context) {
+func Cors(c *gin.Context) {
 
-		// 它指定允许进入来源的域名、ip+端口号 。 如果值是 ‘*’ ，表示接受任意的域名请求，这个方式不推荐，
-		// 主要是因为其不安全，而且因为如果浏览器的请求携带了cookie信息，会发生错误
-		c.Header("Access-Control-Allow-Origin", "*")
-		// 设置服务器允许浏览器发送请求都携带cookie
-		c.Header("Access-Control-Allow-Credentials", "true")
-		// 允许的访问方法
-		c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE, PATCH")
-		// Access-Control-Max-Age 用于 CORS 相关配置的缓存
-		c.Header("Access-Control-Max-Age", "3600")
-		// 设置允许的请求头信息
-		c.Header("Access-Control-Allow-Headers", "Token,Origin, X-Requested-With, Content-Type, Accept,mid,X-Token,AccessToken,X-CSRF-Token, Authorization")
+	// 它指定允许进入来源的域名、ip+端口号 。 如果值是 ‘*’ ，表示接受任意的域名请求，这个方式不推荐，
+	// 主要是因为其不安全，而且因为如果浏览器的请求携带了cookie信息，会发生错误
+	c.Header("Access-Control-Allow-Origin", "*")
+	// 设置服务器允许浏览器发送请求都携带cookie
+	c.Header("Access-Control-Allow-Credentials", "true")
+	// 允许的访问方法
+	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE, PATCH")
+	// Access-Control-Max-Age 用于 CORS 相关配置的缓存
+	c.Header("Access-Control-Max-Age", "3600")
+	// 设置允许的请求头信息
+	c.Header("Access-Control-Allow-Headers", "Token,Origin, X-Requested-With, Content-Type, Accept,mid,X-Token,AccessToken,X-CSRF-Token, Authorization")
 
-		c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
+	c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
 
-		method := c.Request.Method
-		// 放行所有OPTIONS方法
-		if method == "OPTIONS" {
-			c.AbortWithStatus(http.StatusNoContent)
-		}
-		// 继续访问下一个中间件
-		c.Next()
+	method := c.Request.Method
+	// 放行所有OPTIONS方法
+	if method == "OPTIONS" {
+		c.AbortWithStatus(http.StatusNoContent)
 	}
+	// 继续访问下一个中间件
+	c.Next()
 }
 
 /**
