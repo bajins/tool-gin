@@ -5,12 +5,13 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"key-gin/result"
 	"key-gin/utils"
 	"net/http"
 	"os"
 	"runtime"
 )
+
+var result = Result{}
 
 /**
  * 首页
