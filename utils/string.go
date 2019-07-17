@@ -381,3 +381,42 @@ func ToLower(str string) string {
 	}
 	return ""
 }
+
+/**
+ * Unicode转汉字
+ *
+ * @param str string
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/17 11:44
+ */
+func UnicodeToChinese(str string) string {
+	buf := bytes.NewBuffer(nil)
+
+	i, j := 0, len(str)
+	for i < j {
+		x := i + 6
+		if x > j {
+			buf.WriteString(str[i:])
+			break
+		}
+		if str[i] == '\\' && str[i+1] == 'u' {
+			hex := str[i+2 : x]
+			// 将字符串转换为uint类型整数
+			// base：进位制（2 进制到 36 进制）
+			// bitSize：指定整数类型（0:int、8:int8、16:int16、32:int32、64:int64）
+			r, err := strconv.ParseUint(hex, 16, 64)
+			if err == nil {
+				buf.WriteRune(rune(r))
+			} else {
+				buf.WriteString(str[i:x])
+			}
+			i = x
+		} else {
+			buf.WriteByte(str[i])
+			i++
+		}
+	}
+	return buf.String()
+}
