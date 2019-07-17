@@ -23,8 +23,15 @@ if not "%errorlevel%" == "0" (
 set root=%~dp0
 :: 需要打包的文件或文件夹
 set files=pyutils static templates
+
+:: 仅将 %0 扩充到一个路径
+set currentPath=%~p0
+:: 替换\为,号，也可以替换为空格
+set currentPath=%currentPath:\=,%
+:: 顺序循环，设置最后一个为当前目录
+for %%a in (%currentPath%) do set CurrentDirectoryName=%%a
 :: 打包完成的文件命名前一部分
-set project=key-gin
+set project=%CurrentDirectoryName%
 :: 打包完成的文件命名后一部分，与前一部分进行组合
 set allList=_darwin_386,_darwin_amd64,_freebsd_386,_freebsd_amd64,_freebsd_arm,_netbsd_386,_netbsd_amd64,_netbsd_arm,
 set allList=%allList%_openbsd_386,_openbsd_amd64,_windows_386.exe,_windows_amd64.exe,
