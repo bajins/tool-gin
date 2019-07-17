@@ -53,7 +53,7 @@ func SystemInfo(c *gin.Context) {
 	// 获取当前存在的go协程数
 	data["NumGoroutine"] = runtime.NumGoroutine()
 
-	c.JSON(http.StatusOK, result.Success(200, "获取系统信息成功", data))
+	c.JSON(http.StatusOK, result.Success("获取系统信息成功", data))
 }
 
 /**
@@ -100,7 +100,7 @@ func GetKey(c *gin.Context) {
 		}
 		res := make(map[string]string)
 		res["key"] = out
-		c.JSON(http.StatusOK, result.Success(200, "获取key成功", res))
+		c.JSON(http.StatusOK, result.Success("获取key成功", res))
 
 	} else if company == "mobatek" {
 
@@ -123,7 +123,7 @@ func GetKey(c *gin.Context) {
 		}
 		res := make(map[string]string)
 		res["key"] = out
-		c.JSON(http.StatusOK, result.Success(200, "获取key成功", res))
+		c.JSON(http.StatusOK, result.Success("获取key成功", res))
 	}
 
 }
