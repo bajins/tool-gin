@@ -312,15 +312,15 @@ func PathSplitter(path string, rootName string) []map[string]string {
 		path = "/" + path
 	}
 	var links []map[string]string
-	link := make(map[string]string)
-	link["name"] = rootName
+	rootLink := make(map[string]string)
+	rootLink["name"] = rootName
 	// 如果是根目录，那么就返回空
 	if IsStringEmpty(path) || path == "/" {
-		link["path"] = ""
-		links = append(links, link)
+		rootLink["path"] = ""
+		links = append(links, rootLink)
 		return links
 	}
-	link["path"] = "/"
+	rootLink["path"] = "/"
 	// 避免分割路径时多分割一次，去掉第一个分割符，并对路径分割
 	split := strings.Split(path[1:], "/")
 	for k, v := range split {
