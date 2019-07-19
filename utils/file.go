@@ -15,20 +15,20 @@ import (
 目录下所有的文件夹
 */
 func GetDirList(dirPath string) ([]string, error) {
-	var dir_list []string
-	dir_err := filepath.Walk(dirPath,
+	var dirList []string
+	err := filepath.Walk(dirPath,
 		func(path string, f os.FileInfo, err error) error {
 			if f == nil {
 				return err
 			}
 			if f.IsDir() {
-				dir_list = append(dir_list, path)
+				dirList = append(dirList, path)
 				return nil
 			}
 
 			return nil
 		})
-	return dir_list, dir_err
+	return dirList, err
 }
 
 /**
@@ -291,4 +291,48 @@ func PathStitching(paths ...string) string {
 		path = path + sep + value
 	}
 	return path[1:]
+}
+
+/**
+ * 对路径进行重组为目录名+路径
+ *
+ * @param path string 路径
+ * @param rootName string 路径头，根目录的名称，就是/的名称
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/19 11:26
+ */
+func PathSplitter(path string, rootName string) []map[string]string {
+	// 替换路径中的分割符
+	path = strings.Replace(path, "\\", "/", -1)
+	// 判断第一个字符是否为分割符
+	indexSplitter := strings.Index(path, "/")
+	if indexSplitter != 0 {
+		path = "/" + path
+	}
+	var links []map[string]string
+	link := make(map[string]string)
+	link["name"] = rootName
+	// 如果是根目录，那么就返回空
+	if IsStringEmpty(path) || path == "/" {
+		link["path"] = ""
+		links = append(links, link)
+		return links
+	}
+	link["path"] = "/"
+	// 避免分割路径时多分割一次，去掉第一个分割符，并对路径分割
+	split := strings.Split(path[1:], "/")
+	for k, v := range split {
+		link := make(map[string]string)
+		link["name"] = v
+		// 不是最后一个目录就设置路径
+		if k != len(split)-1 {
+			link["path"] = path[0:strings.Index(path, v)] + v
+		} else {
+			link["path"] = ""
+		}
+		links = append(links, link)
+	}
+	return links
 }
