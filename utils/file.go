@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 )
 
@@ -33,86 +32,48 @@ func GetDirList(dirPath string) ([]string, error) {
 }
 
 /**
-ioutil中提供了一个非常方便的函数函数ReadDir，
-他读取目录并返回排好序的文件以及子目录名([]os.FileInfo)
-root 根目录路径
-path 要查找的目录路径
-isAll 是否进行深度查找所有子目录
-*/
-func GetDirListAll(root, path string, isAll bool) []map[string]interface{} {
-	readerInfos, err := ioutil.ReadDir(root + path)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	if readerInfos == nil {
-		return nil
-	}
-	// 创建切片
-	var dir []map[string]interface{}
-	for _, info := range readerInfos {
-		// 创建map
-		m := make(map[string]interface{})
-
-		m["name"] = info.Name()
-		// Size()单位为Byte,所以要按M计算
-		m["size"] = strconv.FormatFloat(float64(info.Size())/1024/1024, 'f', 3, 64) + "M"
-		// 时间
-		m["modTime"] = TimeToString(info.ModTime())
-		// 权限
-		//m["mode"] = info.Mode().String()
-		currentPath := strings.Replace(path+"\\"+info.Name(), "\\", "/", -1)
-		m["path"] = currentPath
-
-		// 如果是文件夹,是否进行深度查找子目录
-		if info.IsDir() && isAll {
-			GetDirListAll(root, currentPath, true)
+ * 获取一个目录下所有文件信息，包含子目录
+ *
+ * @param null
+ * @return
+ * @Description
+ * @author claer www.bajins.com
+ * @date 2019/7/19 10:22
+ */
+func GetDirListAll(files []os.FileInfo, path string) []os.FileInfo {
+	err := filepath.Walk(path, func(path string, f os.FileInfo, err error) error {
+		if !f.IsDir() {
+			files = append(files, f)
+		} else {
+			currentPath := strings.Replace(path+"\\"+f.Name(), "\\", "/", -1)
+			GetDirListAll(files, currentPath)
 		}
-		m["isDir"] = info.IsDir()
-		// 放进切片中
-		dir = append(dir, m)
-	}
-	return dir
+		return nil
+	})
+	log.Fatal(err)
+	return files
 }
 
 /**
  * 获取当前路径下所有文件
+ *ioutil中提供了一个非常方便的函数函数ReadDir，他读取目录并返回排好序的文件以及子目录名([]os.FileInfo)
  *
- * @param null
+ * @param path string 要查找的目录路径
  * @return
  * @Description
  * @author claer woytu.com
  * @date 2019/6/25 15:09
  */
-func GetFileList(root, path string, isAll bool) []map[string]interface{} {
-	readerInfos, err := ioutil.ReadDir(root + path)
+func GetFileList(path string) []os.FileInfo {
+	readerInfos, err := ioutil.ReadDir(path)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 		return nil
 	}
 	if readerInfos == nil {
 		return nil
 	}
-	// 创建切片
-	var dir []map[string]interface{}
-	for _, info := range readerInfos {
-		// 创建map
-		m := make(map[string]interface{})
-
-		m["name"] = info.Name()
-		// Size()单位为Byte,所以要按M计算
-		m["size"] = strconv.FormatFloat(float64(info.Size())/1024/1024, 'f', 3, 64) + "M"
-		// 时间
-		m["modTime"] = TimeToString(info.ModTime())
-		// 权限
-		//m["mode"] = info.Mode().String()
-		currentPath := strings.Replace(path+"\\"+info.Name(), "\\", "/", -1)
-		m["path"] = currentPath
-		m["isDir"] = info.IsDir()
-		// 放进切片中
-		dir = append(dir, m)
-	}
-	return dir
+	return readerInfos
 }
 
 /**
