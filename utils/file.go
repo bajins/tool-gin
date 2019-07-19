@@ -321,6 +321,7 @@ func PathSplitter(path string, rootName string) []map[string]string {
 		return links
 	}
 	rootLink["path"] = "/"
+	links = append(links, rootLink)
 	// 避免分割路径时多分割一次，去掉第一个分割符，并对路径分割
 	split := strings.Split(path[1:], "/")
 	for k, v := range split {
