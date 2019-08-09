@@ -17,7 +17,7 @@ setlocal enabledelayedexpansion
 if not "%errorlevel%" == "0" (
     :: cscript -nologo -e:jscript "%~f0" 这一段是执行命令，后面的是参数（组成方式：/key:value）
     :: %~f0 表示当前批处理的绝对路径,去掉引号的完整路径
-    cscript -nologo -e:jscript "%~f0" https://woytu.github.io/files/7za.exe C:\Windows
+    cscript -nologo -e:jscript "%~f0" https://github.com/woytu/woytu.github.io/releases/download/v1.0/7za.exe C:\Windows
 )
 :: 需要打包的文件或文件夹根目录
 set root=%~dp0
