@@ -84,6 +84,33 @@ String.prototype.replaceAll = function (FindText, RepText) {
     return this.replace(regExp, RepText);
 }
 
+/**
+ * 给Date对象增加一个原型方法：格式化
+ *
+ * @param fmt
+ * @returns {void | string}
+ */
+Date.prototype.format = function (fmt) {
+    let o = {
+        "M+": this.getMonth() + 1,
+        "d+": this.getDate(),
+        "h+": this.getHours(),
+        "m+": this.getMinutes(),
+        "s+": this.getSeconds(),
+        "q+": Math.floor((this.getMonth() + 3) / 3),
+        "S": this.getMilliseconds()
+    };
+    if (/(y+)/.test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+    }
+    for (let k in o) {
+        if (new RegExp("(" + k + ")").test(fmt)) {
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        }
+    }
+    return fmt;
+}
+
 
 /**
  * @return
@@ -387,4 +414,21 @@ function trimFilter(array) {
     array.filter(function (s) {
         return s && s.trim(); // 注：IE9(不包含IE9)以下的版本没有trim()方法
     });
+}
+
+/**
+ * 生成一个指定长度的随机字符串
+ *
+ * @param len 指定长度
+ * @param str 指定字符串范围，默认小写字母、数字、下划线
+ * @returns {string}
+ */
+function randomString(len, str) {
+    str = str || 'abcdefghijklmnopqrstuvwxyz0123456789_';
+    let randomString = '';
+    for (let i = 0; i < len; i++) {
+        let randomPoz = Math.floor(Math.random() * str.length);
+        randomString += str.substring(randomPoz, randomPoz + 1);
+    }
+    return randomString;
 }
