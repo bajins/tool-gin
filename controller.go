@@ -27,6 +27,15 @@ func WebRoot(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{})
 }
 
+// Netsarang
+func Netsarang(c *gin.Context) {
+	// 301重定向
+	//c.Redirect(http.StatusMovedPermanently, "/static")
+	// 返回HTML页面
+	//c.HTML(http.StatusOK, "index.html", nil)
+	c.HTML(http.StatusOK, "netsarang.html", gin.H{})
+}
+
 /**
  * 获取系统信息
  *

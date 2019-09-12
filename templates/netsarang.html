@@ -1,15 +1,17 @@
-<!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="本网页提供Xshell和Xftp激活秘钥">
-    <meta name="keywords" content="Xshell,Xftp,Xftp,Xshell Plus,Xmanager Power Suite各版本激活"/>
-    <title>xshell激活</title>
-    <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.ico"/>
+    <meta name="description" content="本网页提供Xshell和Xftp免费个人版的官方下载地址">
+    <meta name="keywords"
+          content="Xshell，Xshell5下载，Xshell5官网下载，Xshell5免费版，Xshell5个人版，Xftp，Xftp免费版下载，Xshell免费版下载，netsarang"/>
+    <title>Xshell / Xftp 家庭学生个人免费官方版下载</title>
+    <link rel="shortcut icon" type="image/x-icon"
+          href="https://ws2.sinaimg.cn/large/7efa749fgy1fw0vqmj8vwj200g00g0gm.jpg"/>
     <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/css?family=Raleway:200"/>
     <link href="https://lib.baomitu.com/pure/1.0.0/pure-min.css" rel="stylesheet"/>
-    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" href="/static/css/index.css"/>
 
     <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/layer/layer.js"></script>
@@ -17,11 +19,13 @@
     <script type="text/javascript" src="/static/js/util.js"></script>
     <script type="text/javascript" src="/static/js/index.js"></script>
 </head>
+
 <body>
 <div id="main">
     <div class="header">
-        <h1>Xshell / Xftp 激活</h1>
-        <h2>支持Xshell、Xftp、Xshell Plus、Xmanager Power Suite各版本激活</h2>
+        <h1>Xshell / Xftp 官方版下载</h1>
+        <h2>支持Xshell、Xftp、Xshell Plus、Xmanager Power Suite各版本下载</h2>
+        <h2>源自netsarang官网！</h2>
         <table>
             <tbody>
             <tr>
@@ -47,39 +51,30 @@
         </p>
         <p>
             <b>安装方式：</b>
-            <a target="_blank" href="https://www.woytu.com/?dir=DeveloperTool/shell#Xshell">
-                https://www.woytu.com/?dir=DeveloperTool/shell#Xshell
+            <a target="_blank" href="https://www.woytu.com/?dir=DeveloperTool/SSH">
+                https://www.woytu.com/?dir=DeveloperTool/SSH
             </a>
         </p>
         <form class="pure-form pure-form-stacked">
             <fieldset>
-                <label for="company"><b>公司:</b></label>
-                <select class="pure-input-1" id="company" onchange="selectCompany()">
-                    <option value="netsarang" selected>Netsarang</option>
-                    <option value="mobatek">Mobatek</option>
-                    <option value="torchsoft">torchsoft</option>
+                <label for="xshell-app"><b>软件:</b></label>
+                <select class="pure-input-1" id="xshell-app">
+                    <option value="xshp" selected>Xshell Plus</option>
+                    <option value="xme">Xmanager Power Suite</option>
+                    <option value="xsh">Xshell</option>
+                    <option value="xfp">Xftp</option>
                 </select>
-                <label for="app"><b>产品:</b></label>
-                <select class="pure-input-1" id="app">
-                    <option value="Xmanager">Xmanager Power Suite</option>
-                    <option value="Xshell">Xshell</option>
-                    <option value="Xlpd">Xlpd</option>
-                    <option value="Xftp">Xftp</option>
-                    <option value="Xshell Plus" selected>Xshell Plus</option>
+                <label for="xshell-version"><b>版本:</b></label>
+                <select class="pure-input-1" id="xshell-version">
+                    <option value="6" selected>6.x (目前最新版本)</option>
                 </select>
-                <label for="version"><b id="version-label">版本:</b></label>
-                <select class="pure-input-1" id="version">
-                    <option value="6" selected>6</option>
-                    <option value="5">5</option>
-                    <option value="4">4</option>
-                    <option value="3">3</option>
-                    <option value="2">2</option>
-                </select>
-                <a class="pure-button pure-button-primary pure-input-1 pure-input-rounded submit-button"
-                   onclick="getKey()">
-                    点击获取秘钥
-                </a>
+                <a class="pure-button pure-button-primary pure-input-1" onclick="xshellDownload()">点击下载</a>
+                <span class="pure-form-message">
+                    如果打开下载页面没有自动下载软件，请点击[begin downloading]链接手动下载
+                </span>
             </fieldset>
+            <a class="button-secondary pure-button pure-input-rounded pure-u-1 a-active" target="_blank"
+               href="https://key.woytu.com">激活方式</a>
         </form>
 
     </div>
@@ -102,11 +97,11 @@
 
 <!-- 统计代码 -->
 <script>
-    const _hmt = [];
+    var _hmt = _hmt || [];
     (function () {
-        const hm = document.createElement("script");
-        hm.src = "https://hm.baidu.com/hm.js?7ac7cdb0162597bd65c904b23b4fe505";
-        const s = document.getElementsByTagName("script")[0];
+        var hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?fd8e8310d355b9a394ad2448420498b2";
+        var s = document.getElementsByTagName("script")[0];
         s.parentNode.insertBefore(hm, s);
     })();
 </script>
@@ -120,7 +115,10 @@
     }
 
     gtag('js', new Date());
+
     gtag('config', 'UA-130580298-1');
 </script>
+
 </body>
+
 </html>

@@ -114,6 +114,7 @@ func main() {
 	router.POST("/getKey", GetKey)
 	router.POST("/SystemInfo", SystemInfo)
 	router.Any("/", WebRoot)
+	router.Any("/xshell", Netsarang)
 
 	// 注册一个目录，gin 会把该目录当成一个静态的资源目录
 	// 该目录下的资源看可以按照路径访问

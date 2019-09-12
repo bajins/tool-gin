@@ -1,3 +1,30 @@
+/**
+ * @Description:
+ * @Author: bajins www.bajins.com
+ * @File: index.js
+ * @Version: 1.0.0
+ * @Time: 2019/9/12 11:29
+ * @Project: key-gin
+ * @Package:
+ * @Software: GoLand
+ */
+
+
+$(function () {
+    $.ajax({
+        url: "/SystemInfo",
+        type: "POST",
+        dataType: "json",
+        success: function (result) {
+            $(".version").text(result.data.Version);
+        }
+    })
+})
+
+
+/**
+ * 重置首页版本或产品
+ */
 function selectCompany() {
     let company = $("#company").val();
     if (company == "netsarang") {
@@ -58,7 +85,9 @@ function selectCompany() {
     }
 }
 
-
+/**
+ * 获取激活码
+ */
 function getKey() {
     let company = $("#company").val();
     let app = $("#app").val();
@@ -72,44 +101,8 @@ function getKey() {
             '</form>');
         $(document.body).append(form);
         form.submit().remove();*/
+        download("/getKey",{company: company, app: app, version: version});
 
-        $.ajax({
-            url: "/getKey",
-            type: "POST",
-            data: {company: company, app: app, version: version},
-            contentType: "application/x-www-form-urlencoded; charset=UTF-8",
-            responseType: "blob",
-            success: function (result, status, xhr) {
-                // 从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
-                let contentDisposition = xhr.getResponseHeader('Content-Disposition');
-                let filename = "";
-                // 如果从Content-Disposition中取到的文件名不为空
-                if (!isEmpty(contentDisposition)) {
-                    let reg = new RegExp("filename=([^;]+\\.[^\\.;]+);*");
-                    filename = reg.exec(contentDisposition)[1];
-                    // 取文件名信息中的文件名,替换掉文件名中多余的符号
-                    filename = filename.replaceAll("\\\\|/|\"", "");
-                }
-
-                let downloadElement = document.createElement('a');
-                downloadElement.style.display = 'none';
-
-                //这里res.data是返回的blob对象
-                let blob = new Blob([result], {type: 'application/octet-stream;charset=utf-8'});
-                // 创建下载的链接
-                let href = window.URL.createObjectURL(blob);
-                downloadElement.href = href;
-                // 下载后文件名
-                downloadElement.download = filename;
-                document.body.appendChild(downloadElement);
-                // 点击下载
-                downloadElement.click();
-                // 下载完成移除元素
-                document.body.removeChild(downloadElement);
-                // 释放掉blob对象
-                window.URL.revokeObjectURL(href);
-            }
-        })
     } else {
         $.ajax({
             url: "/getKey",
@@ -154,13 +147,9 @@ function getKey() {
 }
 
 
-$(function () {
-    $.ajax({
-        url: "/SystemInfo",
-        type: "POST",
-        dataType: "json",
-        success: function (result) {
-            $(".version").text(result.data.Version);
-        }
-    })
-})
+
+function xshellDownload() {
+    let app = $("#xshell-app").val();
+    let version = $("#xshell-version").val();
+
+}
