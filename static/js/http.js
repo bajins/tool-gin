@@ -1,172 +1,175 @@
-// https://www.jianshu.com/p/918c63045bc3
-const http = {
-    /**
-     * js封装ajax请求
-     * >>使用new XMLHttpRequest 创建请求对象,所以不考虑低端IE浏览器(IE6及以下不支持XMLHttpRequest)
-     * >>使用es6语法,如果需要在正式环境使用,则可以用babel转换为es5语法 https://babeljs.cn/docs/setup/#installation
-     *  @param settings 请求参数模仿jQuery ajax
-     *  调用该方法,data参数需要和请求头Content-Type对应
-     *  Content-Type                        data                                     描述
-     *  application/x-www-form-urlencoded   'name=哈哈&age=12'或{name:'哈哈',age:12}  查询字符串,用&分割
-     *  application/json                     name=哈哈&age=12'                        json字符串
-     *  multipart/form-data                  new FormData()                           FormData对象,当为FormData类型,不要手动设置Content-Type
-     *  注意:请求参数如果包含日期类型.是否能请求成功需要后台接口配合
-     */
-    ajax: (settings = {}) => {
-        // 初始化请求参数
-        let _s = Object.assign({
-            url: '', // string
-            type: 'GET', // string 'GET' 'POST' 'DELETE'
-            dataType: 'json', // string 期望的返回数据类型:'json' 'text' 'document' ...
-            async: true, //  boolean true:异步请求 false:同步请求 required
-            data: null, // any 请求参数,data需要和请求头Content-Type对应
-            headers: {}, // object 请求头
-            timeout: 1000, // string 超时时间:0表示不设置超时
-            beforeSend: (xhr) => {
-            },
-            success: (result, status, xhr) => {
-            },
-            error: (xhr, status, error) => {
-            },
-            complete: (xhr, status) => {
-            }
-        }, settings);
-        // 参数验证
-        if (!_s.url || !_s.type || !_s.dataType || !_s.async) {
-            alert('参数有误');
-            return;
-        }
-        // 创建XMLHttpRequest请求对象
-        let xhr = new XMLHttpRequest();
-        // 请求开始回调函数
-        xhr.addEventListener('loadstart', e => {
-            _s.beforeSend(xhr);
-        });
-        // 请求成功回调函数
-        xhr.addEventListener('load', e => {
-            const status = xhr.status;
-            if ((status >= 200 && status < 300) || status === 304) {
-                let result;
-                if (xhr.responseType === 'text') {
-                    result = xhr.responseText;
-                } else if (xhr.responseType === 'document') {
-                    result = xhr.responseXML;
-                } else {
-                    result = xhr.response;
-                }
-                // 注意:状态码200表示请求发送/接受成功,不表示业务处理成功
-                _s.success(result, status, xhr);
-            } else {
-                _s.error(xhr, status, e);
-            }
-        });
-        // 请求结束
-        xhr.addEventListener('loadend', e => {
-            _s.complete(xhr, xhr.status);
-        });
-        // 请求出错
-        xhr.addEventListener('error', e => {
-            _s.error(xhr, xhr.status, e);
-        });
-        // 请求超时
-        xhr.addEventListener('timeout', e => {
-            _s.error(xhr, 408, e);
-        });
-        let useUrlParam = false;
-        let sType = _s.type.toUpperCase();
-        // 如果是"简单"请求,则把data参数组装在url上
-        if (sType === 'GET' || sType === 'DELETE') {
-            useUrlParam = true;
-            _s.url += http.getUrlParam(_s.url, _s.data);
-        }
-        // 初始化请求
-        xhr.open(_s.type, _s.url, _s.async);
-        // 设置期望的返回数据类型
-        xhr.responseType = _s.dataType;
-        // 设置请求头
-        for (const key of Object.keys(_s.headers)) {
-            xhr.setRequestHeader(key, _s.headers[key]);
-        }
-        // 设置超时时间
-        if (_s.async && _s.timeout) {
-            xhr.timeout = _s.timeout;
-        }
-        // 发送请求.如果是简单请求,请求参数应为null.否则,请求参数类型需要和请求头Content-Type对应
-        xhr.send(useUrlParam ? null : http.getQueryData(_s.data));
-    },
-    // 把参数data转为url查询参数
-    getUrlParam: (url, data) => {
-        if (!data) {
-            return '';
-        }
-        let paramsStr = data instanceof Object ? http.getQueryString(data) : data;
-        return (url.indexOf('?') !== -1) ? paramsStr : '?' + paramsStr;
-    },
-    // 获取ajax请求参数
-    getQueryData: (data) => {
-        if (!data) {
-            return null;
-        }
-        if (typeof data === 'string') {
-            return data;
-        }
-        if (data instanceof FormData) {
-            return data;
-        }
-        return http.getQueryString(data);
-    },
-    // 把对象转为查询字符串
-    getQueryString: (data) => {
-        let paramsArr = [];
-        if (data instanceof Object) {
-            Object.keys(data).forEach(key => {
-                let val = data[key];
-                // todo 参数Date类型需要根据后台api酌情处理
-                if (val instanceof Date) {
-                    // val = dateFormat(val, 'yyyy-MM-dd hh:mm:ss');
-                }
-                paramsArr.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
-            });
-        }
-        return paramsArr.join('&');
-    }
+/**
+ * @Description:
+ * @Author: bajins www.bajins.com
+ * @File: http.js
+ * @Version: 1.0.0
+ * @Time: 2019/9/12 11:29
+ * @Project: key-gin
+ * @Package:
+ * @Software: GoLand
+ */
+
+
+/**
+ * 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT）
+ *
+ * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
+ */
+const METHOD = {
+    OPTIONS: "OPTIONS",
+    GET: "GET",
+    HEAD: "HEAD",
+    POST: "POST",
+    PUT: "PUT",
+    DELETE: "DELETE",
+    TRACE: "TRACE",
+    CONNECT: "CONNECT"
+}
+
+/**
+ * 请求数据类型,告诉服务器，我要发什么类型的数据。
+ *
+ * application/x-www-form-urlencoded：数据被编码为名称/值对。这是标准的编码格式。默认使用此类型。
+ * multipart/form-data：数据被编码为一条消息，页上的每个控件对应消息中的一个部分。
+ * text/plain：数据以纯文本形式(text/json/xml/html)进行编码，其中不含任何控件或格式字符。postman软件里标的是RAW。
+ *
+ * @type {{FORM_DATA: string, URLENCODED: string, TEXT_PLAIN: string}}
+ */
+const CONTENT_TYPE = {
+    URLENCODED: "application/x-www-form-urlencoded",
+    FORM_DATA: "multipart/form-data",
+    TEXT_PLAIN: "text/plain"
+}
+
+/**
+ * 预期服务器返回的数据类型（对应请求头中的Accept），如果是下载文件则指定RESPONSE_TYPE
+ *
+ * 如果没有指定，那么会自动推断是返回 XML，还是JSON，还是script，还是String。
+ * xml: 返回 XML 文档。
+ * html: 返回纯文本 HTML 信息；包含的 script 标签会在插入 dom 时执行。
+ * script: 返回纯文本 JavaScript 代码。不会自动缓存结果。除非设置了 “cache” 参数。
+ * 注意：在远程请求时(不在同一个域下)，所有 POST 请求都将转为 GET 请求。（因为将使用 DOM 的 script标签来加载）
+ * json: 返回 JSON 数据 。
+ * jsonp: JSONP 格式。使用 JSONP 形式调用函数时，如 “myurl?callback=?” jQuery 将自动替换 ? 为正确的函数名，以执行回调函数。
+ * text: 返回纯文本字符串
+ *
+ * @type {{SCRIPTY: string, JSONP: string, XML: string, JSON: string, TEXT: string, HTML: string}}
+ */
+const DATA_TYPE = {
+    JSON: "json", TEXT: "text", XML: "xml", HTML: "html", SCRIPTY: "script", JSONP: "jsonp"
+}
+
+/**
+ * 响应的数据类型
+ *
+ *   ""    将 responseType 设为空字符串与设置为"text"相同， 是默认类型 （实际上是 DOMString）。
+ *  "arraybuffer"    response 是一个包含二进制数据的 JavaScript ArrayBuffer 。
+ *  "blob"    response 是一个包含二进制数据的 Blob 对象 。
+ *  "document"    response 是一个 HTML Document 或 XML XMLDocument ，这取决于接收到的数据的 MIME 类型。
+ *  "json"    response 是一个 JavaScript 对象。这个对象是通过将接收到的数据类型视为 JSON 解析得到的。
+ *  "text"    response 是包含在 DOMString 对象中的文本。
+ *  "moz-chunked-arraybuffer" 与"arraybuffer"相似，但是数据会被接收到一个流中。
+ *         使用此响应类型时，响应中的值仅在 progress 事件的处理程序中可用，并且只包含上一次响应 progress 事件以后收到的数据，
+ *         而不是自请求发送以来收到的所有数据。在 progress 事件处理时访问 response 将返回到目前为止收到的数据。
+ *         在 progress 事件处理程序之外访问， response 的值会始终为 null 。
+ *  "ms-stream"  response 是下载流的一部分；此响应类型仅允许下载请求，并且仅受Internet Explorer支持。
+ *
+ * @type {{ARRAYBUFFER: string, BLOB: string, MS_STREAM: string, DOCUMENT: string, TEXT: string, JSON: string}}
+ */
+const RESPONSE_TYPE = {
+    TEXT: "text", ARRAY_BUFFER: "arraybuffer", BLOB: "blob", DOCUMENT: "document", JSON: "json", MS_STREAM: "ms-stream"
 }
 
 
-// 调用http.ajax:发送一个get请求示例
-/*
-http.ajax({
-  url: url + '?name=哈哈&age=12',
-  success: function (result, status, xhr) {
-    console.log('request success...');
-  },
-  error: (xhr, status, error) => {
-    console.log('request error...');
-  }
-});
-*/
+/**
+ * 封装axios HTTP请求API为`Promise`方式
+ * 使用方法：http.axiosRequest({obj对象的数据},url字符串：如果obj.url为空就取这里的值)
+ *
+ * @param url 请求路径
+ * @param obj 有以下参数：
+ *   url： 请求路径：如果obj.url为空就取这里的值
+ *   method： 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT）
+ *   data： 是作为请求主体被发送的数据,只适用于这些请求方法 'PUT', 'POST', 和 'PATCH'
+ *   params: 是即将与请求一起发送的 URL 参数
+ *   contentType:  请求数据类型(application/x-www-form-urlencoded,multipart/form-data,text/plain)
+ *   dataType： 返回数据类型（json,text,xml,html,script,jsonp）
+ *   responseType： 响应的数据类型（text，arraybuffer,blob,document,json,ms-stream）
+ *
+ * @param url
+ * @param obj
+ * @returns {Promise<unknown>}
+ */
+const request = (url, obj) => {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: obj.url || url,
+            method: obj.method || METHOD.GET,
+            data: obj.data || {},// 是作为请求主体被发送的数据,只适用于这些请求方法 'PUT', 'POST', 和 'PATCH'
+            params: obj.data || {},// 是即将与请求一起发送的 URL 参数
+            header: {
+                'Content-Type': obj.contentType || CONTENT_TYPE.URLENCODED
+            },
+            dataType: obj.dataType || DATA_TYPE.JSON,
+            responseType: obj.responseType || RESPONSE_TYPE.JSON,
+        }).then(response => {
+            resolve(response);
+        }).catch((error) => {
+            reject(error)
+        })
+    })
+}
 
-// 调用http.ajax:发送一个post请求示例
-/*
 
-http.ajax({
-  url: url,
-  type: 'POST',
-  data: {name: '哈哈', age: 12}, //或 data: 'name=哈哈&age=12',
-  headers: {
-    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-  },
-  beforeSend: (xhr) => {
-    console.log('request show loading...');
-  },
-  success: function (result, status, xhr) {
-    console.log('request success...');
-  },
-  error: (xhr, status, error) => {
-    console.log('request error...');
-  },
-  complete: (xhr, status) => {
-    console.log('request hide loading...');
-  }
-});
-*/
+/**
+ * 文件下载api封装
+ *
+ * @param url
+ * @param params
+ * @returns {Promise<unknown>}
+ */
+const download = (url, params) => {
+    return new Promise((resolve, reject) => {
+        request(url, {
+            method: METHOD.POST,
+            data: params,
+            contentType: CONTENT_TYPE.URLENCODED,
+            responseType: RESPONSE_TYPE.BLOB
+        }).then(function (result, status, xhr) {
+
+            // console.log(xhr.getAllResponseHeaders());
+            // xhr.getResponseHeader('Content-Disposition');
+            // 从response的headers中获取filename,
+            // 后端response.setHeader("Content-Disposition", "attachment; filename=文件名");
+            let contentDisposition = xhr.headers['Content-Disposition'];
+            let filename = "";
+            // 如果从Content-Disposition中取到的文件名不为空
+            if (!isEmpty(contentDisposition)) {
+                let reg = new RegExp("filename=([^;]+\\.[^\\.;]+);*");
+                filename = reg.exec(contentDisposition)[1];
+                // 取文件名信息中的文件名,替换掉文件名中多余的符号
+                filename = filename.replaceAll("\\\\|/|\"", "");
+            }
+            let downloadElement = document.createElement('a');
+
+            //这里res.data是返回的blob对象
+            let blob = new Blob([result], {type: 'application/octet-stream;charset=utf-8'});
+            // 创建下载的链接
+            let href = window.URL.createObjectURL(blob);
+
+            downloadElement.style.display = 'none';
+            downloadElement.href = href;
+            // 下载后文件名
+            downloadElement.download = filename;
+            document.body.appendChild(downloadElement);
+            // 点击下载
+            downloadElement.click();
+            // 下载完成移除元素
+            document.body.removeChild(downloadElement);
+            // 释放掉blob对象
+            window.URL.revokeObjectURL(href);
+
+        }).catch(function (err) {
+            reject(err);
+        })
+    })
+}
