@@ -1,8 +1,11 @@
 package utils
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -25,7 +28,7 @@ func DownFile(url, upPreDir, upDir string, proxyURL string) (string, error) {
 		return "", err
 	}
 
-	rc, err := HttpGet(url, nil, proxyURL)
+	rc, err := HttpProxyGet(url, nil, proxyURL)
 	if err != nil {
 		return "", err
 	}
@@ -45,7 +48,7 @@ var UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, 
 
 // HttpGet获取指定的资源。如果是，则返回ErrNotFound
 // 服务器以状态404响应。
-func HttpGet(rawurl string, header http.Header, proxyURL string) (io.ReadCloser, error) {
+func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCloser, error) {
 	req, err := http.NewRequest("GET", rawurl, nil)
 	if err != nil {
 		return nil, err
@@ -82,11 +85,98 @@ func HttpGet(rawurl string, header http.Header, proxyURL string) (io.ReadCloser,
 	}
 
 	resp.Body.Close()
-	if resp.StatusCode == 404 { //
+	if resp.StatusCode == 404 {
 		err = errors.New("请求未发现")
 	} else {
 		err = errors.New("请求错误")
 	}
 
 	return nil, err
+}
+
+// http.Client发送请求
+// method:	请求方法：POST、GET、PUT、DELETE
+// url:		请求地址
+// params:	请求参数
+func HttpClient(method, url string, params map[string]string) string {
+	method = strings.ToUpper(method)
+
+	client := http.Client{Timeout: 5 * time.Second}
+
+	var resp *http.Response
+	var err error
+	if method == "GET" {
+		param := "?"
+		for key, value := range params {
+			param += key + "=" + value + "&"
+		}
+		param = param[0 : len(param)-1]
+		resp, err = client.Get(url + param)
+	} else if method == "POST" {
+		jsonStr, _ := json.Marshal(params)
+		resp, err = client.Post(url, "application/json", bytes.NewBuffer(jsonStr))
+	}
+
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	var buffer [512]byte
+	result := bytes.NewBuffer(nil)
+	for {
+		n, err := resp.Body.Read(buffer[0:])
+		result.Write(buffer[0:n])
+		if err != nil && err == io.EOF {
+			break
+		} else if err != nil {
+			panic(err)
+		}
+	}
+
+	return result.String()
+}
+
+// http.NewRequest发送请求
+// method:	请求方法：POST、GET、PUT、DELETE
+// url:		请求地址
+// params: 	请求提交的数据
+// header:	请求体格式，如：application/json
+func HttpRequest(method, url string, params map[string]string, header map[string]string) string {
+	var req *http.Request
+	var err error
+	if params != nil {
+		jsonStr, _ := json.Marshal(params)
+		req, err = http.NewRequest(method, url, bytes.NewBuffer(jsonStr))
+	} else {
+		param := "?"
+		for key, value := range params {
+			param += key + "=" + value + "&"
+		}
+		param = param[0 : len(param)-1]
+		req, err = http.NewRequest(method, url+param, nil)
+	}
+
+	if header != nil {
+		for key, value := range header {
+			req.Header.Add(key, value)
+		}
+	}
+
+	if header == nil || req.Header.Get("content-type") == "" {
+		req.Header.Add("content-type", "application/json")
+	}
+	if err != nil {
+		panic(err)
+	}
+	defer req.Body.Close()
+
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, error := client.Do(req)
+	if error != nil {
+		panic(error)
+	}
+	defer resp.Body.Close()
+
+	result, _ := ioutil.ReadAll(resp.Body)
+	return string(result)
 }

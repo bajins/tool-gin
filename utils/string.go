@@ -2,85 +2,74 @@ package utils
 
 import (
 	"bytes"
+	crand "crypto/rand"
+	"encoding/json"
 	"fmt"
+	"math/big"
+	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	"unicode"
 )
 
-func Get(org []int, i int, args ...int) (r int) {
-	if i >= 0 && i < len(org) {
-		r = org[i]
-	}
-	if len(args) > 0 {
-		r = args[0]
-	}
-	return
-}
-
 // 将任何类型转换为字符串
-func ToString(value interface{}, args ...int) (s string) {
+func ToString(value interface{}) (s string) {
 	switch v := value.(type) {
 	case bool:
 		s = strconv.FormatBool(v)
 	case float32:
-		s = strconv.FormatFloat(float64(v), 'f', Get(args, 0, -1), Get(args, 1, 32))
+		s = strconv.FormatFloat(float64(v), 'f', -1, 32)
 	case float64:
-		s = strconv.FormatFloat(v, 'f', Get(args, 0, -1), Get(args, 1, 64))
+		s = strconv.FormatFloat(v, 'f', -1, 32)
 	case int:
-		s = strconv.FormatInt(int64(v), Get(args, 0, 10))
+		s = strconv.FormatInt(int64(v), 10)
 	case int8:
-		s = strconv.FormatInt(int64(v), Get(args, 0, 10))
+		s = strconv.FormatInt(int64(v), 10)
 	case int16:
-		s = strconv.FormatInt(int64(v), Get(args, 0, 10))
+		s = strconv.FormatInt(int64(v), 10)
 	case int32:
-		s = strconv.FormatInt(int64(v), Get(args, 0, 10))
+		s = strconv.FormatInt(int64(v), 10)
 	case int64:
-		s = strconv.FormatInt(v, Get(args, 0, 10))
+		s = strconv.FormatInt(v, 10)
 	case uint:
-		s = strconv.FormatUint(uint64(v), Get(args, 0, 10))
+		s = strconv.FormatUint(uint64(v), 10)
 	case uint8:
-		s = strconv.FormatUint(uint64(v), Get(args, 0, 10))
+		s = strconv.FormatUint(uint64(v), 10)
 	case uint16:
-		s = strconv.FormatUint(uint64(v), Get(args, 0, 10))
+		s = strconv.FormatUint(uint64(v), 10)
 	case uint32:
-		s = strconv.FormatUint(uint64(v), Get(args, 0, 10))
+		s = strconv.FormatUint(uint64(v), 10)
 	case uint64:
-		s = strconv.FormatUint(v, Get(args, 0, 10))
+		s = strconv.FormatUint(v, 10)
 	case string:
 		s = v
 	case []byte:
 		s = string(v)
+	case time.Time:
+		s = TimeToString(v)
 	default:
 		s = fmt.Sprintf("%v", v)
 	}
 	return s
 }
 
-/**
- * 驼峰转下划线
- * // 1. 普通使用
- * log.Println(CamelCase("AAAA"))
- * log.Println(CamelCase("IconUrl"))
- * log.Println(CamelCase("iconUrl"))
- * log.Println(CamelCase("parentId"))
- * log.Println(CamelCase("a9b9Ba"))
- * log.Println(CamelCase("_An"))
- * // s输出
- * //2019/03/20 16:34:25 a_a_a_a
- * //2019/03/20 16:34:25 icon_url
- * //2019/03/20 16:34:25 icon_url
- * //2019/03/20 16:34:25 parent_id
- * //2019/03/20 16:34:25 a9b9ba
- * //2019/03/20 16:34:25 Xan
- *
- * @param s string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:24
- */
+// 驼峰转下划线
+// 1. 普通使用
+// log.Println(CamelCase("AAAA"))
+// log.Println(CamelCase("IconUrl"))
+// log.Println(CamelCase("iconUrl"))
+// log.Println(CamelCase("parentId"))
+// log.Println(CamelCase("a9b9Ba"))
+// log.Println(CamelCase("_An"))
+// s输出
+// 2019/03/20 16:34:25 a_a_a_a
+// 2019/03/20 16:34:25 icon_url
+// 2019/03/20 16:34:25 icon_url
+// 2019/03/20 16:34:25 parent_id
+// 2019/03/20 16:34:25 a9b9ba
+// 2019/03/20 16:34:25 Xan
 func CamelCase(s string) string {
 	if s == "" {
 		return ""
@@ -115,41 +104,17 @@ func CamelCase(s string) string {
 	return string(t)
 }
 
-/**
- * 判断为ASCII编码大写
- *
- * @param c byte
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:26
- */
+// 判断为ASCII编码大写
 func isASCIIUpper(c byte) bool {
 	return 'A' <= c && c <= 'Z'
 }
 
-/**
- * 判断为ASCII编码数字
- *
- * @param c byte
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:27
- */
+// 判断为ASCII编码数字
 func isASCIIDigit(c byte) bool {
 	return '0' <= c && c <= '9'
 }
 
-/**
- * 转换为snake
- *
- * @param str string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:27
- */
+// 转换为snake
 func ToSnakeCase(str string) string {
 	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 	snake := matchAllCap.ReplaceAllString(str, "${1}_${2}")
@@ -157,15 +122,7 @@ func ToSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-/**
- * 转换为驼峰
- *
- * @param str string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:28
- */
+// 转换为驼峰
 func ToCamelCase(str string) string {
 	temp := strings.Split(str, "-")
 	for i, r := range temp {
@@ -176,15 +133,7 @@ func ToCamelCase(str string) string {
 	return strings.Join(temp, "")
 }
 
-/**
- * 转换为驼峰，使用正则
- *
- * @param str string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:30
- */
+// 转换为驼峰，使用正则
 func ToCamelCaseRegexp(str string) string {
 	var reg = regexp.MustCompile("(_|-)([a-zA-Z]+)")
 	camel := reg.ReplaceAllString(str, " $2")
@@ -193,15 +142,7 @@ func ToCamelCaseRegexp(str string) string {
 	return camel
 }
 
-/**
- * 驼峰式写法转为下划线写法
- *
- * @param name string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:30
- */
+// 驼峰式写法转为下划线写法
 func UnderscoreName(name string) string {
 	buffer := NewBuffer()
 	for i, r := range name {
@@ -217,31 +158,15 @@ func UnderscoreName(name string) string {
 	return buffer.String()
 }
 
-/**
- * 下划线写法转为驼峰写法
- *
- * @param str string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:31
- */
+// 下划线写法转为驼峰写法
 func CamelName(str string) string {
 	str = strings.Replace(str, "_", " ", -1)
 	str = strings.Title(str)
 	return strings.Replace(str, " ", "", -1)
 }
 
-/**
- * 搜索字符串数组中是否存在指定字符串
- *
- * @param slice []string
- * @param s string
- * @return int 返回-1为未搜寻到
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:32
- */
+// 搜索字符串数组中是否存在指定字符串
+// 返回-1为未搜寻到
 func SearchString(slice []string, s string) int {
 	for i, v := range slice {
 		if s == v {
@@ -251,16 +176,8 @@ func SearchString(slice []string, s string) int {
 	return -1
 }
 
-/**
- * 蛇形字符串
- * snake string, XxYy to xx_yy , XxYY to xx_yy
- *
- * @param s string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:33
- */
+// 蛇形字符串
+// snake string, XxYy to xx_yy , XxYY to xx_yy
 func SnakeString(s string) string {
 	data := make([]byte, 0, len(s)*2)
 	j := false
@@ -278,15 +195,7 @@ func SnakeString(s string) string {
 	return strings.ToLower(string(data[:]))
 }
 
-/**
- * 驼峰字符串转换
- *
- * @param s string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:35
- */
+// 驼峰字符串转换
 func CamelString(s string) string {
 	data := make([]byte, 0, len(s))
 	j := false
@@ -311,15 +220,7 @@ func CamelString(s string) string {
 	return string(data[:])
 }
 
-/**
- * 判断字符串是否为空
- *
- * @param str string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:36
- */
+// 判断字符串是否为空
 func IsStringEmpty(str string) bool {
 	if str == "" || len(str) == 0 || strings.TrimSpace(str) == "" {
 		return true
@@ -331,16 +232,7 @@ func IsStringEmpty(str string) bool {
 	return false
 }
 
-/**
- * 字符串截取
- *
- * @param str 字符串
- * @param pos 开始位置
- * @param length 结束位置
- * @return
- * @author claer woytu.com
- * @date 2019/6/29 3:27
- */
+// 字符串截取
 func Substring(str string, pos, length int) string {
 	runes := []rune(str)
 	l := pos + length
@@ -350,15 +242,7 @@ func Substring(str string, pos, length int) string {
 	return string(runes[pos:l])
 }
 
-/**
- * 首字母转大写
- *
- * @param null
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:19
- */
+// 首字母转大写
 func ToUpper(str string) string {
 	for i, v := range str {
 		return string(unicode.ToUpper(v)) + str[i+1:]
@@ -366,15 +250,7 @@ func ToUpper(str string) string {
 	return ""
 }
 
-/**
- * 首字母转小写
- *
- * @param null
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:19
- */
+// 首字母转小写
 func ToLower(str string) string {
 	for i, v := range str {
 		return string(unicode.ToLower(v)) + str[i+1:]
@@ -382,15 +258,7 @@ func ToLower(str string) string {
 	return ""
 }
 
-/**
- * Unicode转汉字
- *
- * @param str string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/17 11:44
- */
+// Unicode转汉字
 func UnicodeToChinese(str string) string {
 	buf := bytes.NewBuffer(nil)
 
@@ -419,4 +287,77 @@ func UnicodeToChinese(str string) string {
 		}
 	}
 	return buf.String()
+}
+
+// 生成指定长度大写字母随机字符串
+func RandString(len int) string {
+	r := rand.New(rand.NewSource(time.Now().Unix()))
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
+		b := r.Intn(26) + 65
+		bytes[i] = byte(b)
+	}
+	return string(bytes)
+}
+
+// 生成指定长度数字、小写字母、大写字母随机字符串
+// 随机字符串生成库 https://github.com/lifei6671/gorand
+func RandomString(len int) (s string, err error) {
+	var container string
+	var str = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	length := bytes.NewBufferString(str).Len()
+	bigInt := big.NewInt(int64(length))
+	for i := 0; i < len; i++ {
+		randomInt, err := crand.Int(crand.Reader, bigInt)
+		if err != nil {
+			return "", err
+		}
+		container += string(str[randomInt.Int64()])
+	}
+	return container, nil
+}
+
+// 生成指定长度数字、小写字母随机字符串
+func RandomLowercaseAlphanumeric(length int) string {
+	str := "0123456789abcdefghijklmnopqrstuvwxyz"
+	bytes := []byte(str)
+	var result []byte
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < length; i++ {
+		result = append(result, bytes[r.Intn(len(bytes))])
+	}
+	return string(result)
+}
+
+// 指定长度随机数字符串
+func RandomNumber(len int) (s int, err error) {
+	numbers := []byte{1, 2, 3, 4, 5, 7, 8, 9}
+	var container string
+	length := bytes.NewReader(numbers).Len()
+	bigInt := big.NewInt(int64(length))
+	for i := 1; i <= len; i++ {
+		random, err := crand.Int(crand.Reader, bigInt)
+		if err != nil {
+			return 0, err
+		}
+		container += fmt.Sprintf("%d", numbers[random.Int64()])
+	}
+	// 字符串转数字
+	number, err := strconv.Atoi(container)
+	if err != nil {
+		return 0, err
+	}
+	return number, nil
+}
+
+// 解析json为map
+func JsonToMap(data string) (map[string]interface{}, error) {
+	str := []byte(data)
+	stu := make(map[string]interface{})
+
+	err := json.Unmarshal(str, &stu)
+	if err != nil {
+		return nil, err
+	}
+	return stu, nil
 }

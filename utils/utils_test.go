@@ -69,3 +69,15 @@ func TestNewPass(t *testing.T) {
 		t.Error("password hash fail")
 	}
 }
+
+func TestHttp(t *testing.T) {
+	params := map[string]string{"test": "1", "t": "22"}
+	var param string
+	for key, value := range params {
+		param += key + "=" + value + "&"
+	}
+	param = param[0 : len(param)-1]
+	t.Error(param)
+	result := HttpRequest("POST", "test", map[string]string{"test": "1", "t": "22"}, nil)
+	t.Log(result)
+}
