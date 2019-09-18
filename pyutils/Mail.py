@@ -70,8 +70,8 @@ def lin_shi_you_xiang_suffix():
                     "@bestsoundeffects.com",
                     "@vradportal.com",
                     "@a4papersize.net"]
-    a = random.randint(1, 11)
-    return suffix_array[a[0]]
+    a = random.randint(0, 10)
+    return suffix_array[a]
 
 
 def lin_shi_you_xiang_apply(prefix):
