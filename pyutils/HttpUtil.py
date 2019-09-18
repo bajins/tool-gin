@@ -155,10 +155,6 @@ def selenium_driver(url):
     :param url:
     :return:
     """
-    path="./pyutils/chromedriver.exe"
-
-    if not os.path.exists(path):
-        download_taobao_chromedriver()
 
     # chrome选项
     options = webdriver.ChromeOptions()
