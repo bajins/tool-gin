@@ -10,8 +10,7 @@
 import json
 import math
 import time
-
-import numpy
+import random
 
 import Constants
 import HttpUtil, StringUtil
@@ -71,7 +70,7 @@ def lin_shi_you_xiang_suffix():
                     "@bestsoundeffects.com",
                     "@vradportal.com",
                     "@a4papersize.net"]
-    a = numpy.random.randint(low=1, high=11, size=1, dtype='l')
+    a = random.randint(1, 11)
     return suffix_array[a[0]]
 
 
