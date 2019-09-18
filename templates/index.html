@@ -40,7 +40,7 @@
     </div>
     <div class="content">
         <p>
-            <b>官方所有下载：</b>
+            <b>下载官方版本：</b>
             <a target="_blank" href="/download">download</a>
         </p>
         <p>
@@ -49,6 +49,18 @@
                 https://www.woytu.com/?dir=DeveloperTool/SSH
             </a>
         </p>
+        <p><b>注意：</b></p>
+        <p>安装新版本之前请把老版本先卸载！！！并清除相关全部数据（配置文件、注册表等）</p>
+
+        <p>清除注册表信息,在cmd中执行<code>REG DELETE HKCU\Software\NetSarang /f</code></p>
+        <p>把以下代码加入<code>C:\Windows\System32\drivers\etc\hosts</code>进行屏蔽</p>
+        <pre>
+127.0.0.1 transact.netsarang.com
+127.0.0.1 update.netsarang.com
+127.0.0.1 www.netsarang.com
+127.0.0.1 www.netsarang.co.kr
+127.0.0.1 sales.netsarang.com
+</pre>
         <form class="pure-form pure-form-stacked">
             <fieldset>
                 <label for="company"><b>公司:</b></label>
