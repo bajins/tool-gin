@@ -285,12 +285,12 @@ func ContextPath(root string) (path string, err error) {
  * @date 2019/6/29 3:46
  */
 func PathStitching(paths ...string) string {
-	sep := string(os.PathSeparator)
-	path := ""
+	//sep := string(os.PathSeparator)
+	way := ""
 	for _, value := range paths {
-		path = path + sep + value
+		way = path.Join(way, value)
 	}
-	return path[1:]
+	return way
 }
 
 /**

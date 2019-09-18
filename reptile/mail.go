@@ -9,7 +9,7 @@
  * @Package:
  * @Software: GoLand
  */
-package main
+package reptile
 
 import (
 	"key-gin/utils"
@@ -43,7 +43,7 @@ var LIN_SHI_YOU_XIANG = "https://www.linshiyouxiang.net"
 
 // 获取邮箱号
 // prefix： 邮箱前缀
-func LinShiYouXiangGet(prefix string) map[string]interface{} {
+func LinShiYouXiangApply(prefix string) map[string]interface{} {
 	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/keepalive"
 	param := map[string]string{
 		"force_change": string(1),
@@ -61,6 +61,15 @@ func LinShiYouXiangGet(prefix string) map[string]interface{} {
 // prefix： 邮箱前缀
 func LinShiYouXiangList(prefix string) string {
 	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/" + prefix
+	response := utils.HttpClient("GET", url, nil)
+	return response
+}
+
+// 获取邮件内容
+// prefix： 邮箱前缀
+// id：		邮件编号
+func LinShiYouXiangGetMail(prefix, id string) string {
+	url := LIN_SHI_YOU_XIANG + "/mailbox/" + prefix + "/" + id + "/source"
 	response := utils.HttpClient("GET", url, nil)
 	return response
 }

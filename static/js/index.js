@@ -101,7 +101,7 @@ function getKey() {
             '</form>');
         $(document.body).append(form);
         form.submit().remove();*/
-        download("/getKey",{company: company, app: app, version: version});
+        download("/getKey", {company: company, app: app, version: version});
 
     } else {
         $.ajax({
@@ -147,9 +147,46 @@ function getKey() {
 }
 
 
-
 function xshellDownload() {
     let app = $("#xshell-app").val();
     let version = $("#xshell-version").val();
-
+    //加载层,0代表加载的风格，支持0-2,0.5透明度的白色背景
+    let index = layer.load(0, {shade: [0.5,'#fff']});
+    $.ajax({
+        url: "/getXshellUrl",
+        type: "POST",
+        data: {app: app, version: version},
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        dataType: "json",
+        success: function (result) {
+            layer.close(index);
+            if (result.code == 200) {
+                let html = "<div style='width:100%;height:100%;padding:5%;'>" +
+                    "<p><b>下载地址：</b></p>" +
+                    "<p><a href='" + result.data.url + "' target='_blank'>" + result.data.url + "</a></p>" +
+                    "</div>";
+                let area_width = "40%";
+                if (device.isMobile) {
+                    area_width = "80%";
+                }
+                //自定页
+                layer.open({
+                    // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。
+                    // 当你宽高都要定义时，你可以area: ['500px', '300px']
+                    area: [area_width],
+                    type: 1,
+                    icon: 1,
+                    skin: 'layui-layer-lan', //样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
+                    closeBtn: 1, //关闭按钮
+                    anim: 2,
+                    shadeClose: true, //开启遮罩关闭
+                    title: false,
+                    content: html
+                });
+            } else {
+                //提示层
+                layer.msg(result.message, {icon: 5});
+            }
+        }
+    })
 }

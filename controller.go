@@ -9,6 +9,7 @@ import (
 	"key-gin/utils"
 	"net/http"
 	"os"
+	"path"
 	"runtime"
 )
 
@@ -25,15 +26,6 @@ func WebRoot(c *gin.Context) {
 	// 返回HTML页面
 	//c.HTML(http.StatusOK, "index.html", nil)
 	c.HTML(http.StatusOK, "index.html", gin.H{})
-}
-
-// Netsarang
-func Netsarang(c *gin.Context) {
-	// 301重定向
-	//c.Redirect(http.StatusMovedPermanently, "/static")
-	// 返回HTML页面
-	//c.HTML(http.StatusOK, "index.html", nil)
-	c.HTML(http.StatusOK, "netsarang.html", gin.H{})
 }
 
 /**
@@ -98,22 +90,20 @@ func GetKey(c *gin.Context) {
 		c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
 		return
 	}
-	path := utils.PathStitching(dir, "pyutils")
+	way := path.Join(dir, "pyutils")
 	if company == "netsarang" {
-		out, err := utils.ExecutePython(path+"/xshell_key.py", app, version)
+		out, err := utils.ExecutePython(path.Join(way, "xshell_key.py"), app, version)
 		if err != nil {
 			log.Error(err)
 			fmt.Println(err)
 			c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
 			return
 		}
-		res := make(map[string]string)
-		res["key"] = out
-		c.JSON(http.StatusOK, result.Success("获取key成功", res))
+		c.JSON(http.StatusOK, result.Success("获取key成功", map[string]string{"key": out}))
 
 	} else if company == "mobatek" {
 
-		_, err := utils.ExecutePython(path+"/moba_xterm_Keygen.py", utils.OsPath(), version)
+		_, err := utils.ExecutePython(path.Join(way, "moba_xterm_Keygen.py"), utils.OsPath(), version)
 		if err != nil {
 			c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
 			return
@@ -125,14 +115,12 @@ func GetKey(c *gin.Context) {
 		c.FileAttachment(utils.OsPath()+"/Custom.mxtpro", "Custom.mxtpro")
 
 	} else if company == "torchsoft" {
-		out, err := utils.ExecutePython(path+"/reg_workshop_keygen.py", version)
+		out, err := utils.ExecutePython(path.Join(way, "reg_workshop_keygen.py"), version)
 		if err != nil {
 			c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
 			return
 		}
-		res := make(map[string]string)
-		res["key"] = out
-		c.JSON(http.StatusOK, result.Success("获取key成功", res))
+		c.JSON(http.StatusOK, result.Success("获取key成功", map[string]string{"key": out}))
 	}
 
 }
@@ -178,4 +166,44 @@ func Dowload(c *gin.Context) {
 	}
 
 	c.DataFromReader(http.StatusOK, response.ContentLength, response.Header.Get("Content-Type"), response.Body, extraHeaders)
+}
+
+// Netsarang
+func Netsarang(c *gin.Context) {
+	// 301重定向
+	//c.Redirect(http.StatusMovedPermanently, "/static")
+	// 返回HTML页面
+	//c.HTML(http.StatusOK, "index.html", nil)
+	c.HTML(http.StatusOK, "netsarang.html", gin.H{})
+}
+
+// 获取Netsarang下载url
+func GetXshellUrl(c *gin.Context) {
+	// POST 获取的所有参数内容的类型都是 string
+	app := c.PostForm("app")
+	if utils.IsStringEmpty(app) {
+		c.JSON(http.StatusOK, result.Error(300, "请选择产品"))
+		return
+	}
+	version := c.PostForm("version")
+	if utils.IsStringEmpty(version) {
+		c.JSON(http.StatusOK, result.Error(300, "请选择版本"))
+		return
+	}
+	// 获取当前绝对路径
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusOK, result.Error(500, "系统错误"))
+		return
+	}
+	way := path.Join(dir, "pyutils")
+	out, err := utils.ExecutePython(path.Join(way, "Netsarang.py"), app)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusOK, result.Error(500, "系统错误"))
+		return
+	}
+	fmt.Println(out)
+	c.JSON(http.StatusOK, result.Success("获取"+app+"成功", map[string]string{"url": out}))
 }
