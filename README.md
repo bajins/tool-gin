@@ -1,5 +1,9 @@
 # key-gin
-基于go-gin框架生成激活key项目
+
+> 基于go-gin框架生成激活key项目
+
+- 此分支使用了`Python-Selenium`
+
 
 ## 使用
 
