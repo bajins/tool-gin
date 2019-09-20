@@ -102,7 +102,7 @@ func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCl
 func HttpClient(method, urlText string, params map[string]string) string {
 	method = strings.ToUpper(method)
 
-	client := http.Client{Timeout: 5 * time.Second}
+	client := http.Client{Timeout: 30 * time.Second}
 
 	var resp *http.Response
 	var err error
@@ -184,7 +184,7 @@ func HttpRequest(method, urlText string, params map[string]string, header map[st
 	// dump出远程服务器返回的信息
 	httputil.DumpRequest(req, false)
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 30 * time.Second}
 	resp, error := client.Do(req)
 	if error != nil {
 		panic(error)
