@@ -13,13 +13,12 @@ package reptile
 
 import (
 	"key-gin/utils"
-	"log"
 	"math"
 	"time"
 )
 
 // 获取邮箱号后缀
-func LinShiYouXiangSuffix() string {
+func LinShiYouXiangSuffix() (string, error) {
 	suffixArray := [11]string{
 		"@meantinc.com",
 		"@classesmail.com",
@@ -33,35 +32,29 @@ func LinShiYouXiangSuffix() string {
 		"@vradportal.com",
 		"@a4papersize.net"}
 	s, err := utils.RandomNumber(1)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return suffixArray[s]
+	return suffixArray[s], err
 }
 
 var LIN_SHI_YOU_XIANG = "https://www.linshiyouxiang.net"
 
 // 获取邮箱号
 // prefix： 邮箱前缀
-func LinShiYouXiangApply(prefix string) map[string]interface{} {
+func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/keepalive"
 	param := map[string]string{
-		"force_change": string(1),
+		"force_change": "1",
 		"mailbox":      prefix,
 		"_ts":          utils.ToString(math.Round(float64(time.Now().Unix() / 1000))),
 	}
 	stu, err := utils.JsonToMap(utils.HttpRequest("GET", url, param, nil))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return stu
+	return stu, err
 }
 
 // 获取邮件列表
 // prefix： 邮箱前缀
 func LinShiYouXiangList(prefix string) string {
 	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/" + prefix
-	response := utils.HttpClient("GET", url, nil)
+	response := utils.HttpRequest("GET", url, nil, nil)
 	return response
 }
 
@@ -70,7 +63,7 @@ func LinShiYouXiangList(prefix string) string {
 // id：		邮件编号
 func LinShiYouXiangGetMail(prefix, id string) string {
 	url := LIN_SHI_YOU_XIANG + "/mailbox/" + prefix + "/" + id + "/source"
-	response := utils.HttpClient("GET", url, nil)
+	response := utils.HttpRequest("GET", url, nil, nil)
 	return response
 }
 
@@ -79,6 +72,6 @@ func LinShiYouXiangGetMail(prefix, id string) string {
 // id:  	邮件编号
 func LinShiYouXiangDelete(prefix, id string) string {
 	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/" + prefix + "/" + id
-	response := utils.HttpClient("DELETE", url, nil)
+	response := utils.HttpRequest("DELETE", url, nil, nil)
 	return response
 }
