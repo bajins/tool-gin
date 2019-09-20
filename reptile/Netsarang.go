@@ -17,7 +17,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"key-gin/utils"
 	"log"
@@ -25,7 +25,14 @@ import (
 	"time"
 )
 
-func SendMail(mail, product string) {
+func SendMail(mail, product string) error {
+	if mail == "" || len(mail) == 0 {
+		panic("邮箱号不能为空！")
+	}
+	if product == "" || len(product) == 0 {
+		panic("产品不能为空！")
+	}
+
 	var url string
 	if product == "xshell" {
 		url = "https://www.netsarang.com/zh/xshell-download"
@@ -42,41 +49,44 @@ func SendMail(mail, product string) {
 	if product == "xshell-plus" || product == "" {
 		url = "https://www.netsarang.com/zh/xshell-plus-download"
 	}
-	//data := map[string]string{
-	//	"input[name='user-name']": strings.Split(mail, "@")[0],
-	//	"input[name='email']":     mail,
-	//}
 
 	// 定义变量，用来保存爬虫的数据
 	var res string
 
 	err := Apply(clickSubmitMail(url, mail, &res))
-
 	if err != nil {
-		log.Fatal("运行错误：", err)
+		return err
 	}
+	if res == "" || len(res) == 0 || !strings.Contains(res, "感谢您提交的下载我们软件的请求") {
+		return errors.New("邮箱发送失败！")
+	}
+
+	return nil
 }
 
 // 点击提交邮箱
 func clickSubmitMail(url, mail string, res *string) chromedp.Tasks {
 	return chromedp.Tasks{
-		network.Enable(),
+		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
+		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//network.Enable(),
 		//visitWeb(url),
 		//doCrawler(&res),
 		//Screenshot(),
 		// 跳转页面
 		chromedp.Navigate(url),
-		// 查找并等待可见
-		chromedp.WaitVisible(`body`, chromedp.ByQuery),
-		// 等待1秒
-		chromedp.Sleep(1 * time.Second),
 		chromedp.SendKeys(`input[name="user-name"]`, strings.Split(mail, "@")[0], chromedp.BySearch),
 		chromedp.SendKeys(`input[name="email"]`, mail, chromedp.BySearch),
 		// 点击元素
 		chromedp.Click(`input[value="开始试用"][type="submit"]`, chromedp.BySearch),
-		chromedp.Sleep(2 * time.Second),
+		chromedp.Sleep(10 * time.Second),
+		// 查找并等待可见
+		chromedp.WaitVisible(`.fusion-text h1`, chromedp.BySearch),
 		// 读取HTML源码
-		//chromedp.OuterHTML(`input[value="开始试用"][type="submit"]`, res, chromedp.BySearch),
+		//chromedp.OuterHTML(`.fusion-text h1`, res, chromedp.BySearch),
+		chromedp.Text(`.fusion-text h1`, res, chromedp.BySearch),
+		//chromedp.TextContent(`.fusion-text h1`, res, chromedp.BySearch),
+		//chromedp.Title(res),
 	}
 }
 
@@ -95,9 +105,12 @@ func DownloadNetsarang(product string) (string, error) {
 
 	log.Println("邮箱号：", mail)
 
-	SendMail(mail, product)
+	err = SendMail(mail, product)
+	if err != nil {
+		return "", err
+	}
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(20 * time.Second)
 
 	mailList := LinShiYouXiangList(prefix)
 
@@ -157,16 +170,14 @@ func DownloadNetsarang(product string) (string, error) {
 // 访问带token的url获取下载地址
 func getDownloadUrl(url string, res *string) chromedp.Tasks {
 	return chromedp.Tasks{
-		network.Enable(),
+		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
+		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//network.Enable(),
 		//visitWeb(url),
 		//doCrawler(&res),
 		//Screenshot(),
 		// 跳转页面
 		chromedp.Navigate(url),
-		// 查找并等待可见
-		chromedp.WaitVisible(`body`, chromedp.ByQuery),
-		// 等待1秒
-		chromedp.Sleep(1 * time.Second),
 		// 读取HTML源码
 		chromedp.OuterHTML(`a[target='download_frame']@href`, res, chromedp.BySearch),
 	}

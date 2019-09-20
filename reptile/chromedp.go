@@ -16,6 +16,7 @@ import (
 	"errors"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"io/ioutil"
 	"log"
@@ -38,8 +39,8 @@ func Apply(actions ...chromedp.Action) error {
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.NoDefaultBrowserCheck,
 		// 无头模式
-		chromedp.Headless,
 		//chromedp.Flag("headless", false),
+		chromedp.Headless,
 		// 禁用GPU，不显示GUI
 		chromedp.DisableGPU,
 		// 隐身模式启动
@@ -75,12 +76,12 @@ func Apply(actions ...chromedp.Action) error {
 	defer cancel()
 
 	// 设置超时时间
-	ctx, cancel = context.WithTimeout(ctx, 2*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 3*time.Minute)
 	// 超时关闭chrome实例
 	defer cancel()
 
 	// listen network event
-	listenForNetworkEvent(ctx)
+	//listenForNetworkEvent(ctx)
 
 	return chromedp.Run(ctx, actions...)
 }
@@ -155,6 +156,8 @@ func Screenshot() chromedp.Tasks {
 // 任务 主要执行翻页功能和或者html
 func DoCrawler(url string, res *string) chromedp.Tasks {
 	return chromedp.Tasks{
+		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
+		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
 		network.Enable(),
 		//visitWeb(url),
 		//doCrawler(&res),
@@ -169,5 +172,8 @@ func DoCrawler(url string, res *string) chromedp.Tasks {
 		//chromedp.Click(`.pagination li:nth-last-child(4) a`, chromedp.BySearch),
 		// 读取HTML源码
 		chromedp.OuterHTML(`body`, res, chromedp.ByQuery),
+		//chromedp.Text(`.fusion-text h1`, res, chromedp.BySearch),
+		//chromedp.TextContent(`.fusion-text h1`, res, chromedp.BySearch),
+		chromedp.Title(res),
 	}
 }
