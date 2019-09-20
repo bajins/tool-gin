@@ -5,6 +5,7 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/big"
 	"math/rand"
 	"regexp"
@@ -360,4 +361,15 @@ func JsonToMap(data string) (map[string]interface{}, error) {
 		return nil, err
 	}
 	return stu, nil
+}
+
+// 反序列化为map
+func ParseJsonReader(input io.Reader) (map[string]interface{}, error) {
+	var m map[string]interface{}
+	decoder := json.NewDecoder(input)
+	err := decoder.Decode(&m)
+	if err != nil {
+		return nil, err
+	}
+	return m, nil
 }

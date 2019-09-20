@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"os"
 	"strconv"
@@ -96,9 +97,9 @@ func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCl
 
 // http.Client发送请求
 // method:	请求方法：POST、GET、PUT、DELETE
-// url:		请求地址
+// urlText:		请求地址
 // params:	请求参数
-func HttpClient(method, url string, params map[string]string) string {
+func HttpClient(method, urlText string, params map[string]string) string {
 	method = strings.ToUpper(method)
 
 	client := http.Client{Timeout: 5 * time.Second}
@@ -106,15 +107,16 @@ func HttpClient(method, url string, params map[string]string) string {
 	var resp *http.Response
 	var err error
 	if method == "GET" {
-		param := "?"
+		urlText = urlText + "?"
 		for key, value := range params {
-			param += key + "=" + value + "&"
+			urlText += key + "=" + value + "&"
 		}
-		param = param[0 : len(param)-1]
-		resp, err = client.Get(url + param)
+		// url编码
+		//urlText=url.QueryEscape(urlText[0 : len(urlText)-1])
+		resp, err = client.Get(urlText[0 : len(urlText)-1])
 	} else if method == "POST" {
 		jsonStr, _ := json.Marshal(params)
-		resp, err = client.Post(url, "application/json", bytes.NewBuffer(jsonStr))
+		resp, err = client.Post(urlText, "application/json;charset=utf-8", bytes.NewBuffer(jsonStr))
 	}
 
 	if err != nil {
@@ -138,22 +140,35 @@ func HttpClient(method, url string, params map[string]string) string {
 
 // http.NewRequest发送请求
 // method:	请求方法：POST、GET、PUT、DELETE
-// url:		请求地址
+// urlText:		请求地址
 // params: 	请求提交的数据
 // header:	请求体格式，如：application/json
-func HttpRequest(method, url string, params map[string]string, header map[string]string) string {
+func HttpRequest(method, urlText string, params map[string]string, header map[string]string) string {
+	method = strings.ToUpper(method)
+
 	var req *http.Request
 	var err error
-	if params != nil {
-		jsonStr, _ := json.Marshal(params)
-		req, err = http.NewRequest(method, url, bytes.NewBuffer(jsonStr))
-	} else {
-		param := "?"
+	if method == "GET" || method == "" {
+		urlText = urlText + "?"
 		for key, value := range params {
-			param += key + "=" + value + "&"
+			urlText += key + "=" + value + "&"
 		}
-		param = param[0 : len(param)-1]
-		req, err = http.NewRequest(method, url+param, nil)
+		// url编码
+		//urlText := url.QueryEscape(urlText[0 : len(urlText)-1])
+		req, err = http.NewRequest(method, urlText[0:len(urlText)-1], nil)
+		if err != nil {
+			panic(err)
+		}
+
+	} else {
+		jsonStr, err := json.Marshal(params)
+		if err != nil {
+			panic(err)
+		}
+		req, err = http.NewRequest(method, urlText, bytes.NewBuffer(jsonStr))
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	if header != nil {
@@ -163,20 +178,20 @@ func HttpRequest(method, url string, params map[string]string, header map[string
 	}
 
 	if header == nil || req.Header.Get("content-type") == "" {
-		req.Header.Add("content-type", "application/json")
+		req.Header.Add("content-type", "application/json;charset=utf-8")
 	}
-	if err != nil {
-		panic(err)
-	}
-	defer req.Body.Close()
+
+	// dump出远程服务器返回的信息
+	httputil.DumpRequest(req, false)
 
 	client := &http.Client{Timeout: 5 * time.Second}
 	resp, error := client.Do(req)
 	if error != nil {
 		panic(error)
 	}
+	result, _ := ioutil.ReadAll(resp.Body)
+
 	defer resp.Body.Close()
 
-	result, _ := ioutil.ReadAll(resp.Body)
 	return string(result)
 }
