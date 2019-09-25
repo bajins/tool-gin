@@ -98,11 +98,10 @@ func DownloadNetsarang(product string) (string, error) {
 		return "", errors.New("产品不能为空")
 	}
 	info := netsarangInfo[product]
-	// 判断日期是否为今天
-	equal := utils.DateEqual(time.Now(), info[0].(time.Time))
 	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
-	if info != nil && len(info) > 1 && equal {
-		if time.Now().Equal(info[0].(time.Time)) {
+	if info != nil && len(info) > 1 {
+		// 判断日期是否为今天
+		if utils.DateEqual(time.Now(), info[0].(time.Time)) {
 			return info[1].(string), nil
 		}
 	}
@@ -203,4 +202,9 @@ func getDownloadUrl(url string, attributes *map[string]string) chromedp.Tasks {
 		// 获取属性和值
 		chromedp.Attributes(`a[target='download_frame']`, attributes, chromedp.BySearch),
 	}
+}
+
+func init() {
+	// 第一次调用初始化
+	netsarangInfo = make(map[string][]interface{})
 }
