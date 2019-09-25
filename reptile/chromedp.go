@@ -39,12 +39,12 @@ func Apply(actions ...chromedp.Action) error {
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.NoDefaultBrowserCheck,
 		// 无头模式
-		//chromedp.Flag("headless", false),
-		chromedp.Headless,
+		chromedp.Flag("headless", false),
+		//chromedp.Headless,
 		// 禁用GPU，不显示GUI
-		chromedp.DisableGPU,
+		//chromedp.DisableGPU,
 		// 隐身模式启动
-		chromedp.Flag("incognito", true),
+		//chromedp.Flag("incognito", true),
 		// 取消沙盒模式
 		//chromedp.NoSandbox,
 		// 忽略证书错误
@@ -76,7 +76,7 @@ func Apply(actions ...chromedp.Action) error {
 	defer cancel()
 
 	// 设置超时时间
-	ctx, cancel = context.WithTimeout(ctx, 3*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Minute)
 	// 超时关闭chrome实例
 	defer cancel()
 

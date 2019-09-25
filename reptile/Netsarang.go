@@ -90,7 +90,23 @@ func clickSubmitMail(url, mail string, res *string) chromedp.Tasks {
 	}
 }
 
+var netsarangInfo map[string][]interface{}
+
+// 获取下载产品信息
 func DownloadNetsarang(product string) (string, error) {
+	if product == "" || len(product) == 0 {
+		return "", errors.New("产品不能为空")
+	}
+	info := netsarangInfo[product]
+	// 判断日期是否为今天
+	equal := utils.DateEqual(time.Now(), info[0].(time.Time))
+	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
+	if info != nil && len(info) > 1 && equal {
+		if time.Now().Equal(info[0].(time.Time)) {
+			return info[1].(string), nil
+		}
+	}
+
 	prefix := utils.RandomLowercaseAlphanumeric(9)
 	suffix, err := LinShiYouXiangSuffix()
 	if err != nil {
@@ -150,25 +166,31 @@ func DownloadNetsarang(product string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	find := doc.Find(`a[target="_blank"]`)
-	tokenUrl := find.Text()
+	tokenHtml := doc.Find(`a[target="_blank"]`)
 
-	// 定义变量，用来保存爬虫的数据
-	var res string
+	var attributes map[string]string
 
-	err = Apply(getDownloadUrl(tokenUrl, &res))
+	err = Apply(getDownloadUrl(tokenHtml.Text(), &attributes))
 	if err != nil {
 		return "", err
 	}
 
-	log.Println(res)
+	if attributes == nil || attributes["href"] == "" {
+		return "", errors.New("没有获取到url")
+	}
+
+	// 获取最终专业版产品下载地址
+	url := strings.Replace(attributes["href"], ".exe", "r.exe", -1)
+
+	// 把产品信息存储到变量
+	netsarangInfo[product] = []interface{}{time.Now(), url}
 
 	// 在s字符串中，把old字符串替换为new字符串，n表示替换的次数，小于0表示全部替换
-	return strings.Replace(res, ".exe", "r.exe", -1), nil
+	return url, nil
 }
 
 // 访问带token的url获取下载地址
-func getDownloadUrl(url string, res *string) chromedp.Tasks {
+func getDownloadUrl(url string, attributes *map[string]string) chromedp.Tasks {
 	return chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
 		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
@@ -178,7 +200,7 @@ func getDownloadUrl(url string, res *string) chromedp.Tasks {
 		//Screenshot(),
 		// 跳转页面
 		chromedp.Navigate(url),
-		// 读取HTML源码
-		chromedp.OuterHTML(`a[target='download_frame']@href`, res, chromedp.BySearch),
+		// 获取属性和值
+		chromedp.Attributes(`a[target='download_frame']`, attributes, chromedp.BySearch),
 	}
 }

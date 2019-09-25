@@ -56,6 +56,13 @@ func TestLinShiYouXiangGetMail(t *testing.T) {
 
 }
 
-func TestXshell(t *testing.T) {
+func TestSendMail(t *testing.T) {
 	SendMail("", "xshell")
+}
+
+func TestDownloadNetsarang(t *testing.T) {
+
+	url, err := DownloadNetsarang("xshell")
+	t.Log(url)
+	t.Error(err == nil)
 }

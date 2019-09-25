@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"io"
+	"key-gin/reptile"
 	"key-gin/result"
 	"key-gin/utils"
 	"net/http"
@@ -190,20 +191,11 @@ func GetXshellUrl(c *gin.Context) {
 		c.JSON(http.StatusOK, result.Error(300, "请选择版本"))
 		return
 	}
-	// 获取当前绝对路径
-	dir, err := os.Getwd()
+	url, err := reptile.DownloadNetsarang(app)
 	if err != nil {
 		log.Error(err)
 		c.JSON(http.StatusOK, result.Error(500, "系统错误"))
 		return
 	}
-	way := path.Join(dir, "pyutils")
-	out, err := utils.ExecutePython(path.Join(way, "Netsarang.py"), app)
-	if err != nil {
-		log.Error(err)
-		c.JSON(http.StatusOK, result.Error(500, "系统错误"))
-		return
-	}
-	fmt.Println(out)
-	c.JSON(http.StatusOK, result.Success("获取"+app+"成功", map[string]string{"url": out}))
+	c.JSON(http.StatusOK, result.Success("获取"+app+"成功", map[string]string{"url": url}))
 }
