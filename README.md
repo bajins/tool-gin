@@ -19,5 +19,5 @@ key-gin-windows.exe
 
 
 # Linux
-nohup ./key-gin-linux -p 5000 >/dev/null 2>index.log &
+nohup ./key-gin_linux -p 5000 >/dev/null 2>index.log &
 ```
