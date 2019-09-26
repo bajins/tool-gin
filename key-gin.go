@@ -3,10 +3,8 @@ package main
 import (
 	"flag"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"key-gin/utils"
 	"net/http"
-	"os"
 	"strings"
 )
 
@@ -15,12 +13,7 @@ const (
 	TokenSalt = "default_salt"
 )
 
-/**
- * 认证拦截中间件
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 11:32
- */
+// 认证拦截中间件
 func Authorize(c *gin.Context) {
 	username := c.Query("username") // 用户名
 	ts := c.Query("ts")             // 时间戳
@@ -73,12 +66,7 @@ func Cors(c *gin.Context) {
 	c.Next()
 }
 
-/**
- * 获取传入参数的端口，如果没传默认值为8000
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 15:31
- */
+// 获取传入参数的端口，如果没传默认值为8000
 func Port() (port string) {
 	flag.StringVar(&port, "p", "8000", "默认端口:8000")
 	flag.Parse()
@@ -91,15 +79,8 @@ func Port() (port string) {
 }
 
 func init() {
-	// 设置日志格式为json格式　自带的只有两种样式logrus.JSONFormatter{}和logrus.TextFormatter{}
-	log.SetFormatter(&log.JSONFormatter{})
-
-	// 设置将日志输出到标准输出（默认的输出为stderr，标准错误）
-	// 日志消息输出可以是任意的io.writer类型
-	log.SetOutput(os.Stdout)
-
-	// 设置日志级别为warn以上
-	log.SetLevel(log.DebugLevel)
+	// 设置项目为发布环境
+	//gin.SetMode(gin.ReleaseMode)
 }
 
 func main() {
