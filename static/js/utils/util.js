@@ -110,6 +110,111 @@ Date.prototype.format = function (fmt) {
     return fmt;
 }
 
+
+if (!String.prototype.trim) {
+    String.prototype.trim = function () {
+        return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
+    };
+}
+
+if (!String.prototype.startsWith) {
+    String.prototype.startsWith = function (searchString, position) {
+        position = position || 0;
+        return this.substr(position, searchString.length) === searchString;
+    };
+}
+if (!String.prototype.endsWith) {
+    String.prototype.endsWith = function (searchString, position) {
+        let subjectString = this.toString();
+        if (typeof position !== 'number' || !isFinite(position) || Math.floor(position) !== position || position > subjectString.length) {
+            position = subjectString.length;
+        }
+        position -= searchString.length;
+        let lastIndex = subjectString.indexOf(searchString, position);
+        return lastIndex !== -1 && lastIndex === position;
+    };
+}
+if (!String.prototype.includes) {
+    String.prototype.includes = function (search, start) {
+        'use strict';
+        if (typeof start !== 'number') {
+            start = 0;
+        }
+
+        if (start + search.length > this.length) {
+            return false;
+        } else {
+            return this.indexOf(search, start) !== -1;
+        }
+    };
+}
+
+if (!String.prototype.repeat) {
+    String.prototype.repeat = function (count) {
+        'use strict';
+        if (this == null) {
+            throw new TypeError('can\'t convert ' + this + ' to object');
+        }
+        let str = '' + this;
+        count = +count;
+        if (count != count) {
+            count = 0;
+        }
+        if (count < 0) {
+            throw new RangeError('repeat count must be non-negative');
+        }
+        if (count == Infinity) {
+            throw new RangeError('repeat count must be less than infinity');
+        }
+        count = Math.floor(count);
+        if (str.length == 0 || count == 0) {
+            return '';
+        }
+        // Ensuring count is a 31-bit integer allows us to heavily optimize the
+        // main part. But anyway, most current (August 2014) browsers can't handle
+        // strings 1 << 28 chars or longer, so:
+        if (str.length * count >= 1 << 28) {
+            throw new RangeError('repeat count must not overflow maximum string size');
+        }
+        let rpt = '';
+        for (; ;) {
+            if ((count & 1) == 1) {
+                rpt += str;
+            }
+            count >>>= 1;
+            if (count == 0) {
+                break;
+            }
+            str += str;
+        }
+        // Could we try:
+        // return Array(count + 1).join(this);
+        return rpt;
+    }
+}
+
+//removes element from array
+if (!Array.prototype.remove) {
+    Array.prototype.remove = function (index, item) {
+        this.splice(index, 1);
+    };
+}
+
+
+if (!String.prototype.contains) {
+    String.prototype.contains = String.prototype.includes;
+}
+
+if (!Array.prototype.insert) {
+    Array.prototype.insert = function (index, item) {
+        this.splice(index, 0, item);
+    };
+}
+
+
+// ======================================  全局工具函数  =======================================
+
+
 // JS获取当前文件所在的文件夹全路径
 // let js = document.scripts;
 // js = js[js.length - 1].src.substring(0, js[js.length - 1].src.lastIndexOf("/") + 1);
