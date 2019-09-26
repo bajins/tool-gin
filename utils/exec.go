@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 )
 
 // 执行python脚本
@@ -18,9 +17,9 @@ func ExecutePython(script string, args ...string) (string, error) {
 		return "", err
 	}
 	name := "python"
-	if runtime.GOOS == "linux" {
-		name = "python3"
-	}
+	//if runtime.GOOS == "linux" {
+	//	name = "python3"
+	//}
 	// 把脚本和参数组合到一个字符串数组
 	args = append([]string{script}, args...)
 	out, err := Execute(name, args...)
