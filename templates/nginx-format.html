@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="本网页提供开发相关工具">
+    <meta name="keywords" content="NGINX,conf,js,生成,格式化"/>
+    <title>NGINX配置格式化</title>
+    <link rel="shortcut icon" type="image/x-icon" href="/static/images/nginx.ico"/>
+    <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/css?family=Raleway:200"/>
+    <link href="https://lib.baomitu.com/pure/latest/pure-min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/static/css/nginx-format.css">
+
+    <script type="text/javascript" src="https://cdn.bootcss.com/jquery/3.4.1/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/layer/layer.js"></script>
+    <script type="text/javascript" src="/static/js/utils/device.js"></script>
+    <script type="text/javascript" src="/static/js/utils/util.js"></script>
+    <script type="text/javascript" src="/static/js/nginxbeautifier.js"></script>
+    <script type="text/javascript" src="/static/js/index.js"></script>
+</head>
+<body>
+<div id="main">
+    <div class="header">
+        <h1>NGINX配置生成/格式化</h1>
+        <h2>支持NGINX的配置生成和格式化</h2>
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    <a target="_blank" href="https://www.woytu.com">资源站</a>
+                </td>
+                <td>
+                    <a target="_blank" href="https://woetu.com">WeChat小程序</a>
+                </td>
+                <td>
+                    <a target="_blank" href="https://woytu.github.com">GitHub</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="content">
+        <form class="pure-form pure-form-stacked">
+            <div class="pure-u-1 content-top">
+                <input type="radio" value="online" name="beautification"
+                       onclick="beautificationClick(this)"><b>在线</b></input>
+
+                <input type="radio" value="offline" name="beautification" checked="checked"
+                       onclick="beautificationClick(this)"><b>离线</b></input>
+
+                <a class="pure-button pure-button-primary submit-button" onclick="beautifyCode()"
+                   onclick="beautificationClick(this)">格式化</a>
+            </div>
+            <div id="indent-way" class="pure-u-1 content-top">
+                <p><b>缩进值:</b></p>
+                <select class="pure-input-1-5" id="indent-code">
+                    <option value="space" selected>空格</option>
+                    <option value="tab">Tab</option>
+                </select>
+                <p><b>缩进方式:</b></p>
+                <button id="indentWay1" type='button' class="pure-button" onclick="indentWayButton(this)">Server {<br/>&nbsp;
+                </button>
+                <button id="indentWay2" type='button' class="pure-button" onclick="indentWayButton(this)">Server {
+                </button>
+                <button id="indentWay3" type='button' class="pure-button" onclick="indentWayButton(this)">Server<br/>{
+                </button>
+            </div>
+            <legend></legend>
+            <div class="pure-u-1">
+                <label for="text-code"><b>配置代码:</b></label>
+                <textarea id="text-code" class="pure-u-1-2 pure-u-md-1-3"></textarea>
+            </div>
+        </form>
+    </div>
+    <div class="footer">
+        <div class="legal pure-g">
+            <div class="pure-u-1 u-sm-1-2">
+                <p class="legal-license">
+                    This site is built with using <a href="https://www.purecss.cn" target="_black">Pure</a> v1.0.0
+                </p>
+            </div>
+            <div class="pure-u-1 u-sm-1-2">
+                <p class="legal-copyright">
+                    本网页所有代码版权归 <a href="https://woytu.com" target="_black">woytu.com</a> 所有。
+                    <span class="version"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 统计代码 -->
+<script>
+    const _hmt = [];
+    (function () {
+        const hm = document.createElement("script");
+        hm.src = "https://hm.baidu.com/hm.js?7ac7cdb0162597bd65c904b23b4fe505";
+        const s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(hm, s);
+    })();
+</script>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-130580298-1"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'UA-130580298-1');
+</script>
+</body>
+</html>

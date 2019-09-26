@@ -21,6 +21,8 @@ $(function () {
     })
 })
 
+// ==================================  获取Netsarang激活key  ===================================
+
 
 /**
  * 重置首页版本或产品
@@ -146,6 +148,7 @@ function getKey() {
     }
 }
 
+// =======================================  下载Netsarang  ======================================
 
 function xshellDownload() {
     let app = $("#xshell-app").val();
@@ -189,4 +192,192 @@ function xshellDownload() {
             }
         }
     })
+}
+
+// ====================================  格式化NGINX配置  ========================================
+
+
+/**
+ * 设置美化代码方式
+ *
+ * @return
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/6/13 17:31
+ */
+function beautificationClick(event) {
+    let value = $(event).val();
+    if ("online" == value) {
+        $("#indent-way").hide();
+    } else if ("offline" == value) {
+        $("#indent-way").show()
+    }
+}
+
+
+/***
+ * 设置缩进选中
+ *
+ * @return
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/6/13 17:23
+ */
+function indentWayButton(event) {
+    // 先去掉选中的
+    $(".pure-button-active").removeClass('pure-button-active');
+    //每次点击的时候，将当前的元素切换active样式
+    $(event).addClass('pure-button-active');
+}
+
+/**
+ * 点击美化按钮
+ *
+ * @return
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/6/13 17:32
+ */
+function beautifyCode() {
+    let beautification = $("input[name='beautification']:checked").val();
+    let code = $("#text-code").val();
+    if (isEmpty(code)) {
+        layer.msg("请输入配置代码！");
+        return;
+    }
+    if ("online" == beautification) {
+        onlineBeautifier(code);
+
+    } else if ("offline" == beautification) {
+
+        let indentation = $(".pure-button-active").attr("id");
+        if (isEmpty(indentation)) {
+            layer.msg("请选择缩进方式！");
+            return;
+        }
+        let indentCode = $("#indent-code").val();
+        if ("space" == indentCode) {
+            indentCode = "    ";
+        } else if ("tab" == indentCode) {
+            indentCode = "\t";
+        }
+        activateBeautifierListener(code, indentCode, indentation);
+    }
+
+}
+
+/**
+ * online美化Nginx配置
+ *
+ * @return
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/6/13 20:23
+ */
+function onlineBeautifier(code) {
+    $.ajax({
+        url: "/beautifier-nginx-conf",
+        type: "POST",
+        data: {code: code},
+        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+        dataType: "json",
+        success: function (result) {
+
+            if (result.code == 200) {
+                beautifySuccess(result.data.contents);
+            } else {
+                //提示层
+                layer.msg(result.msg, {icon: 5});
+            }
+        }
+    })
+}
+
+
+/**
+ * offline美化代码
+ *
+ * @param contents 配置代码
+ * @param indentCode 缩进的代码
+ * @param indentation 缩进方式
+ *            indentWay1 按`server{\n`方式缩进(左花括号之后有一个空行)
+ *            indentWay2 按`server{`方式缩进(左花括号之后无空行)
+ *            indentWay3 按`server\n{`方式缩进（左花括号在新行中）
+ * @return
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/6/13 15:52
+ */
+function activateBeautifierListener(contents, indentCode, indentation) {
+    // 缩进代码
+    INDENTATION = indentCode;
+    // 缩进方式
+    if (isEmpty(contents)) {
+        layer.msg("请输入配置代码！");
+        return;
+    }
+
+    modifyOptions({INDENTATION});
+    // 将文件拆分为行，清理空格
+    let cleanLines = clean_lines(contents);
+
+
+    // 加入左括号（如果用户希望如此）默认为true
+    let trailingBlankLines;
+    if ("indentWay1" == indentation) {
+        trailingBlankLines = true;
+        modifyOptions({trailingBlankLines});
+        cleanLines = join_opening_bracket(cleanLines);
+    }
+    // 加入左括号并且不要换行
+    else if ("indentWay2" == indentation) {
+
+        trailingBlankLines = false;
+        modifyOptions({trailingBlankLines});
+        cleanLines = join_opening_bracket(cleanLines);
+    }
+    // 执行最后的缩进
+    cleanLines = trimSpace(perform_indentation(cleanLines, indentCode));
+
+    // 将所有线条组合在一起
+    let outputContents = cleanLines.join("\n");
+
+    if ("indentWay2" == indentation) {
+        outputContents = replaceBlank(outputContents);
+    }
+    // console.log(outputContents)
+    // 将所有内容保存到文件中。
+    // $("#text-code").val(outputContents);
+    beautifySuccess(outputContents);
+}
+
+
+/**
+ * 最后美化完成输出
+ *
+ * @return
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/6/13 20:14
+ */
+function beautifySuccess(contents) {
+    let html = "<pre style='background: black;color:#66FF66;width: 100%;height: 100%;margin: 0px;padding: 10px;'>" + contents + "</pre>";
+    let area_width = "60%";
+    if (device.isMobile) {
+        area_width = "95%";
+    }
+    //自定页
+    layer.open({
+        // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。
+        // 当你宽高都要定义时，你可以area: ['500px', '300px']
+        area: [area_width, "80%"],
+        type: 1,
+        icon: 1,
+        skin: 'layui-layer-lan', //样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
+        closeBtn: 1, //关闭按钮
+        anim: 2,
+        shadeClose: true, //开启遮罩关闭
+        title: false,
+        content: html
+    });
 }

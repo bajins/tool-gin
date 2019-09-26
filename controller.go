@@ -14,13 +14,7 @@ import (
 	"runtime"
 )
 
-/**
- * 首页
- *
- * @Description
- * @author claer www.bajins.com
- * @date 2019/6/28 11:19
- */
+// 首页
 func WebRoot(c *gin.Context) {
 	// 301重定向
 	//c.Redirect(http.StatusMovedPermanently, "/static")
@@ -29,14 +23,7 @@ func WebRoot(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{})
 }
 
-/**
- * 获取系统信息
- *
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 14:49
- */
+// 获取系统信息
 func SystemInfo(c *gin.Context) {
 	data := make(map[string]interface{}, 0)
 	data["Version"] = utils.ToUpper(runtime.Version())
@@ -58,12 +45,7 @@ func SystemInfo(c *gin.Context) {
 	c.JSON(http.StatusOK, result.Success("获取系统信息成功", data))
 }
 
-/**
- * 获取key
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 15:04
- */
+// 获取key
 func GetKey(c *gin.Context) {
 	// GET 获取参数内容，没有则返回空字符串
 	//company := c.Query("company")
@@ -88,25 +70,24 @@ func GetKey(c *gin.Context) {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
+		c.JSON(http.StatusOK, result.SystemError())
 		return
 	}
-	way := path.Join(dir, "pyutils")
 	if company == "netsarang" {
-		out, err := utils.ExecutePython(path.Join(way, "xshell_key.py"), app, version)
+		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "xshell_key.py"), app, version)
 		if err != nil {
 			log.Error(err)
 			fmt.Println(err)
-			c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
+			c.JSON(http.StatusOK, result.SystemError())
 			return
 		}
 		c.JSON(http.StatusOK, result.Success("获取key成功", map[string]string{"key": out}))
 
 	} else if company == "mobatek" {
 
-		_, err := utils.ExecutePython(path.Join(way, "moba_xterm_Keygen.py"), utils.OsPath(), version)
+		_, err := utils.ExecutePython(path.Join(dir, "pyutils", "moba_xterm_Keygen.py"), utils.OsPath(), version)
 		if err != nil {
-			c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
+			c.JSON(http.StatusOK, result.SystemError())
 			return
 		}
 		c.Header("Content-Type", "application/octet-stream")
@@ -116,9 +97,9 @@ func GetKey(c *gin.Context) {
 		c.FileAttachment(utils.OsPath()+"/Custom.mxtpro", "Custom.mxtpro")
 
 	} else if company == "torchsoft" {
-		out, err := utils.ExecutePython(path.Join(way, "reg_workshop_keygen.py"), version)
+		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "reg_workshop_keygen.py"), version)
 		if err != nil {
-			c.JSON(http.StatusOK, result.Error(500, "获取key系统错误"))
+			c.JSON(http.StatusOK, result.SystemError())
 			return
 		}
 		c.JSON(http.StatusOK, result.Success("获取key成功", map[string]string{"key": out}))
@@ -126,12 +107,7 @@ func GetKey(c *gin.Context) {
 
 }
 
-/**
- * 文件上传请求
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 11:32
- */
+// 文件上传请求
 func Upload(c *gin.Context) {
 	// 拿到上传的文件的信息
 	file, header, err := c.Request.FormFile("upload")
@@ -149,12 +125,7 @@ func Upload(c *gin.Context) {
 	}
 }
 
-/**
- * 文件下载请求
- *
- * @author claer www.bajins.com
- * @date 2019/6/28 11:33
- */
+// 文件下载请求
 func Dowload(c *gin.Context) {
 	response, err := http.Get(c.Request.Host + "/static/public/favicon.ico")
 	if err != nil || response.StatusCode != http.StatusOK {
@@ -169,8 +140,8 @@ func Dowload(c *gin.Context) {
 	c.DataFromReader(http.StatusOK, response.ContentLength, response.Header.Get("Content-Type"), response.Body, extraHeaders)
 }
 
-// Netsarang
-func Netsarang(c *gin.Context) {
+// Netsarang下载页面
+func NetsarangDownloadIndex(c *gin.Context) {
 	// 301重定向
 	//c.Redirect(http.StatusMovedPermanently, "/static")
 	// 返回HTML页面
@@ -194,8 +165,47 @@ func GetXshellUrl(c *gin.Context) {
 	url, err := reptile.DownloadNetsarang(app)
 	if err != nil {
 		log.Error(err)
-		c.JSON(http.StatusOK, result.Error(500, "系统错误"))
+		c.JSON(http.StatusOK, result.SystemError())
 		return
 	}
 	c.JSON(http.StatusOK, result.Success("获取"+app+"成功", map[string]string{"url": url}))
+}
+
+// NGINX格式化代码页面
+func NginxFormatIndex(c *gin.Context) {
+	// 301重定向
+	//c.Redirect(http.StatusMovedPermanently, "/static")
+	// 返回HTML页面
+	//c.HTML(http.StatusOK, "index.html", nil)
+	c.HTML(http.StatusOK, "nginx-format.html", gin.H{})
+}
+
+// 格式化nginx配置代码
+func NginxFormatPython(c *gin.Context) {
+	// GET 获取参数内容，没有则返回空字符串
+	//code := c.Query("code")
+	// POST 获取的所有参数内容的类型都是 string
+	code := c.PostForm("code")
+
+	if utils.IsStringEmpty(code) {
+		c.JSON(http.StatusOK, result.Error(300, "请输入配置代码"))
+		return
+	}
+	// 获取当前绝对路径
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusOK, result.SystemError())
+		return
+	}
+	out, err := utils.ExecutePython(path.Join(dir, "pyutils", "nginxfmt.py"), code)
+	if err != nil {
+		log.Error(err)
+		c.JSON(http.StatusOK, result.SystemError())
+		return
+	}
+	res := make(map[string]string)
+	res["contents"] = out
+	c.JSON(http.StatusOK, result.Success("请求成功", res))
+
 }
