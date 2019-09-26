@@ -135,10 +135,13 @@ function getKey() {
                         area: [area_width],
                         type: 1,
                         icon: 1,
-                        skin: 'layui-layer-lan', //样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
-                        closeBtn: 1, //关闭按钮
+                        // 样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
+                        skin: 'layui-layer-lan',
+                        // 关闭按钮
+                        closeBtn: 1,
                         anim: 2,
-                        shadeClose: true, //开启遮罩关闭
+                        // 点击遮罩是否关闭弹窗
+                        shadeClose: false,
                         title: false,
                         content: html
                     });
@@ -193,10 +196,13 @@ function netSarangDownload() {
                     area: [area_width],
                     type: 1,
                     icon: 1,
-                    skin: 'layui-layer-lan', //样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
-                    closeBtn: 1, //关闭按钮
+                    // 样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
+                    skin: 'layui-layer-lan',
+                    // 关闭按钮
+                    closeBtn: 1,
                     anim: 2,
-                    shadeClose: true, //开启遮罩关闭
+                    // 点击遮罩是否关闭弹窗
+                    shadeClose: false,
                     title: false,
                     content: html
                 });
