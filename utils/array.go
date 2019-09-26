@@ -5,7 +5,7 @@
  * @File: array.go
  * @Version: 1.0.0
  * @Time: 2019/9/25 10:26
- * @Project: key-gin
+ * @Project: tool-gin
  * @Package:
  * @Software: GoLand
  */

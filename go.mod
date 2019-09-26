@@ -1,4 +1,4 @@
-module key-gin
+module tool-gin
 
 go 1.12
 

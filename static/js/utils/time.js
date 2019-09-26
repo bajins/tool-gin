@@ -5,7 +5,7 @@
  * @File: time.js
  * @Version: 1.0.0
  * @Time: 2019/9/15 20:11
- * @Project: key-gin
+ * @Project: tool-gin
  * @Package:
  * @Software: GoLand
  */

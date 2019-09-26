@@ -5,7 +5,7 @@
  * @File: Netsarang.go
  * @Version: 1.0.0
  * @Time: 2019/9/19 11:03
- * @Project: key-gin
+ * @Project: tool-gin
  * @Package:
  * @Software: GoLand
  */
@@ -19,10 +19,10 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
-	"key-gin/utils"
 	"log"
 	"strings"
 	"time"
+	"tool-gin/utils"
 )
 
 func SendMail(mail, product string) error {

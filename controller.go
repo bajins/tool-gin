@@ -5,13 +5,13 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"key-gin/reptile"
-	"key-gin/result"
-	"key-gin/utils"
 	"net/http"
 	"os"
 	"path"
 	"runtime"
+	"tool-gin/reptile"
+	"tool-gin/result"
+	"tool-gin/utils"
 )
 
 // 首页

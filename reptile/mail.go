@@ -5,16 +5,16 @@
  * @File: mail.go
  * @Version: 1.0.0
  * @Time: 2019/9/16 11:36
- * @Project: key-gin
+ * @Project: tool-gin
  * @Package:
  * @Software: GoLand
  */
 package reptile
 
 import (
-	"key-gin/utils"
 	"math"
 	"time"
+	"tool-gin/utils"
 )
 
 // 获取邮箱号后缀
