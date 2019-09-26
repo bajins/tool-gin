@@ -95,8 +95,7 @@ func main() {
 	router.POST("/getKey", GetKey)
 	router.POST("/SystemInfo", SystemInfo)
 	router.Any("/", WebRoot)
-	router.Any("/download", NetsarangDownloadIndex)
-	router.POST("/getXshellUrl", GetXshellUrl)
+	router.POST("/getXshellUrl", GetNetSarangDownloadUrl)
 	router.Any("/nginx-format", NginxFormatIndex)
 	router.POST("/nginx-format-py", NginxFormatPython)
 

@@ -17,9 +17,11 @@ func ExecutePython(script string, args ...string) (string, error) {
 		return "", err
 	}
 	name := "python"
-	//if runtime.GOOS == "linux" {
-	//	name = "python3"
-	//}
+	// 判断是否同时装了python2.7和python3，优先使用python3
+	_, err := Execute("python3", "-V")
+	if err == nil {
+		name = "python3"
+	}
 	// 把脚本和参数组合到一个字符串数组
 	args = append([]string{script}, args...)
 	out, err := Execute(name, args...)

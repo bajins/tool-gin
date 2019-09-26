@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -69,15 +69,14 @@ func GetKey(c *gin.Context) {
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 		c.JSON(http.StatusOK, result.SystemError())
 		return
 	}
 	if company == "netsarang" {
 		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "xshell_key.py"), app, version)
 		if err != nil {
-			log.Error(err)
-			fmt.Println(err)
+			log.Println(err)
 			c.JSON(http.StatusOK, result.SystemError())
 			return
 		}
@@ -115,13 +114,13 @@ func Upload(c *gin.Context) {
 	fmt.Println(header.Filename)
 	out, err := os.Create("./tmp/" + filename + ".png")
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 	}
 	defer out.Close()
 	// 拷贝上传的文件信息到新建的out文件中
 	_, err = io.Copy(out, file)
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 	}
 }
 
@@ -140,17 +139,8 @@ func Dowload(c *gin.Context) {
 	c.DataFromReader(http.StatusOK, response.ContentLength, response.Header.Get("Content-Type"), response.Body, extraHeaders)
 }
 
-// Netsarang下载页面
-func NetsarangDownloadIndex(c *gin.Context) {
-	// 301重定向
-	//c.Redirect(http.StatusMovedPermanently, "/static")
-	// 返回HTML页面
-	//c.HTML(http.StatusOK, "index.html", nil)
-	c.HTML(http.StatusOK, "netsarang.html", gin.H{})
-}
-
-// 获取Netsarang下载url
-func GetXshellUrl(c *gin.Context) {
+// 获取NetSarang下载url
+func GetNetSarangDownloadUrl(c *gin.Context) {
 	// POST 获取的所有参数内容的类型都是 string
 	app := c.PostForm("app")
 	if utils.IsStringEmpty(app) {
@@ -164,7 +154,7 @@ func GetXshellUrl(c *gin.Context) {
 	}
 	url, err := reptile.DownloadNetsarang(app)
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 		c.JSON(http.StatusOK, result.SystemError())
 		return
 	}
@@ -194,13 +184,13 @@ func NginxFormatPython(c *gin.Context) {
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 		c.JSON(http.StatusOK, result.SystemError())
 		return
 	}
 	out, err := utils.ExecutePython(path.Join(dir, "pyutils", "nginxfmt.py"), code)
 	if err != nil {
-		log.Error(err)
+		log.Println(err)
 		c.JSON(http.StatusOK, result.SystemError())
 		return
 	}

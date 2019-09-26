@@ -34,19 +34,19 @@ func SendMail(mail, product string) error {
 	}
 
 	var url string
-	if product == "xshell" {
+	if product == "Xshell" {
 		url = "https://www.netsarang.com/zh/xshell-download"
 	}
 
-	if product == "xftp" {
+	if product == "Xftp" {
 		url = "https://www.netsarang.com/zh/xftp-download"
 	}
 
-	if product == "xmanager-power-suite" {
+	if product == "Xmanager" {
 		url = "https://www.netsarang.com/zh/xmanager-power-suite-download"
 	}
 
-	if product == "xshell-plus" || product == "" {
+	if product == "Xshell Plus" || product == "" {
 		url = "https://www.netsarang.com/zh/xshell-plus-download"
 	}
 

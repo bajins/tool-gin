@@ -45,6 +45,7 @@ function selectCompany() {
         $("#version").append('<option value="4">4</option>');
         $("#version").append('<option value="3">3</option>');
         $("#version").append('<option value="2">2</option>');
+        $("#netSarangDownloadBtn").show();
     } else if (company == "mobatek") {
         $("#app").empty();
         //为Select追加一个Option(下拉项)
@@ -68,6 +69,7 @@ function selectCompany() {
         $("#version").append('<option value="9.2">9.2</option>');
         $("#version").append('<option value="9.1">9.1</option>');
         $("#version").append('<option value="9.0">9.0</option>');
+        $("#netSarangDownloadBtn").hide();
     } else if (company == "torchsoft") {
         $("#app").empty();
         //为Select追加一个Option(下拉项)
@@ -84,6 +86,7 @@ function selectCompany() {
         $("#version").append('<option value="3">3</option>');
         $("#version").append('<option value="2">2</option>');
         $("#version").append('<option value="1" selected>1</option>');
+        $("#netSarangDownloadBtn").hide();
     }
 }
 
@@ -150,11 +153,22 @@ function getKey() {
 
 // =======================================  下载Netsarang  ======================================
 
-function xshellDownload() {
-    let app = $("#xshell-app").val();
-    let version = $("#xshell-version").val();
+function netSarangDownload() {
+    let company = $("#company").val();
+    if (company != "netsarang") {
+        //提示层
+        layer.msg("只提供NetSarang的产品最新版本下载", {icon: 5});
+        return;
+    }
+    let app = $("#app").val();
+    let version = $("#version").val();
+    if (version != "6") {
+        //提示层
+        layer.msg("只提供NetSarang的产品最新版本下载", {icon: 5});
+        return;
+    }
     //加载层,0代表加载的风格，支持0-2,0.5透明度的白色背景
-    let index = layer.load(0, {shade: [0.5,'#fff']});
+    let index = layer.load(0, {shade: [0.5, '#fff']});
     $.ajax({
         url: "/getXshellUrl",
         type: "POST",
@@ -165,7 +179,7 @@ function xshellDownload() {
             layer.close(index);
             if (result.code == 200) {
                 let html = "<div style='width:100%;height:100%;padding:5%;text-align:center;word-wrap:break-word;'>" +
-                    "<p><b>下载地址：</b></p>" +
+                    "<p><b>" + app + " 下载地址：</b></p>" +
                     "<p><a href='" + result.data.url + "' target='_blank'>" + result.data.url + "</a></p>" +
                     "</div>";
                 let area_width = "40%";

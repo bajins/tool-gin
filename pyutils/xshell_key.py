@@ -69,8 +69,8 @@ LicenseType = [
     [ProductCode['Xshell'], 0x52, 0, 'Educational', 2],
     [ProductCode['Xshell'], 0x55, 0, 'Standard', 1],
     [ProductCode['Xshell'], 0x56, 0, 'Educational', 1],
-    [ProductCode['Xshell'], 0x60, 0, 'Standard', 1],  # ������
-    [ProductCode['Xshell'], 0x61, 0, 'Standard', 2],  # ������
+    [ProductCode['Xshell'], 0x60, 0, 'Standard', 1],
+    [ProductCode['Xshell'], 0x61, 0, 'Standard', 2],
     [ProductCode['Xshell'], 0x62, 0, 'Standard', 1],
     [ProductCode['Xshell'], 0x63, 0, 'Standard', 2],
     [ProductCode['Xlpd'], 0x0B, 0, 'Standard', 2],
