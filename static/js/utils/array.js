@@ -58,7 +58,6 @@ function notInArrayKV(arr, retentionArr) {
 }
 
 
-
 /**
  * 过滤在数组中的值
  *
@@ -126,7 +125,6 @@ const mergeArray = (arr1, arr2) => {
 }
 
 
-
 /**
  * 将数组平均分割
  *
@@ -141,4 +139,21 @@ const splitArray = (arr, len) => {
         newArr.push(arr.slice(i, i + len));
     }
     return newArr;
+}
+
+/**
+ * 判断数组中是否包含指定字符串
+ *
+ * @param arr
+ * @param obj
+ * @returns {boolean}
+ */
+function isInArray(arr, obj) {
+    let i = arr.length;
+    while (i--) {
+        if (obj.match(RegExp("^.*" + arr[i] + ".*"))) {
+            return true;
+        }
+    }
+    return false;
 }
