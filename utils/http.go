@@ -85,7 +85,7 @@ func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCl
 		return resp.Body, nil
 	}
 
-	resp.Body.Close()
+	defer resp.Body.Close()
 	if resp.StatusCode == 404 {
 		err = errors.New("请求未发现")
 	} else {
