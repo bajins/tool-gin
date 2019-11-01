@@ -103,7 +103,8 @@ func Exists(path string) bool {
 	if IsStringEmpty(path) {
 		return false
 	}
-	_, err := os.Stat(path) //os.Stat获取文件信息
+	// os.Stat获取文件信息
+	_, err := os.Stat(path)
 	if err != nil {
 		if os.IsExist(err) {
 			return true
@@ -336,4 +337,22 @@ func PathSplitter(path string, rootName string) []map[string]string {
 		links = append(links, link)
 	}
 	return links
+}
+
+// 创建所有不存在的层级目录
+func Mkdir(dir string) error {
+	if _, err := os.Stat(dir); err != nil {
+		err = os.MkdirAll(dir, 0711)
+		return err
+	}
+	return nil
+}
+
+// 创建文件
+func CreateFile(filePath string) error {
+	if _, err := os.Stat(filePath); err != nil {
+		_, err = os.Create(filePath)
+		return err
+	}
+	return nil
 }
