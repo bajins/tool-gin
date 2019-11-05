@@ -37,11 +37,17 @@ set allList=_darwin_386,_darwin_amd64,_freebsd_386,_freebsd_amd64,_freebsd_arm,_
 set allList=%allList%_openbsd_386,_openbsd_amd64,_windows_386.exe,_windows_amd64.exe,
 set allList=%allList%_linux_386,_linux_amd64,_linux_arm,_linux_mips,_linux_mips64,_linux_mips64le,_linux_mipsle,_linux_s390x
 
+:GETGOX
+set GOPROXY=https://goproxy.io
+go get github.com/mitchellh/gox
+
 for %%i in (%allList%) do (
     :: 如果二进制文件不存在则重新打包
     if not exist "%project%%%i" (
-        go get github.com/mitchellh/gox
         gox
+        if not %errorlevel% == 0 (
+            goto :GETGOX
+        )
         :: 删除旧的压缩包文件
         del *.zip *.tar *.gz
     )
