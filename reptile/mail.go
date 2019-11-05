@@ -12,6 +12,7 @@
 package reptile
 
 import (
+	"io/ioutil"
 	"math"
 	"time"
 	"tool-gin/utils"
@@ -46,7 +47,9 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 		"mailbox":      prefix,
 		"_ts":          utils.ToString(math.Round(float64(time.Now().Unix() / 1000))),
 	}
-	stu, err := utils.JsonToMap(utils.HttpRequest("GET", url, param, nil))
+	response := utils.HttpRequest("GET", url, param, nil)
+	result, _ := ioutil.ReadAll(response.Body)
+	stu, err := utils.JsonToMap(string(result))
 	return stu, err
 }
 
@@ -55,7 +58,8 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 func LinShiYouXiangList(prefix string) string {
 	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/" + prefix
 	response := utils.HttpRequest("GET", url, nil, nil)
-	return response
+	result, _ := ioutil.ReadAll(response.Body)
+	return string(result)
 }
 
 // 获取邮件内容
@@ -64,7 +68,8 @@ func LinShiYouXiangList(prefix string) string {
 func LinShiYouXiangGetMail(prefix, id string) string {
 	url := LIN_SHI_YOU_XIANG + "/mailbox/" + prefix + "/" + id + "/source"
 	response := utils.HttpRequest("GET", url, nil, nil)
-	return response
+	result, _ := ioutil.ReadAll(response.Body)
+	return string(result)
 }
 
 // 删除邮件
@@ -73,5 +78,6 @@ func LinShiYouXiangGetMail(prefix, id string) string {
 func LinShiYouXiangDelete(prefix, id string) string {
 	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/" + prefix + "/" + id
 	response := utils.HttpRequest("DELETE", url, nil, nil)
-	return response
+	result, _ := ioutil.ReadAll(response.Body)
+	return string(result)
 }
