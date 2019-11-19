@@ -168,9 +168,9 @@ function dateFormat(date, fmt) {
     };
     for (let k in opt) {
         if (new RegExp("(" + k + ")").test(fmt)) {
-            let time = opt[k].toString();
-            time = time.padStart(RegExp.$1.length, "0");
-            fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? opt[k] : time)
+            let type = opt[k].toString();
+            let time = type.padStart(RegExp.$1.length, "0");
+            fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? type : time)
         }
     }
     return fmt;
