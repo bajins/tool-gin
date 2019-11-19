@@ -114,14 +114,14 @@ Date.prototype.format = function (fmt) {
 if (!String.prototype.trim) {
     String.prototype.trim = function () {
         return this.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g, '');
-    };
+    }
 }
 
 if (!String.prototype.startsWith) {
     String.prototype.startsWith = function (searchString, position) {
         position = position || 0;
         return this.substr(position, searchString.length) === searchString;
-    };
+    }
 }
 if (!String.prototype.endsWith) {
     String.prototype.endsWith = function (searchString, position) {
@@ -132,8 +132,10 @@ if (!String.prototype.endsWith) {
         position -= searchString.length;
         let lastIndex = subjectString.indexOf(searchString, position);
         return lastIndex !== -1 && lastIndex === position;
-    };
+    }
 }
+
+
 if (!String.prototype.includes) {
     String.prototype.includes = function (search, start) {
         'use strict';
@@ -146,12 +148,11 @@ if (!String.prototype.includes) {
         } else {
             return this.indexOf(search, start) !== -1;
         }
-    };
+    }
 }
 
 if (!String.prototype.repeat) {
     String.prototype.repeat = function (count) {
-        'use strict';
         if (this == null) {
             throw new TypeError('can\'t convert ' + this + ' to object');
         }
@@ -230,7 +231,6 @@ const getCurrAbsPath = () => {
     // let expose = +new Date();
     // let isLtIE8 = ('' + doc.querySelector).indexOf('[native code]') === -1;
 
-
     // FF,Chrome
     if (document.currentScript) {
         return document.currentScript.src;
@@ -304,36 +304,39 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 
 /**
- * 判断js数组/对象是否为空
- * isPrototypeOf() 验证一个对象是否存在于另一个对象的原型链上。即判断 Object 是否存在于 $obj 的原型链上。
- * js中一切皆对象，也就是说，Object 也存在于数组的原型链上，因此这里数组需要先于对象检验。
- * Object.keys() 返回一个由给定对象的自身可枚举属性组成的数组，数组中属性名的排列顺序和使用 for...in 循环遍历该对象时返回的顺序一致
+ * 判断Array/Object/String是否为空
  *
- * @param $obj
+ * @param obj
  * @return {boolean}
  */
-function isEmpty($obj) {
-    // 找不到属性
-    if (typeof ($obj) == 'undefined') {
+function isEmpty(obj) {
+    let type = Object.prototype.toString.call(obj);
+    if (obj == null || obj == undefined) {
         return true;
     }
-    // 检验非数组/对象类型  EX：undefined   null  ''  根据自身要求添加其他适合的为空的值  如：0 ,'0','  '  等
-    if ($obj === 0 || $obj === '' || $obj === null) {
-        return true;
-    }
-    if (typeof ($obj) === "string") {
-        // 移除字符串中所有 ''
-        $obj = $obj.replace(/\s*/g, "");
-        if ($obj === '') {
+    switch (type) {
+        case "[object Undefined]", "[object Null]":
             return true;
-        }
+        case "[object String]":
+            obj = obj.replace(/\s*/g, "");
+            if (obj === "" || obj.length == 0) {
+                return true;
+            }
+            return false;
+        case "[object Array]":
+            if (!Array.isArray(obj) || obj.length == 0) {
+                return true;
+            }
+            return false;
+        case "[object Object]":
+            // Object.keys() 返回一个由给定对象的自身可枚举属性组成的数组
+            if (obj.length == 0 || Object.keys(obj).length == 0) {
+                return true;
+            }
+            return false;
+        default:
+            throw TypeError("只能判断Array/Object/String，当前类型为:" + type);
     }
-    if (typeof ($obj) === "object") {
-        if (!Array.isArray($obj) || $obj.length <= 0 || Object.keys($obj).length <= 0) {
-            return true;
-        }
-    }
-    return false;
 }
 
 
