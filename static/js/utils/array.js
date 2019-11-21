@@ -157,3 +157,73 @@ function isInArray(arr, obj) {
     }
     return false;
 }
+
+
+/**
+ * 类正态排序
+ *
+ * @param arr
+ * @returns {[]}
+ */
+const normalSort = function (arr) {
+    let temp = [];
+    //先将数组从小到大排列得到 [1, 1, 2, 2, 3, 3, 3, 4, 6]
+    let sortArr = arr.sort(function (a, b) {
+        return a - b
+    });
+    for (let i = 0, l = arr.length; i < l; i++) {
+        if (i % 2 == 0) {
+            // 下标为偶数的顺序放到前边
+            temp[i / 2] = sortArr[i];
+        } else {
+            // 下标为奇数的从后往前放
+            temp[l - (i + 1) / 2] = sortArr[i];
+        }
+    }
+    return temp;
+}
+
+/**
+ * 利用Box-Muller方法极坐标形式
+ * 使用两个均匀分布产生一个正态分布
+ *
+ * @param mean
+ * @param sigma
+ * @returns {*}
+ */
+const normalDistribution = function (mean, sigma) {
+    let u = 0.0;
+    let v = 0.0;
+    let w = 0.0;
+    let c;
+    do {
+        //获得两个（-1,1）的独立随机变量
+        u = Math.random() * 2 - 1.0;
+        v = Math.random() * 2 - 1.0;
+        w = u * u + v * v;
+    } while (w == 0.0 || w >= 1.0);
+
+    c = Math.sqrt((-2 * Math.log(w)) / w);
+
+    return mean + u * c * sigma;
+}
+
+
+/**
+ * 随机拆分一个数
+ *
+ * @param total 总和
+ * @param nums 个数
+ * @param max 最大值
+ * @returns {number[]}
+ */
+const randomSplit = function (total, nums, max) {
+    let rest = total;
+    let result = Array.apply(null, {length: nums}).map((n, i) => nums - i).map(n => {
+        const v = 1 + Math.floor(Math.random() * (max | rest / n * 2 - 1));
+        rest -= v;
+        return v;
+    });
+    result[nums - 1] += rest;
+    return result;
+}
