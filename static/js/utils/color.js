@@ -71,10 +71,10 @@ const randomHSLColor = function () {
 function randomColor() {
     let str = Math.ceil(Math.random() * 16777215).toString(16);
     if (str.length < 6) {
-        str = "0" + str;
+        str = `0${str}`;
     }
     // return `#${Math.floor(Math.random()*(2<<23)).toString(16)}`;
-    return str;
+    return `#${str}`;
 }
 
 
