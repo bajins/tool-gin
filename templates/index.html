@@ -47,11 +47,13 @@
                 https://www.netsarang.com/zh/all-downloads
             </a>
         </p>
-        <p><b>注意：</b></p>
-        <p>安装新版本之前请把老版本先卸载！！！并清除相关全部数据（配置文件、注册表等）</p>
+        <h2>注意：</h2>
+        <p>安装新版本之前请把老版本先卸载！！！</p>
+        <p>清除注册表信息：在cmd中执行<code>REG DELETE HKCU\Software\NetSarang /f</code></p>
 
-        <p>清除注册表信息,在cmd中执行<code>REG DELETE HKCU\Software\NetSarang /f</code></p>
-        <p>把以下代码加入<code>C:\Windows\System32\drivers\etc\hosts</code>进行屏蔽</p>
+        <h3>屏蔽版本升级方式一：</h3>
+        <p>把以下地址加入<code>C:\Windows\System32\drivers\etc\hosts</code>进行屏蔽</p>
+        <div class="pre-div">
         <pre>
 127.0.0.1 transact.netsarang.com
 127.0.0.1 update.netsarang.com
@@ -59,6 +61,17 @@
 127.0.0.1 www.netsarang.co.kr
 127.0.0.1 sales.netsarang.com
 </pre>
+        </div>
+        <h3>屏蔽版本升级方式二：</h3>
+        <p>把以下几行另存为<code>.ini</code>后缀的文件，然后在cmd中执行<code>REGINI 文件名.ini</code></p>
+        <div class="pre-div">
+        <pre>
+HKEY_CURRENT_USER\Software\NetSarang\Xshell\6\LiveUpdate [19]
+HKEY_CURRENT_USER\Software\NetSarang\Xftp\6\LiveUpdate [19]
+HKEY_CURRENT_USER\Software\NetSarang\Xmanager\6\LiveUpdate [19]
+HKEY_CURRENT_USER\Software\NetSarang\Xlpd\6\LiveUpdate [19]
+</pre>
+        </div>
         <form class="pure-form pure-form-stacked">
             <fieldset>
                 <label for="company"><b>公司:</b></label>
