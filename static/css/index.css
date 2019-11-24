@@ -1646,3 +1646,12 @@ code {
     position: relative;
     z-index: 1;
 }
+
+@media (max-width: 419px) {
+    .pre-div {
+        width: 100vw;
+        margin-left: -1rem;
+        margin-right: -1rem;
+        border-radius: 0;
+    }
+}
