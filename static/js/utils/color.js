@@ -53,6 +53,20 @@ const randomRGBColor = function () {
 }
 
 /**
+ * 随机颜色十六进制值
+ *
+ * @returns {string}
+ */
+function randomColor() {
+    let str = Math.ceil(Math.random() * 16777215).toString(16);
+    if (str.length < 6) {
+        str = `0${str}`;
+    }
+    // return `#${Math.floor(Math.random()*(2<<23)).toString(16)}`;
+    return `#${str}`;
+}
+
+/**
  * 随机颜色hsl
  *
  * @returns {string}
@@ -66,15 +80,6 @@ const randomHSLColor = function () {
     // Lightness(亮度)。取值为：0.0% - 100.0%
     let l = Math.round(Math.random() * 80);
     return `hsl(${h},${s}%,${l}%)`;
-}
-
-function randomColor() {
-    let str = Math.ceil(Math.random() * 16777215).toString(16);
-    if (str.length < 6) {
-        str = `0${str}`;
-    }
-    // return `#${Math.floor(Math.random()*(2<<23)).toString(16)}`;
-    return `#${str}`;
 }
 
 
