@@ -125,8 +125,10 @@ function getKey() {
                 html = html + "<p><b>key：</b><pre style='background: black;color:#66FF66;padding:5%;'>" + result.data.key + "</pre></p><hr /></div>";
                 if (result.code == 200) {
                     let area_width = "30%";
-                    if (device.isMobile) {
+                    if (window.innerWidth <= 419) {
                         area_width = "80%";
+                    } else if (window.innerWidth <= 768) {
+                        area_width = "50%";
                     }
                     //自定页
                     layer.open({
@@ -186,8 +188,10 @@ function netSarangDownload() {
                     "<p><a href='" + result.data.url + "' target='_blank'>" + result.data.url + "</a></p>" +
                     "</div>";
                 let area_width = "40%";
-                if (device.isMobile) {
+                if (window.innerWidth <= 419) {
                     area_width = "80%";
+                } else if (window.innerWidth <= 768) {
+                    area_width = "50%";
                 }
                 //自定页
                 layer.open({
@@ -383,8 +387,10 @@ function activateBeautifierListener(contents, indentCode, indentation) {
 function beautifySuccess(contents) {
     let html = "<pre style='background: black;color:#66FF66;width: 100%;height: 100%;margin: 0px;padding: 10px;'>" + contents + "</pre>";
     let area_width = "60%";
-    if (device.isMobile) {
+    if (window.innerWidth <= 419) {
         area_width = "95%";
+    } else if (window.innerWidth <= 768) {
+        area_width = "80%";
     }
     //自定页
     layer.open({
