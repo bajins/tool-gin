@@ -69,7 +69,7 @@ Date.prototype.pattern = function (fmt) {
         fmt = fmt.replace(RegExp.$1, wk);
     }
     for (let k in opt) {
-        if (new RegExp("(" + k + ")").test(fmt)) {
+        if (new RegExp(`(${k})`).test(fmt)) {
             let type = opt[k].toString();
             let time = type.padStart(RegExp.$1.length, "0");
             fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? type : time);
@@ -117,7 +117,7 @@ Date.prototype.format = function (fmt) {
         "S": this.getMilliseconds()
     };
     for (let k in opt) {
-        if (new RegExp("(" + k + ")").test(fmt)) {
+        if (new RegExp(`(${k})`).test(fmt)) {
             let type = opt[k].toString();
             let time = type.padStart(RegExp.$1.length, "0");
             fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? type : time);
@@ -125,6 +125,7 @@ Date.prototype.format = function (fmt) {
     }
     return fmt;
 }
+
 
 /**
  * Date格式化输出
@@ -137,8 +138,8 @@ Date.prototype.format = function (fmt) {
  * @param fmt
  * @returns {void | string}
  */
-function dateFormat(date, fmt) {
-    if (!date instanceof Date) {
+const dateFormat = (date, fmt) => {
+    if (!(date instanceof Date)) {
         throw TypeError("date不是Date类型");
     }
     if (typeof fmt != "string") {
@@ -167,7 +168,7 @@ function dateFormat(date, fmt) {
         "S": date.getMilliseconds()
     };
     for (let k in opt) {
-        if (new RegExp("(" + k + ")").test(fmt)) {
+        if (new RegExp(`(${k})`).test(fmt)) {
             let type = opt[k].toString();
             let time = type.padStart(RegExp.$1.length, "0");
             fmt = fmt.replace(RegExp.$1, RegExp.$1.length == 1 ? type : time)
@@ -176,3 +177,22 @@ function dateFormat(date, fmt) {
     return fmt;
 }
 
+
+/**
+ * export default 服从 ES6 的规范,补充：default 其实是别名
+ * module.exports 服从CommonJS 规范
+ * 一般导出一个属性或者对象用 export default
+ * 一般导出模块或者说文件使用 module.exports
+ *
+ * import from 服从ES6规范,在编译器生效
+ * require 服从ES5 规范，在运行期生效
+ * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
+ *
+ * @return 将方法、变量暴露出去
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/4/29 11:58
+ */
+export default {
+    dateFormat
+}

@@ -10,6 +10,8 @@
  * @Software: GoLand
  */
 
+import time from "./time.js";
+
 // const isDebugEnabled = "production";
 const isDebugEnabled = "dev";
 const isInfoEnabled = true;
@@ -17,36 +19,45 @@ const isErrorEnabled = true;
 const isWarnEnabled = true;
 const isTraceEnabled = true;
 
+/**
+ * 自定义颜色打印日志
+ *
+ * @param title
+ * @param content
+ * @param backgroundColor 颜色
+ */
+const log = (title, content, backgroundColor = "#1475b2") => {
+    let i = [
+        `%c ${title} %c ${content} `,
+        "padding: 1px; border-radius: 3px 0 0 3px; color: #fff; background: ".concat("#606060", ";"),
+        `padding: 1px; border-radius: 0 3px 3px 0; color: #fff; background: ${backgroundColor};`
+    ];
+    return function () {
+        let t;
+        window.console && "function" === typeof window.console.log && (t = console).log.apply(t, arguments);
+    }.apply(void 0, i);
+}
 
-let loggerName = "[" + getCurrAbsPath() + "]";
-
-console.log(
-    "%cisDebugEnabled=%c" + `${isDebugEnabled}` +
-    ",%cisInfoEnabled=%c" + `${isInfoEnabled}` +
-    ",%cisErrorEnabled=%c " + `${isErrorEnabled}` +
-    ",%cisWarnEnabled=%c" + `${isWarnEnabled}` +
-    ",%cisTraceEnabled=%c" + `${isTraceEnabled}`
-    , 'color:#2db7f5;'
-    , 'color:red;'
-    , 'color:#2db7f5;'
-    , 'color:red;'
-    , 'color:red;'
-    , 'color:red;'
-    , 'background:#aaa;color:#bada55;'
-    , 'color:red;'
-    , 'color:#2db7f5;'
-    , 'color:red;'
-);
+log("isDebugEnabled", isDebugEnabled, "#42c02e");
+log("isInfoEnabled", isInfoEnabled, "#42c02e");
+log("isErrorEnabled", isErrorEnabled, "#42c02e");
+log("isWarnEnabled", isWarnEnabled, "#42c02e");
+log("isTraceEnabled", isTraceEnabled, "#42c02e");
 
 /**
+ * 箭头函数是匿名函数，不能作为构造函数，不能使用new
+ *
  * 对日志参数解析
  * 格式为：
  *     logger.info("页面{}，点击第{}行", "App.vue", index);
  *
- * @param log
+ * @param log 箭头函数不能绑定arguments，取而代之用rest参数
  * @returns {string}
  */
 const getParam = (...log) => {
+    if (log.length == 0) {
+        return "";
+    }
     let params = log[0];
     let parentString = params[0].toString();
     // 正则表达式，如须匹配大小写则去掉i
@@ -70,34 +81,55 @@ const getParam = (...log) => {
 
 const debug = (...log) => {
     if (isDebugEnabled) {
-        console.log("%c " + loggerName + " %c " + getParam(log), 'color:red;', 'font-size:15px;color:red;');
+        console.log(
+            `${time.dateFormat(new Date, "yyyy-MM-dd HH:mm:ss")} %c ${getParam(log)}`,
+            'color:red;',
+            'font-size:15px;color:red;'
+        );
     }
-};
+}
+
+const logConcat = (...log) => {
+    return `${time.dateFormat(new Date, "yyyy-MM-dd HH:mm:ss")} ${getParam(log)}`;
+}
 
 const info = (...log) => {
     if (isInfoEnabled) {
-        console.info(loggerName + getParam(log));
+        console.info(logConcat(log));
     }
-};
+}
 
 const error = (...log) => {
     if (isErrorEnabled) {
-        console.error(loggerName + getParam(log));
+        console.error(logConcat(log));
     }
-};
+}
 const warn = (...log) => {
     if (isWarnEnabled) {
-        console.warn(loggerName + getParam(log));
+        console.warn(logConcat(log));
     }
-};
+}
 const trace = (...log) => {
     if (isTraceEnabled) {
-        console.trace(loggerName + getParam(log));
+        console.trace(logConcat(log));
     }
-};
+}
+
 
 /**
- * 将方法、变量暴露出去
+ * export default 服从 ES6 的规范,补充：default 其实是别名
+ * module.exports 服从CommonJS 规范
+ * 一般导出一个属性或者对象用 export default
+ * 一般导出模块或者说文件使用 module.exports
+ *
+ * import from 服从ES6规范,在编译器生效
+ * require 服从ES5 规范，在运行期生效
+ * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
+ *
+ * @return 将方法、变量暴露出去
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/4/29 11:58
  */
 export default {
     debug,
@@ -105,4 +137,4 @@ export default {
     error,
     warn,
     trace
-};
+}

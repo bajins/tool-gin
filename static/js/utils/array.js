@@ -48,7 +48,7 @@ function trimFilter(array) {
  */
 function notInArrayKV(arr, retentionArr) {
     let newArr = [];
-    arr.forEach(function (value, index, array) {
+    arr.forEach(function (value) {
         // 判断文件名以什么开头、是否在指定数组中存在
         if (!value.startsWith(".") && !retentionArr.includes(value)) {
             newArr.push(value);
@@ -67,7 +67,7 @@ function notInArrayKV(arr, retentionArr) {
  */
 function inArrayKV(arr, ignoresArr) {
     let newArr = [];
-    arr.forEach(function (value, index, array) {
+    arr.forEach(function (value) {
         // 判断文件名以什么开头、是否在指定数组中存在
         if (!value.startsWith(".") && ignoresArr.includes(value)) {
             newArr.push(value);
@@ -151,7 +151,7 @@ const splitArray = (arr, len) => {
 function isInArray(arr, obj) {
     let i = arr.length;
     while (i--) {
-        if (obj.match(RegExp("^.*" + arr[i] + ".*"))) {
+        if (obj.match(RegExp(`^.*${arr[i]}.*`))) {
             return true;
         }
     }
@@ -226,4 +226,34 @@ const randomSplit = function (total, nums, max) {
     });
     result[nums - 1] += rest;
     return result;
+}
+
+
+/**
+ * export default 服从 ES6 的规范,补充：default 其实是别名
+ * module.exports 服从CommonJS 规范
+ * 一般导出一个属性或者对象用 export default
+ * 一般导出模块或者说文件使用 module.exports
+ *
+ * import from 服从ES6规范,在编译器生效
+ * require 服从ES5 规范，在运行期生效
+ * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
+ *
+ * @return 将方法、变量暴露出去
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/4/29 11:58
+ */
+export default {
+    trimSpace,
+    trimFilter,
+    notInArrayKV,
+    inArrayKV,
+    reinsertElement,
+    mergeArray,
+    splitArray,
+    isInArray,
+    normalSort,
+    normalDistribution,
+    randomSplit
 }

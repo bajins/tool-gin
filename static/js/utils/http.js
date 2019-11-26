@@ -9,6 +9,7 @@
  * @Software: GoLand
  */
 
+import util from "./util.js";
 
 /**
  * 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT）
@@ -143,7 +144,7 @@ const download = (url, params) => {
             let contentDisposition = xhr.headers['Content-Disposition'];
             let filename = "";
             // 如果从Content-Disposition中取到的文件名不为空
-            if (!isEmpty(contentDisposition)) {
+            if (!util.isEmpty(contentDisposition)) {
                 let reg = new RegExp("filename=([^;]+\\.[^\\.;]+);*");
                 filename = reg.exec(contentDisposition)[1];
                 // 取文件名信息中的文件名,替换掉文件名中多余的符号
@@ -172,4 +173,29 @@ const download = (url, params) => {
             reject(err);
         })
     })
+}
+
+
+/**
+ * export default 服从 ES6 的规范,补充：default 其实是别名
+ * module.exports 服从CommonJS 规范
+ * 一般导出一个属性或者对象用 export default
+ * 一般导出模块或者说文件使用 module.exports
+ *
+ * import from 服从ES6规范,在编译器生效
+ * require 服从ES5 规范，在运行期生效
+ * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
+ *
+ * @return 将方法、变量暴露出去
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/4/29 11:58
+ */
+export default {
+    METHOD,
+    CONTENT_TYPE,
+    DATA_TYPE,
+    RESPONSE_TYPE,
+    request,
+    download
 }

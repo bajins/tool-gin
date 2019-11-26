@@ -36,12 +36,16 @@ const http = {
             headers: {}, // object 请求头
             timeout: 1000, // string 超时时间:0表示不设置超时
             beforeSend: (xhr) => {
+                console.log(xhr);
             },
             success: (result, status, xhr) => {
+                console.log(result, status, xhr);
             },
             error: (xhr, status, error) => {
+                console.log(xhr, status, error);
             },
             complete: (xhr, status) => {
+                console.log(xhr, status);
             }
         }, settings);
         // 参数验证
@@ -53,7 +57,7 @@ const http = {
         let xhr = new XMLHttpRequest();
         // 请求开始回调函数
         xhr.addEventListener('loadstart', e => {
-            _s.beforeSend(xhr);
+            _s.beforeSend(xhr, e);
         });
         // 请求成功回调函数
         xhr.addEventListener('load', e => {
@@ -75,7 +79,7 @@ const http = {
         });
         // 请求结束
         xhr.addEventListener('loadend', e => {
-            _s.complete(xhr, xhr.status);
+            _s.complete(xhr, xhr.status, e);
         });
         // 请求出错
         xhr.addEventListener('error', e => {
@@ -185,5 +189,24 @@ http.ajax({
 */
 
 
-import util from './util.js';
+// import util from './util.js';
 // import { Message } from 'element-ui';
+
+/**
+ * export default 服从 ES6 的规范,补充：default 其实是别名
+ * module.exports 服从CommonJS 规范
+ * 一般导出一个属性或者对象用 export default
+ * 一般导出模块或者说文件使用 module.exports
+ *
+ * import from 服从ES6规范,在编译器生效
+ * require 服从ES5 规范，在运行期生效
+ * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
+ *
+ * @return 将方法、变量暴露出去
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/4/29 11:58
+ */
+export default {
+    http
+}

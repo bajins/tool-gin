@@ -8,6 +8,12 @@
  * @Package:
  * @Software: GoLand
  */
+import http from './utils/http.js';
+import log from './utils/log.js';
+import util from './utils/util.js';
+
+// ECMAScript6指定元素添加事件
+// document.querySelector("#id").addEventListener("click", getKey);
 
 
 $(function () {
@@ -23,11 +29,10 @@ $(function () {
 
 // ==================================  获取Netsarang激活key  ===================================
 
-
 /**
  * 重置首页版本或产品
  */
-function selectCompany() {
+window.selectCompany = function selectCompany() {
     let company = $("#company").val();
     if (company == "netsarang") {
         $("#app").empty();
@@ -92,8 +97,11 @@ function selectCompany() {
 
 /**
  * 获取激活码
+ *
+ * ECMAScript6使用全局变量配置页面绑定事件
+ *
  */
-function getKey() {
+window.getKey = function getKey() {
     let company = $("#company").val();
     let app = $("#app").val();
     let version = $("#version").val();
@@ -106,7 +114,9 @@ function getKey() {
             '</form>');
         $(document.body).append(form);
         form.submit().remove();*/
-        download("/getKey", {company: company, app: app, version: version});
+        http.download("/getKey", {company: company, app: app, version: version}).then(r => {
+            log.info(r);
+        });
 
     } else {
         $.ajax({
@@ -116,14 +126,18 @@ function getKey() {
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             dataType: "json",
             success: function (result) {
-                let html = "<div style='width:100%;height:100%;padding:5%;'><p><b>产品：</b>" + app + "</p><hr />";
-                if (company == "torchsoft") {
-                    html = html + "<p><b>许可证数量：</b>" + version + "</p><hr />";
-                } else {
-                    html = html + "<p><b>版本：</b>" + version + "</p><hr />";
-                }
-                html = html + "<p><b>key：</b><pre style='background: black;color:#66FF66;padding:5%;'>" + result.data.key + "</pre></p><hr /></div>";
+                log.info(JSON.stringify(result));
                 if (result.code == 200) {
+                    let html = `<div style='width:100%;height:100%;padding:5%;'><p><b>产品：</b>${app}</p><hr />`;
+                    if (company == "torchsoft") {
+                        html = `${html}<p><b>许可证数量：</b>${version}</p><hr />`;
+                    } else {
+                        html = `${html}<p><b>版本：</b>${version}</p><hr />`;
+                    }
+                    html = `${html}<p><b>key：</b>
+                    <pre style='background: black;color:#66FF66;padding:5%;'>${result.data.key}</pre>
+                    </p><hr /></div>`;
+
                     let area_width = "30%";
                     if (window.innerWidth <= 419) {
                         area_width = "80%";
@@ -158,7 +172,7 @@ function getKey() {
 
 // =======================================  下载Netsarang  ======================================
 
-function netSarangDownload() {
+window.netSarangDownload = function netSarangDownload() {
     let company = $("#company").val();
     if (company != "netsarang") {
         //提示层
@@ -183,10 +197,11 @@ function netSarangDownload() {
         success: function (result) {
             layer.close(index);
             if (result.code == 200) {
-                let html = "<div style='width:100%;height:100%;padding:5%;text-align:center;word-wrap:break-word;'>" +
-                    "<p><b>" + app + " 下载地址：</b></p>" +
-                    "<p><a href='" + result.data.url + "' target='_blank'>" + result.data.url + "</a></p>" +
-                    "</div>";
+                let html = `<div style='width:100%;height:100%;padding:5%;text-align:center;word-wrap:break-word;'>
+                                <p><b>${app} 下载地址：</b></p>
+                                <p><a href='${result.data.url}' target='_blank'>${result.data.url}</a></p>
+                            </div>`;
+
                 let area_width = "40%";
                 if (window.innerWidth <= 419) {
                     area_width = "80%";
@@ -229,7 +244,7 @@ function netSarangDownload() {
  * @author claer woytu.com
  * @date 2019/6/13 17:31
  */
-function beautificationClick(event) {
+window.beautificationClick = function beautificationClick(event) {
     let value = $(event).val();
     if ("online" == value) {
         $("#indent-way").hide();
@@ -247,7 +262,7 @@ function beautificationClick(event) {
  * @author claer woytu.com
  * @date 2019/6/13 17:23
  */
-function indentWayButton(event) {
+window.indentWayButton = function indentWayButton(event) {
     // 先去掉选中的
     $(".pure-button-active").removeClass('pure-button-active');
     //每次点击的时候，将当前的元素切换active样式
@@ -262,10 +277,10 @@ function indentWayButton(event) {
  * @author claer woytu.com
  * @date 2019/6/13 17:32
  */
-function beautifyCode() {
+window.beautifyCode = function beautifyCode() {
     let beautification = $("input[name='beautification']:checked").val();
     let code = $("#text-code").val();
-    if (isEmpty(code)) {
+    if (util.isEmpty(code)) {
         layer.msg("请输入配置代码！");
         return;
     }
@@ -275,7 +290,7 @@ function beautifyCode() {
     } else if ("offline" == beautification) {
 
         let indentation = $(".pure-button-active").attr("id");
-        if (isEmpty(indentation)) {
+        if (util.isEmpty(indentation)) {
             layer.msg("请选择缩进方式！");
             return;
         }
@@ -336,7 +351,7 @@ function activateBeautifierListener(contents, indentCode, indentation) {
     // 缩进代码
     INDENTATION = indentCode;
     // 缩进方式
-    if (isEmpty(contents)) {
+    if (util.isEmpty(contents)) {
         layer.msg("请输入配置代码！");
         return;
     }

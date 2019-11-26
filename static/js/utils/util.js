@@ -83,33 +83,6 @@ String.prototype.replaceAll = function (FindText, RepText) {
     return this.replace(regExp, RepText);
 }
 
-/**
- * 给Date对象增加一个原型方法：格式化
- *
- * @param fmt
- * @returns {void | string}
- */
-Date.prototype.format = function (fmt) {
-    let o = {
-        "M+": this.getMonth() + 1,
-        "d+": this.getDate(),
-        "h+": this.getHours(),
-        "m+": this.getMinutes(),
-        "s+": this.getSeconds(),
-        "q+": Math.floor((this.getMonth() + 3) / 3),
-        "S": this.getMilliseconds()
-    };
-    if (/(y+)/.test(fmt)) {
-        fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
-    }
-    for (let k in o) {
-        if (new RegExp("(" + k + ")").test(fmt)) {
-            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
-        }
-    }
-    return fmt;
-}
-
 
 if (!String.prototype.trim) {
     String.prototype.trim = function () {
@@ -123,6 +96,8 @@ if (!String.prototype.startsWith) {
         return this.substr(position, searchString.length) === searchString;
     }
 }
+
+
 if (!String.prototype.endsWith) {
     String.prototype.endsWith = function (searchString, position) {
         let subjectString = this.toString();
@@ -196,9 +171,9 @@ if (!String.prototype.repeat) {
 
 //removes element from array
 if (!Array.prototype.remove) {
-    Array.prototype.remove = function (index, item) {
+    Array.prototype.remove = function (index) {
         this.splice(index, 1);
-    };
+    }
 }
 
 
@@ -209,7 +184,7 @@ if (!String.prototype.contains) {
 if (!Array.prototype.insert) {
     Array.prototype.insert = function (index, item) {
         this.splice(index, 0, item);
-    };
+    }
 }
 
 
@@ -226,38 +201,40 @@ if (!Array.prototype.insert) {
  * @returns {string}
  */
 const getCurrAbsPath = () => {
-    let a = {};
-    let rExtractUri = /((?:http|https|file):\/\/.*?\/[^:]+)(?::\d+)?:\d+/;
-    // let expose = +new Date();
-    // let isLtIE8 = ('' + doc.querySelector).indexOf('[native code]') === -1;
+
+    // ECMAScript6
+    if (import.meta) {
+        return import.meta.url;
+    }
 
     // FF,Chrome
     if (document.currentScript) {
         return document.currentScript.src;
     }
 
-    let stack;
-    try {
-        a.b();
-    } catch (e) {
-        stack = e.fileName || e.sourceURL || e.stack || e.stacktrace;
-    }
     // IE10
-    if (stack) {
-        let absPath = rExtractUri.exec(stack)[1];
-        if (absPath) {
-            return absPath;
-        }
+    var e = new Error('');
+    var stack = e.stack || e.sourceURL || e.stacktrace || '';
+    var rExtractUri = /((?:http|https|file):\/\/.*?\/[^:]+)(?::\d+)?:\d+/;
+    // var rgx = /(?:http|https|file):\/\/.*?\/.+?.js/;
+    var absPath = rExtractUri.exec(stack);
+    if (absPath) {
+        return absPath[1];
     }
 
     // IE5-9
-    // for (let scripts = doc.scripts, i = scripts.length - 1, script; script = scripts[i--];) {
-    //     if (script.className != expose && script.readyState === 'interactive') {
-    //         script.className = expose;
-    //         // if less than ie 8, must get abs path by getAttribute(src, 4)
-    //         return isLtIE8 ? script.getAttribute('src', 4) : script.src;
-    //     }
-    // }
+    var doc = exports.document;
+    var scripts = doc.scripts;
+    var expose = +new Date();
+    var isLtIE8 = ('' + doc.querySelector).indexOf('[native code]') === -1;
+    for (var i = 0; i < scripts.length; i++) {
+        var script = scripts[i];
+        if (script.className != expose && script.readyState === 'interactive') {
+            script.className = expose;
+            // 如果小于ie 8，则必须通过getAttribute（src，4）获得abs路径
+            return isLtIE8 ? script.getAttribute('src', 4) : script.src;
+        }
+    }
 }
 
 /**
@@ -309,7 +286,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
  * @param obj
  * @return {boolean}
  */
-function isEmpty(obj) {
+const isEmpty = (obj) => {
     let type = Object.prototype.toString.call(obj);
     if (obj == null || obj == undefined) {
         return true;
@@ -340,3 +317,25 @@ function isEmpty(obj) {
 }
 
 
+/**
+ * export default 服从 ES6 的规范,补充：default 其实是别名
+ * module.exports 服从CommonJS 规范
+ * 一般导出一个属性或者对象用 export default
+ * 一般导出模块或者说文件使用 module.exports
+ *
+ * import from 服从ES6规范,在编译器生效
+ * require 服从ES5 规范，在运行期生效
+ * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
+ *
+ * @return 将方法、变量暴露出去
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/4/29 11:58
+ */
+export default {
+    getCurrAbsPath,
+    getPath,
+    randomNum,
+    delay,
+    isEmpty
+}

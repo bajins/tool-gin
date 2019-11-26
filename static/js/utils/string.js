@@ -18,7 +18,7 @@
  * @param str 指定字符串范围，默认小写字母、数字、下划线
  * @returns {string}
  */
-function randomString(len, str) {
+const randomString=(len, str)=> {
     str = str || 'abcdefghijklmnopqrstuvwxyz0123456789_';
     let randomString = '';
     for (let i = 0; i < len; i++) {
@@ -35,7 +35,7 @@ function randomString(len, str) {
  * @param oldStr
  * @returns {string}
  */
-function replaceBlank(oldStr) {
+const replaceBlank=(oldStr)=> {
     if (typeof oldStr != "string") {
         throw new Error("正则表达式去除空行，传入的不为字符串！");
     }
@@ -54,4 +54,26 @@ function replaceBlank(oldStr) {
 const formatNumber = (n) => {
     n = n.toString();
     return n[1] ? n : '0' + n;
+}
+
+
+/**
+ * export default 服从 ES6 的规范,补充：default 其实是别名
+ * module.exports 服从CommonJS 规范
+ * 一般导出一个属性或者对象用 export default
+ * 一般导出模块或者说文件使用 module.exports
+ *
+ * import from 服从ES6规范,在编译器生效
+ * require 服从ES5 规范，在运行期生效
+ * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
+ *
+ * @return 将方法、变量暴露出去
+ * @Description
+ * @author claer woytu.com
+ * @date 2019/4/29 11:58
+ */
+export default {
+    randomString,
+    replaceBlank,
+    formatNumber
 }
