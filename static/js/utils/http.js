@@ -141,7 +141,7 @@ const download = (url, params) => {
             // xhr.getResponseHeader('Content-Disposition');
             // 从response的headers中获取filename,
             // 后端response.setHeader("Content-Disposition", "attachment; filename=文件名");
-            let contentDisposition = xhr.headers['Content-Disposition'];
+            let contentDisposition = xhr.headers['Content-Disposition'] || result.headers['content-disposition'];
             let filename = "";
             // 如果从Content-Disposition中取到的文件名不为空
             if (!util.isEmpty(contentDisposition)) {
