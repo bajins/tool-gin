@@ -76,15 +76,14 @@ const getParam = (...log) => {
         parentString = parentString + params.slice(ps.length).toString();
         return parentString;
     }
-    return params.toString();
+    return JSON.stringify(params);
 }
 
 const debug = (...log) => {
     if (isDebugEnabled) {
         console.log(
             `${time.dateFormat(new Date, "yyyy-MM-dd HH:mm:ss")} %c ${getParam(log)}`,
-            'color:red;',
-            'font-size:15px;color:red;'
+            'color:red;'
         );
     }
 }
