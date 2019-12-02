@@ -139,7 +139,7 @@ func ToCamelCaseRegexp(str string) string {
 	var reg = regexp.MustCompile("(_|-)([a-zA-Z]+)")
 	camel := reg.ReplaceAllString(str, " $2")
 	camel = strings.Title(camel)
-	camel = strings.Replace(camel, " ", "", -1)
+	camel = strings.ReplaceAll(camel, " ", "")
 	return camel
 }
 
@@ -161,9 +161,9 @@ func UnderscoreName(name string) string {
 
 // 下划线写法转为驼峰写法
 func CamelName(str string) string {
-	str = strings.Replace(str, "_", " ", -1)
+	str = strings.ReplaceAll(str, "_", " ")
 	str = strings.Title(str)
-	return strings.Replace(str, " ", "", -1)
+	return strings.ReplaceAll(str, " ", "")
 }
 
 // 搜索字符串数组中是否存在指定字符串

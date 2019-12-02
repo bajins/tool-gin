@@ -93,5 +93,19 @@ func GBK2UTF(text string) string {
 
 	text = enc.ConvertString(text)
 
-	return strings.Replace(text, "聽", "&nbsp;", -1)
+	return strings.ReplaceAll(text, "聽", "&nbsp;")
+}
+
+// 分页
+// page 页数
+// rows 取多少条数据
+// total 数据总条数
+// 返回 起始-结束
+func Pagination(page, rows, total int) (int, int) {
+	offset := (page - 1) * rows
+	limit := offset + rows
+	if limit > total {
+		return offset, total
+	}
+	return offset, limit
 }

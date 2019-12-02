@@ -12,7 +12,7 @@ import (
 // string: 要执行的Python脚本，应该是完整的路径
 // args: 	参数
 func ExecutePython(script string, args ...string) (string, error) {
-	if !IsFile(script) {
+	if !IsFileExist(script) {
 		err := errors.New(fmt.Sprintf(script, "error：%s", "文件不存在"))
 		return "", err
 	}

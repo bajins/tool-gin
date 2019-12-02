@@ -83,8 +83,12 @@ func GetKey(c *gin.Context) {
 		c.JSON(http.StatusOK, result.Success("获取key成功", map[string]string{"key": out}))
 
 	} else if company == "mobatek" {
-
-		_, err := utils.ExecutePython(path.Join(dir, "pyutils", "moba_xterm_Keygen.py"), utils.OsPath(), version)
+		curr, err := utils.OsPath()
+		if err != nil {
+			c.JSON(http.StatusOK, result.SystemError())
+			return
+		}
+		_, err = utils.ExecutePython(path.Join(dir, "pyutils", "moba_xterm_Keygen.py"), curr, version)
 		if err != nil {
 			c.JSON(http.StatusOK, result.SystemError())
 			return
@@ -93,7 +97,8 @@ func GetKey(c *gin.Context) {
 		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
 		//c.Writer.Header().Set("Content-Type", "application/octet-stream")
 		//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
-		c.FileAttachment(utils.OsPath()+"/Custom.mxtpro", "Custom.mxtpro")
+
+		c.FileAttachment(path.Join(curr, "Custom.mxtpro"), "Custom.mxtpro")
 
 	} else if company == "torchsoft" {
 		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "reg_workshop_keygen.py"), version)
