@@ -2,8 +2,11 @@ package utils
 
 import (
 	"errors"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -194,4 +197,29 @@ func CreateFile(filePath string) error {
 		return err
 	}
 	return nil
+}
+
+// 获取文件MIME类型
+// 见函数http.ServeContent
+func GetContentType(filename string) (string, error) {
+	f, err := os.Open(filename)
+	if err != nil {
+		return "", err
+	}
+	fi, err := f.Stat()
+	if err != nil {
+		return "", err
+	}
+	ctype := mime.TypeByExtension(filepath.Ext(fi.Name()))
+	if ctype == "" {
+		// read a chunk to decide between utf-8 text and binary
+		var buf [512]byte
+		n, _ := io.ReadFull(f, buf[:])
+		ctype = http.DetectContentType(buf[:n])
+		_, err := f.Seek(0, io.SeekStart) // rewind to output whole file
+		if err != nil {
+			return "", err
+		}
+	}
+	return ctype, nil
 }
