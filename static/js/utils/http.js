@@ -136,12 +136,12 @@ const download = (url, params) => {
             contentType: CONTENT_TYPE.URLENCODED,
             responseType: RESPONSE_TYPE.BLOB
         }).then(function (result, status, xhr) {
-
             // console.log(xhr.getAllResponseHeaders());
             // xhr.getResponseHeader('Content-Disposition');
-            // 从response的headers中获取filename,
-            // 后端response.setHeader("Content-Disposition", "attachment; filename=文件名");
-            let contentDisposition = xhr.headers['Content-Disposition'] || result.headers['content-disposition'];
+            //从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
+            let contentDisposition = result.headers['Content-Disposition'] || result.headers['content-disposition'];
+            let contentType = result.headers['Content-Type'] || result.headers['content-type'] || 'application/octet-stream';
+            // let contentLength = result.headers["Content-Length"] || result.headers["content-length"];
             let filename = "";
             // 如果从Content-Disposition中取到的文件名不为空
             if (!util.isEmpty(contentDisposition)) {
@@ -153,21 +153,21 @@ const download = (url, params) => {
             let downloadElement = document.createElement('a');
 
             //这里res.data是返回的blob对象
-            let blob = new Blob([result], {type: 'application/octet-stream;charset=utf-8'});
-            // 创建下载的链接
-            let href = window.URL.createObjectURL(blob);
+            let blob = new Blob([result.data], {type: contentType});
 
             downloadElement.style.display = 'none';
-            downloadElement.href = href;
+            downloadElement.target = "_blank";
+            // 创建下载的链接
+            downloadElement.href = window.URL.createObjectURL(blob);
             // 下载后文件名
             downloadElement.download = filename;
             document.body.appendChild(downloadElement);
             // 点击下载
             downloadElement.click();
-            // 下载完成移除元素
-            document.body.removeChild(downloadElement);
             // 释放掉blob对象
-            window.URL.revokeObjectURL(href);
+            window.URL.revokeObjectURL(downloadElement.href);
+            // 移除元素
+            document.body.removeChild(downloadElement);
 
         }).catch(function (err) {
             reject(err);
