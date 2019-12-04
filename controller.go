@@ -8,9 +8,10 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"tool-gin/reptile"
-	"tool-gin/result"
 	"tool-gin/utils"
 )
 
@@ -42,7 +43,7 @@ func SystemInfo(c *gin.Context) {
 	// 获取当前存在的go协程数
 	data["NumGoroutine"] = runtime.NumGoroutine()
 
-	c.JSON(http.StatusOK, result.Success("获取系统信息成功", data))
+	c.JSON(http.StatusOK, Success("获取系统信息成功", data))
 }
 
 // 获取key
@@ -53,44 +54,46 @@ func GetKey(c *gin.Context) {
 	company := c.PostForm("company")
 
 	if utils.IsStringEmpty(company) {
-		c.JSON(http.StatusOK, result.Error(300, "请选择公司"))
+		c.JSON(http.StatusOK, Error(300, "请选择公司"))
 		return
 	}
 	app := c.PostForm("app")
 	if utils.IsStringEmpty(app) {
-		c.JSON(http.StatusOK, result.Error(300, "请选择产品"))
+		c.JSON(http.StatusOK, Error(300, "请选择产品"))
 		return
 	}
 	version := c.PostForm("version")
 	if utils.IsStringEmpty(version) {
-		c.JSON(http.StatusOK, result.Error(300, "请选择版本"))
+		c.JSON(http.StatusOK, Error(300, "请选择版本"))
 		return
 	}
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, result.SystemError())
+		c.JSON(http.StatusOK, SystemError())
 		return
 	}
 	if company == "netsarang" {
 		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "xshell_key.py"), app, version)
+		ExecuteScriptError(c, err)
 		if err != nil {
 			log.Println(err)
-			c.JSON(http.StatusOK, result.SystemError())
+			c.JSON(http.StatusOK, SystemError())
 			return
 		}
-		c.JSON(http.StatusOK, result.Success("获取key成功", map[string]string{"key": out}))
+		c.JSON(http.StatusOK, Success("获取key成功", map[string]string{"key": out}))
 
 	} else if company == "mobatek" {
 		curr, err := utils.OsPath()
 		if err != nil {
-			c.JSON(http.StatusOK, result.SystemError())
+			c.JSON(http.StatusOK, SystemError())
 			return
 		}
 		_, err = utils.ExecutePython(path.Join(dir, "pyutils", "moba_xterm_Keygen.py"), curr, version)
+		ExecuteScriptError(c, err)
 		if err != nil {
-			c.JSON(http.StatusOK, result.SystemError())
+			c.JSON(http.StatusOK, SystemError())
 			return
 		}
 		c.Header("Content-Type", "application/octet-stream")
@@ -102,13 +105,29 @@ func GetKey(c *gin.Context) {
 
 	} else if company == "torchsoft" {
 		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "reg_workshop_keygen.py"), version)
+		ExecuteScriptError(c, err)
 		if err != nil {
-			c.JSON(http.StatusOK, result.SystemError())
+			c.JSON(http.StatusOK, SystemError())
 			return
 		}
-		c.JSON(http.StatusOK, result.Success("获取key成功", map[string]string{"key": out}))
+		c.JSON(http.StatusOK, Success("获取key成功", map[string]string{"key": out}))
 	}
 
+}
+
+// 脚本执行错误处理
+func ExecuteScriptError(c *gin.Context, err error) {
+	// 如果命令执行错误
+	if err != nil && strings.Contains(err.Error(), "exit status 1") {
+		// 获取当前绝对路径
+		dir, err := os.Getwd()
+		if err != nil {
+			c.JSON(http.StatusOK, SystemError())
+			return
+		}
+		p := filepath.Join(dir, "pyutils", "requirements.txt")
+		utils.Execute("pip", "install", "-r", p)
+	}
 }
 
 // 文件上传请求
@@ -149,21 +168,21 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 	// POST 获取的所有参数内容的类型都是 string
 	app := c.PostForm("app")
 	if utils.IsStringEmpty(app) {
-		c.JSON(http.StatusOK, result.Error(300, "请选择产品"))
+		c.JSON(http.StatusOK, Error(300, "请选择产品"))
 		return
 	}
 	version := c.PostForm("version")
 	if utils.IsStringEmpty(version) {
-		c.JSON(http.StatusOK, result.Error(300, "请选择版本"))
+		c.JSON(http.StatusOK, Error(300, "请选择版本"))
 		return
 	}
 	url, err := reptile.DownloadNetsarang(app)
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, result.SystemError())
+		c.JSON(http.StatusOK, SystemError())
 		return
 	}
-	c.JSON(http.StatusOK, result.Success("获取"+app+"成功", map[string]string{"url": url}))
+	c.JSON(http.StatusOK, Success("获取"+app+"成功", map[string]string{"url": url}))
 }
 
 // NGINX格式化代码页面
@@ -183,24 +202,24 @@ func NginxFormatPython(c *gin.Context) {
 	code := c.PostForm("code")
 
 	if utils.IsStringEmpty(code) {
-		c.JSON(http.StatusOK, result.Error(300, "请输入配置代码"))
+		c.JSON(http.StatusOK, Error(300, "请输入配置代码"))
 		return
 	}
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, result.SystemError())
+		c.JSON(http.StatusOK, SystemError())
 		return
 	}
 	out, err := utils.ExecutePython(path.Join(dir, "pyutils", "nginxfmt.py"), code)
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, result.SystemError())
+		c.JSON(http.StatusOK, SystemError())
 		return
 	}
 	res := make(map[string]string)
 	res["contents"] = out
-	c.JSON(http.StatusOK, result.Success("请求成功", res))
+	c.JSON(http.StatusOK, Success("请求成功", res))
 
 }

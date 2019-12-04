@@ -3,9 +3,7 @@ package utils
 import (
 	"errors"
 	"fmt"
-	"os"
 	"os/exec"
-	"path"
 )
 
 // 执行python脚本
@@ -24,18 +22,7 @@ func ExecutePython(script string, args ...string) (string, error) {
 	}
 	// 把脚本和参数组合到一个字符串数组
 	args = append([]string{script}, args...)
-	out, err := Execute(name, args...)
-	if err != nil {
-		if err.Error() == "exit status 1" {
-			// 获取当前绝对路径
-			dir, err := os.Getwd()
-			if err == nil {
-				p := path.Join(dir, "pyutils", "requirements.txt")
-				Execute("pip", "install", "-r", p)
-			}
-		}
-	}
-	return out, err
+	return Execute(name, args...)
 }
 
 // 执行dos或shell命令
