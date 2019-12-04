@@ -140,15 +140,20 @@ const download = (url, params) => {
             // xhr.getResponseHeader('Content-Disposition');
             //从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
             let contentDisposition = result.headers['Content-Disposition'] || result.headers['content-disposition'];
-            let contentType = result.headers['Content-Type'] || result.headers['content-type'] || 'application/octet-stream';
+            let contentType = result.headers['Content-Type'] || result.headers['content-type'] || 'application/octet-stream;charset=utf-8';
             // let contentLength = result.headers["Content-Length"] || result.headers["content-length"];
             let filename = "";
             // 如果从Content-Disposition中取到的文件名不为空
             if (!util.isEmpty(contentDisposition)) {
-                let reg = new RegExp("filename=([^;]+\\.[^\\.;]+);*");
-                filename = reg.exec(contentDisposition)[1];
+                // 取出文件名
+                filename = new RegExp("filename=(.*)(?=;|%3B)").exec(contentDisposition)[1];
                 // 取文件名信息中的文件名,替换掉文件名中多余的符号
-                filename = filename.replaceAll("\\\\|/|\"", "");
+                filename = filename.replaceAll("\\\\|/|\"|\\s", "");
+                // 解决中文乱码，编码格式
+                filename = decodeURI(escape(filename));
+            } else {
+                let urls = url.split("/");
+                filename = urls[urls.length - 1];
             }
             let downloadElement = document.createElement('a');
 
