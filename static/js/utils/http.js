@@ -170,6 +170,15 @@ const download = (url, params) => {
             document.body.removeChild(downloadElement);
 
         }).catch(function (err) {
+            // 如果服务器自定义错误返回
+            if (err.response.data.type === 'application/json') {
+                let reader = new FileReader();
+                reader.readAsText(err.response.data, 'utf-8');
+                reader.onload = () => {
+                    reject(JSON.parse(reader.result).message);
+                }
+                return;
+            }
             reject(err);
         })
     })
