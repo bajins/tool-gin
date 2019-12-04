@@ -71,7 +71,7 @@ func IsExistDir(dirPath string) bool {
 // 判断文件是否存在：存在，返回true，否则返回false
 func IsFileExist(filename string) bool {
 	info, err := os.Stat(filename)
-	if os.IsNotExist(err) || info.IsDir() {
+	if err != nil || os.IsNotExist(err) || info.IsDir() {
 		return false
 	}
 	return true
