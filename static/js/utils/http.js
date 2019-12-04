@@ -171,7 +171,7 @@ const download = (url, params) => {
 
         }).catch(function (err) {
             // 如果服务器自定义错误返回
-            if (err.response.data.type === 'application/json') {
+            if (err.response && err.response.data.type === 'application/json') {
                 let reader = new FileReader();
                 reader.readAsText(err.response.data, 'utf-8');
                 reader.onload = () => {
