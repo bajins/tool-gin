@@ -173,6 +173,7 @@ func GetContentType(filename string) (string, error) {
 		// read a chunk to decide between utf-8 text and binary
 		var buf [512]byte
 		n, _ := io.ReadFull(f, buf[:])
+		// 根据前512个字节的数据判断MIME类型
 		ctype = http.DetectContentType(buf[:n])
 		_, err := f.Seek(0, io.SeekStart) // rewind to output whole file
 		if err != nil {
