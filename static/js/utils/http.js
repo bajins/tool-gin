@@ -149,12 +149,13 @@ const download = (url, params) => {
                 filename = new RegExp("filename=(.*)(?=;|%3B)").exec(contentDisposition)[1];
                 // 取文件名信息中的文件名,替换掉文件名中多余的符号
                 filename = filename.replaceAll("\\\\|/|\"|\\s", "");
-                // 解决中文乱码，编码格式
-                filename = decodeURI(escape(filename));
             } else {
                 let urls = url.split("/");
                 filename = urls[urls.length - 1];
             }
+            // 解决中文乱码，编码格式
+            filename = decodeURI(escape(filename));
+
             let downloadElement = document.createElement('a');
 
             //这里res.data是返回的blob对象
