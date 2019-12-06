@@ -54,20 +54,24 @@ func GetKey(c *gin.Context) {
 
 	if utils.IsStringEmpty(company) {
 		ErrorJSON(c, 300, "请选择公司")
+		return
 	}
 	app := c.PostForm("app")
 	if utils.IsStringEmpty(app) {
 		ErrorJSON(c, 300, "请选择产品")
+		return
 	}
 	version := c.PostForm("version")
 	if utils.IsStringEmpty(version) {
 		ErrorJSON(c, 300, "请选择版本")
+		return
 	}
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
 		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		return
 	}
 	if company == "netsarang" {
 		out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "xshell_key.py"), app, version)
@@ -75,18 +79,21 @@ func GetKey(c *gin.Context) {
 		if err != nil {
 			log.Println(err)
 			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			return
 		}
 		SuccessJSON(c, "获取key成功", map[string]string{"key": out})
 
 	} else if company == "mobatek" {
 		curr, err := utils.OsPath()
 		if err != nil {
-			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			SystemErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			return
 		}
 		_, err = utils.ExecutePython(filepath.Join(dir, "pyutils", "moba_xterm_Keygen.py"), curr, version)
 		ExecuteScriptError(c, err)
 		if err != nil {
 			SystemErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			return
 		}
 		c.Header("Content-Type", "application/octet-stream")
 		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
@@ -100,6 +107,7 @@ func GetKey(c *gin.Context) {
 		ExecuteScriptError(c, err)
 		if err != nil {
 			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			return
 		}
 		SuccessJSON(c, "获取key成功", map[string]string{"key": out})
 	}
@@ -114,6 +122,7 @@ func ExecuteScriptError(c *gin.Context, err error) {
 		dir, err := os.Getwd()
 		if err != nil {
 			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			return
 		}
 		p := filepath.Join(dir, "pyutils", "requirements.txt")
 		utils.Execute("pip", "install", "-r", p)
@@ -159,15 +168,18 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 	app := c.PostForm("app")
 	if utils.IsStringEmpty(app) {
 		ErrorJSON(c, 300, "请选择产品")
+		return
 	}
 	version := c.PostForm("version")
 	if utils.IsStringEmpty(version) {
 		ErrorJSON(c, 300, "请选择版本")
+		return
 	}
 	url, err := reptile.DownloadNetsarang(app)
 	if err != nil {
 		log.Println(err)
 		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		return
 	}
 	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": url})
 }
@@ -190,17 +202,20 @@ func NginxFormatPython(c *gin.Context) {
 
 	if utils.IsStringEmpty(code) {
 		ErrorJSON(c, 300, "请输入配置代码")
+		return
 	}
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
 		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		return
 	}
 	out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "nginxfmt.py"), code)
 	if err != nil {
 		log.Println(err)
 		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		return
 	}
 	res := make(map[string]string)
 	res["contents"] = out
