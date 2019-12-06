@@ -11,8 +11,7 @@ import (
 // args: 	参数
 func ExecutePython(script string, args ...string) (string, error) {
 	if !IsFileExist(script) {
-		err := errors.New(fmt.Sprintf(script, "error：%s", "文件不存在"))
-		return "", err
+		return "", errors.New(fmt.Sprintf(script, "error：%s", "文件不存在"))
 	}
 	name := "python"
 	// 判断是否同时装了python2.7和python3，优先使用python3
