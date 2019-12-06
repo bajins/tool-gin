@@ -8,9 +8,9 @@
  * @Package:
  * @Software: GoLand
  */
-import http from './utils/http.js';
 import log from './utils/log.js';
 import util from './utils/util.js';
+import http from "./utils/http.js";
 
 // ECMAScript6指定元素添加事件
 // document.querySelector("#id").addEventListener("click", getKey);
@@ -107,15 +107,19 @@ window.getKey = function getKey() {
     let version = $("#version").val();
     if (app == "MobaXterm") {
         // 构造隐藏的form表单
-        /*let form = $('<form action="/getKey" method="post">' +
-            '<input type="text" name="company" value="' + company + '"/>' +
-            '<input type="text" name="app" value="' + app + '"/>' +
-            '<input type="text" name="version" value="' + version + '"/>' +
-            '</form>');
-        $(document.body).append(form);
-        form.submit().remove();*/
+        // let form = $(`<form action="/getKey" method="post" target="_blank">
+        //     <input type="text" name="company" value="${company}"/>
+        //     <input type="text" name="app" value="${app}"/>
+        //     <input type="text" name="version" value="${version}"/>
+        //     </form>`);
+        // $(document.body).append(form);
+        // form.submit().remove();
+
         http.download("/getKey", {company: company, app: app, version: version}).then(r => {
             log.info(r);
+        }).catch(function (err) {
+            console.log(err)
+            layer.msg(err, {icon: 5});
         });
 
     } else {

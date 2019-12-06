@@ -10,6 +10,7 @@
  */
 
 import util from "./util.js";
+import ajax from "./ajax.js";
 
 /**
  * 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT）
@@ -83,45 +84,6 @@ const RESPONSE_TYPE = {
 
 
 /**
- * 封装axios HTTP请求API为`Promise`方式
- * 使用方法：http.axiosRequest({obj对象的数据},url字符串：如果obj.url为空就取这里的值)
- *
- * @param url 请求路径
- * @param obj 有以下参数：
- *   url： 请求路径：如果obj.url为空就取这里的值
- *   method： 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT）
- *   data： 是作为请求主体被发送的数据,只适用于这些请求方法 'PUT', 'POST', 和 'PATCH'
- *   params: 是即将与请求一起发送的 URL 参数
- *   contentType:  请求数据类型(application/x-www-form-urlencoded,multipart/form-data,text/plain)
- *   dataType： 返回数据类型（json,text,xml,html,script,jsonp）
- *   responseType： 响应的数据类型（text，arraybuffer,blob,document,json,ms-stream）
- *
- * @param url
- * @param obj
- * @returns {Promise<unknown>}
- */
-const request = (url, obj) => {
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: obj.url || url,
-            method: obj.method || METHOD.GET,
-            data: obj.data || {},// 是作为请求主体被发送的数据,只适用于这些请求方法 'PUT', 'POST', 和 'PATCH'
-            params: obj.data || {},// 是即将与请求一起发送的 URL 参数
-            header: {
-                'Content-Type': obj.contentType || CONTENT_TYPE.URLENCODED
-            },
-            dataType: obj.dataType || DATA_TYPE.JSON,
-            responseType: obj.responseType || RESPONSE_TYPE.JSON,
-        }).then(response => {
-            resolve(response);
-        }).catch((error) => {
-            reject(error)
-        })
-    })
-}
-
-
-/**
  * 文件下载api封装
  *
  * @param url
@@ -130,62 +92,54 @@ const request = (url, obj) => {
  */
 const download = (url, params) => {
     return new Promise((resolve, reject) => {
-        request(url, {
+        ajax.request({
+            url: url,
             method: METHOD.POST,
             data: params,
-            contentType: CONTENT_TYPE.URLENCODED,
-            responseType: RESPONSE_TYPE.BLOB
-        }).then(function (result, status, xhr) {
-            // console.log(xhr.getAllResponseHeaders());
-            // xhr.getResponseHeader('Content-Disposition');
-            //从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
-            let contentDisposition = result.headers['Content-Disposition'] || result.headers['content-disposition'];
-            let contentType = result.headers['Content-Type'] || result.headers['content-type'] || 'application/octet-stream;charset=utf-8';
-            // let contentLength = result.headers["Content-Length"] || result.headers["content-length"];
-            let filename = "";
-            // 如果从Content-Disposition中取到的文件名不为空
-            if (!util.isEmpty(contentDisposition)) {
-                // 取出文件名，这里正则注意顺序 (.*)在|前如果有;号那么永远都会是真 把分号以及后面的字符取到
-                let reg = new RegExp("(?<=filename=)((.*)(?=;|%3B)|(.*))").exec(contentDisposition);
-                // 取文件名信息中的文件名,替换掉文件名中多余的符号
-                filename = reg[1].replaceAll("\\\\|/|\"|\\s", "");
-            } else {
-                let urls = url.split("/");
-                filename = urls[urls.length - 1];
-            }
-            // 解决中文乱码，编码格式
-            filename = decodeURI(escape(filename));
-
-            let downloadElement = document.createElement('a');
-
-            //这里res.data是返回的blob对象
-            let blob = new Blob([result.data], {type: contentType});
-
-            downloadElement.style.display = 'none';
-            downloadElement.target = "_blank";
-            // 创建下载的链接
-            downloadElement.href = window.URL.createObjectURL(blob);
-            // 下载后文件名
-            downloadElement.download = filename;
-            document.body.appendChild(downloadElement);
-            // 点击下载
-            downloadElement.click();
-            // 释放掉blob对象
-            window.URL.revokeObjectURL(downloadElement.href);
-            // 移除元素
-            document.body.removeChild(downloadElement);
-
-        }).catch(function (err) {
-            // 如果服务器自定义错误返回
-            if (err.response && err.response.data.type === 'application/json') {
-                let reader = new FileReader();
-                reader.readAsText(err.response.data, 'utf-8');
-                reader.onload = () => {
-                    reject(JSON.parse(reader.result).message);
+            responseType: RESPONSE_TYPE.BLOB,
+            success: (result, status, xhr) => {
+                //从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
+                let contentDisposition = xhr.getResponseHeader('Content-Disposition') || xhr.getResponseHeader('content-disposition');
+                let contentType = xhr.getResponseHeader('Content-Type') || xhr.getResponseHeader('content-type') || 'application/octet-stream;charset=utf-8';
+                // let contentLength = result.headers["Content-Length"] || result.headers["content-length"];
+                console.log(xhr.getAllResponseHeaders())
+                let filename;
+                // 如果从Content-Disposition中取到的文件名不为空
+                if (!util.isEmpty(contentDisposition)) {
+                    // 取出文件名，这里正则注意顺序 (.*)在|前如果有;号那么永远都会是真 把分号以及后面的字符取到
+                    let reg = new RegExp("(?<=filename=)((.*)(?=;|%3B)|(.*))").exec(contentDisposition);
+                    // 取文件名信息中的文件名,替换掉文件名中多余的符号
+                    filename = reg[1].replaceAll("\\\\|/|\"", "");
+                } else {
+                    let urls = url.split("/");
+                    filename = urls[urls.length - 1];
                 }
-                return;
+                // 解决中文乱码，编码格式
+                filename = decodeURI(escape(filename));
+                let downloadElement = document.createElement('a');
+                downloadElement.style.display = 'none';
+                // 创建下载的链接
+                downloadElement.href = URL.createObjectURL(new Blob([xhr.response], {type: contentType}));
+                // 下载后文件名
+                downloadElement.download = filename;
+                // 点击下载
+                downloadElement.click();
+                // 释放掉blob对象
+                URL.revokeObjectURL(downloadElement.href);
+            },
+            error: (xhr, status, error) => {
+                // 如果服务器自定义错误返回
+                if (xhr.response && xhr.response.type === 'application/json') {
+                    let reader = new FileReader();
+                    reader.readAsText(xhr.response, 'utf-8');
+                    reader.onload = () => {
+                        console.log(reader.result)
+                        reject(JSON.parse(reader.result).message);
+                    }
+                    return;
+                }
+                reject(xhr.response);
             }
-            reject(err);
         })
     })
 }
@@ -211,6 +165,5 @@ export default {
     CONTENT_TYPE,
     DATA_TYPE,
     RESPONSE_TYPE,
-    request,
     download
 }
