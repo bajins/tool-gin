@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -43,7 +42,7 @@ func SystemInfo(c *gin.Context) {
 	// 获取当前存在的go协程数
 	data["NumGoroutine"] = runtime.NumGoroutine()
 
-	c.JSON(http.StatusOK, Success("获取系统信息成功", data))
+	SuccessJSON(c, "获取系统信息成功", data)
 }
 
 // 获取key
@@ -54,63 +53,55 @@ func GetKey(c *gin.Context) {
 	company := c.PostForm("company")
 
 	if utils.IsStringEmpty(company) {
-		c.JSON(http.StatusOK, Error(300, "请选择公司"))
-		return
+		ErrorJSON(c, 300, "请选择公司")
 	}
 	app := c.PostForm("app")
 	if utils.IsStringEmpty(app) {
-		c.JSON(http.StatusOK, Error(300, "请选择产品"))
-		return
+		ErrorJSON(c, 300, "请选择产品")
 	}
 	version := c.PostForm("version")
 	if utils.IsStringEmpty(version) {
-		c.JSON(http.StatusOK, Error(300, "请选择版本"))
-		return
+		ErrorJSON(c, 300, "请选择版本")
 	}
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, SystemError())
-		return
+		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 	}
 	if company == "netsarang" {
-		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "xshell_key.py"), app, version)
+		out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "xshell_key.py"), app, version)
 		ExecuteScriptError(c, err)
 		if err != nil {
 			log.Println(err)
-			c.JSON(http.StatusOK, SystemError())
-			return
+			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 		}
-		c.JSON(http.StatusOK, Success("获取key成功", map[string]string{"key": out}))
+		SuccessJSON(c, "获取key成功", map[string]string{"key": out})
 
 	} else if company == "mobatek" {
 		curr, err := utils.OsPath()
 		if err != nil {
-			c.JSON(http.StatusOK, SystemError())
-			return
+			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 		}
-		_, err = utils.ExecutePython(path.Join(dir, "pyutils", "moba_xterm_Keygen.py"), curr, version)
+		_, err = utils.ExecutePython(filepath.Join(dir, "pyutils", "moba_xterm_Keygen.py"), curr, version)
 		ExecuteScriptError(c, err)
 		if err != nil {
-			c.JSON(http.StatusOK, SystemError())
-			return
+			SystemErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 		}
 		c.Header("Content-Type", "application/octet-stream")
 		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
 		//c.Writer.Header().Set("Content-Type", "application/octet-stream")
 		//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
 
-		c.FileAttachment(path.Join(curr, "Custom.mxtpro"), "Custom.mxtpro")
+		c.FileAttachment(filepath.Join(curr, "Custom.mxtpro"), "Custom.mxtpro")
 
 	} else if company == "torchsoft" {
-		out, err := utils.ExecutePython(path.Join(dir, "pyutils", "reg_workshop_keygen.py"), version)
+		out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "reg_workshop_keygen.py"), version)
 		ExecuteScriptError(c, err)
 		if err != nil {
-			c.JSON(http.StatusOK, SystemError())
-			return
+			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 		}
-		c.JSON(http.StatusOK, Success("获取key成功", map[string]string{"key": out}))
+		SuccessJSON(c, "获取key成功", map[string]string{"key": out})
 	}
 
 }
@@ -122,8 +113,7 @@ func ExecuteScriptError(c *gin.Context, err error) {
 		// 获取当前绝对路径
 		dir, err := os.Getwd()
 		if err != nil {
-			c.JSON(http.StatusOK, SystemError())
-			return
+			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 		}
 		p := filepath.Join(dir, "pyutils", "requirements.txt")
 		utils.Execute("pip", "install", "-r", p)
@@ -168,21 +158,18 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 	// POST 获取的所有参数内容的类型都是 string
 	app := c.PostForm("app")
 	if utils.IsStringEmpty(app) {
-		c.JSON(http.StatusOK, Error(300, "请选择产品"))
-		return
+		ErrorJSON(c, 300, "请选择产品")
 	}
 	version := c.PostForm("version")
 	if utils.IsStringEmpty(version) {
-		c.JSON(http.StatusOK, Error(300, "请选择版本"))
-		return
+		ErrorJSON(c, 300, "请选择版本")
 	}
 	url, err := reptile.DownloadNetsarang(app)
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, SystemError())
-		return
+		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 	}
-	c.JSON(http.StatusOK, Success("获取"+app+"成功", map[string]string{"url": url}))
+	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": url})
 }
 
 // NGINX格式化代码页面
@@ -202,24 +189,21 @@ func NginxFormatPython(c *gin.Context) {
 	code := c.PostForm("code")
 
 	if utils.IsStringEmpty(code) {
-		c.JSON(http.StatusOK, Error(300, "请输入配置代码"))
-		return
+		ErrorJSON(c, 300, "请输入配置代码")
 	}
 	// 获取当前绝对路径
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, SystemError())
-		return
+		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 	}
-	out, err := utils.ExecutePython(path.Join(dir, "pyutils", "nginxfmt.py"), code)
+	out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "nginxfmt.py"), code)
 	if err != nil {
 		log.Println(err)
-		c.JSON(http.StatusOK, SystemError())
-		return
+		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 	}
 	res := make(map[string]string)
 	res["contents"] = out
-	c.JSON(http.StatusOK, Success("请求成功", res))
+	SuccessJSON(c, "请求成功", res)
 
 }
