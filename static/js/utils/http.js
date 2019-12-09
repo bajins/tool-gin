@@ -248,9 +248,6 @@ const download = (url, params) => {
             method: METHOD.POST,
             data: params,
             responseType: RESPONSE_TYPE.BLOB,
-            headers: {
-                "test": "test"
-            },
             success: (result, status, xhr) => {
                 // console.log(xhr.getAllResponseHeaders())
                 //从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
