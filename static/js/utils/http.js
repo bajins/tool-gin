@@ -10,12 +10,11 @@
  */
 
 import util from "./util.js";
-import ajax from "./ajax.js";
 
 /**
- * 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT）
+ * 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, PATCH）
  *
- * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, CONNECT: string, OPTIONS: string, PUT: string}}
+ * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, PATCH: string, OPTIONS: string, PUT: string}}
  */
 const METHOD = {
     OPTIONS: "OPTIONS",
@@ -25,11 +24,11 @@ const METHOD = {
     PUT: "PUT",
     DELETE: "DELETE",
     TRACE: "TRACE",
-    CONNECT: "CONNECT"
+    PATCH: "PATCH"
 }
 
 /**
- * 请求数据类型,告诉服务器，我要发什么类型的数据。
+ * Content-Type请求数据类型，告诉接收方，我发什么类型的数据。
  *
  * application/x-www-form-urlencoded：数据被编码为名称/值对。这是标准的编码格式。默认使用此类型。
  * multipart/form-data：数据被编码为一条消息，页上的每个控件对应消息中的一个部分。
@@ -38,48 +37,200 @@ const METHOD = {
  * @type {{FORM_DATA: string, URLENCODED: string, TEXT_PLAIN: string}}
  */
 const CONTENT_TYPE = {
-    URLENCODED: "application/x-www-form-urlencoded",
-    FORM_DATA: "multipart/form-data",
-    TEXT_PLAIN: "text/plain"
+    URLENCODED: "application/x-www-form-urlencoded", FORM_DATA: "multipart/form-data", TEXT_PLAIN: "text/plain"
 }
 
 /**
- * 预期服务器返回的数据类型（对应请求头中的Accept），如果是下载文件则指定RESPONSE_TYPE
+ * XMLHttpRequest预期服务器返回数据类型，并根据此值进行本地解析
  *
- * 如果没有指定，那么会自动推断是返回 XML，还是JSON，还是script，还是String。
- * xml: 返回 XML 文档。
- * html: 返回纯文本 HTML 信息；包含的 script 标签会在插入 dom 时执行。
- * script: 返回纯文本 JavaScript 代码。不会自动缓存结果。除非设置了 “cache” 参数。
- * 注意：在远程请求时(不在同一个域下)，所有 POST 请求都将转为 GET 请求。（因为将使用 DOM 的 script标签来加载）
- * json: 返回 JSON 数据 。
- * jsonp: JSONP 格式。使用 JSONP 形式调用函数时，如 “myurl?callback=?” jQuery 将自动替换 ? 为正确的函数名，以执行回调函数。
- * text: 返回纯文本字符串
- *
- * @type {{SCRIPTY: string, JSONP: string, XML: string, JSON: string, TEXT: string, HTML: string}}
- */
-const DATA_TYPE = {
-    JSON: "json", TEXT: "text", XML: "xml", HTML: "html", SCRIPTY: "script", JSONP: "jsonp"
-}
-
-/**
- * 响应的数据类型
- *
- *   ""    将 responseType 设为空字符串与设置为"text"相同， 是默认类型 （实际上是 DOMString）。
- *  "arraybuffer"    response 是一个包含二进制数据的 JavaScript ArrayBuffer 。
- *  "blob"    response 是一个包含二进制数据的 Blob 对象 。
- *  "document"    response 是一个 HTML Document 或 XML XMLDocument ，这取决于接收到的数据的 MIME 类型。
- *  "json"    response 是一个 JavaScript 对象。这个对象是通过将接收到的数据类型视为 JSON 解析得到的。
- *  "text"    response 是包含在 DOMString 对象中的文本。
+ *  ""              将 responseType 设为空字符串与设置为"text"相同， 是默认类型 （实际上是 DOMString）。
+ *  "arraybuffer"   response 是一个包含二进制数据的 JavaScript ArrayBuffer 。
+ *  "blob"          response 是一个包含二进制数据的 Blob 对象 。
+ *  "document"      response 是一个 HTML Document 或 XML XMLDocument ，这取决于接收到的数据的 MIME 类型。
+ *  "json"          response 是一个 JavaScript 对象。这个对象是通过将接收到的数据类型视为 JSON 解析得到的。
+ *  "text"          response 是包含在 DOMString 对象中的文本。
  *  "moz-chunked-arraybuffer" 与"arraybuffer"相似，但是数据会被接收到一个流中。
  *         使用此响应类型时，响应中的值仅在 progress 事件的处理程序中可用，并且只包含上一次响应 progress 事件以后收到的数据，
  *         而不是自请求发送以来收到的所有数据。在 progress 事件处理时访问 response 将返回到目前为止收到的数据。
  *         在 progress 事件处理程序之外访问， response 的值会始终为 null 。
  *  "ms-stream"  response 是下载流的一部分；此响应类型仅允许下载请求，并且仅受Internet Explorer支持。
  *
- * @type {{ARRAYBUFFER: string, BLOB: string, MS_STREAM: string, DOCUMENT: string, TEXT: string, JSON: string}}
+ * @type {{ARRAY_BUFFER: string, BLOB: string, MS_STREAM: string, DOCUMENT: string, TEXT: string, JSON: string}}
  */
 const RESPONSE_TYPE = {
     TEXT: "text", ARRAY_BUFFER: "arraybuffer", BLOB: "blob", DOCUMENT: "document", JSON: "json", MS_STREAM: "ms-stream"
+}
+
+
+/**
+ * js封装ajax请求
+ * 使用new XMLHttpRequest 创建请求对象,所以不考虑低端IE浏览器(IE6及以下不支持XMLHttpRequest)
+ * 注意:请求参数如果包含日期类型.是否能请求成功需要后台接口配合
+ *
+ *   url：       请求路径
+ *   method：    请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, PATCH）
+ *   data：      是作为请求主体被发送的数据,只适用于这些请求方法 'PUT','POST','PATCH'
+ *   contentType：  请求数据类型(application/x-www-form-urlencoded,multipart/form-data,text/plain)
+ *   responseType： 响应的数据类型（text,arraybuffer,blob,document,json,ms-stream）
+ *   timeout：      超时时间，0表示不设置超时
+ *
+ * @param config 请求参数
+ */
+const ajax = (settings = {}) => {
+    // 初始化请求参数
+    let config = Object.assign({
+        url: '',
+        method: settings.type || settings.method || 'GET',// string 'GET' 'POST' 'DELETE'
+        // string 期望的返回数据类型:'json' 'text' 'document' ...
+        responseType: settings.dataType || settings.responseType || RESPONSE_TYPE.JSON,
+        async: true, //  boolean true:异步请求 false:同步请求 required
+        data: null, // any 请求参数,data需要和请求头Content-Type对应
+        headers: {},
+        timeout: settings.timeout || 1000, // 超时时间:0表示不设置超时
+        beforeSend: (xhr) => {
+
+        },
+        success: (result, status, xhr) => {
+
+        },
+        error: (xhr, status, error) => {
+
+        },
+        complete: (xhr, status) => {
+
+        }
+    }, settings);
+
+    if (!config.headers["Content-Type"]) {
+        // 服务器会根据此值解析参数，同时在返回时也指定此值
+        config.headers["Content-Type"] = settings.contentType || config.headers["Content-Type"]
+            || config.headers["content-type"] || CONTENT_TYPE.URLENCODED;
+    }
+    // 参数验证
+    if (!config.url) {
+        throw new TypeError("ajax请求：url参数不正确");
+    }
+    if (!config.method) {
+        throw new TypeError("ajax请求：type或method参数不正确");
+    }
+    if (!config.responseType) {
+        throw new TypeError("ajax请求：dataType或responseType参数不正确");
+    }
+    if (!config.headers || !config.headers["Content-Type"]) {
+        throw new TypeError("ajax请求：Content-Type参数不正确");
+    }
+    // 创建XMLHttpRequest请求对象
+    let xhr = new XMLHttpRequest();
+
+    // 请求开始回调函数，对应xhr.loadstart
+    xhr.addEventListener('loadstart', e => {
+        config.beforeSend(xhr, e);
+    });
+    // 请求成功回调函数，对应xhr.onload
+    xhr.addEventListener('load', e => {
+        if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304) {
+            if (xhr.responseType === 'text') {
+                config.success(xhr.responseText, xhr.status, xhr);
+            } else if (xhr.responseType === 'document') {
+                config.success(xhr.responseXML, xhr.status, xhr);
+            } else {
+                config.success(xhr.response, xhr.status, xhr);
+            }
+        } else {
+            config.error(xhr, xhr.status, e);
+        }
+    });
+    // 请求结束，对应xhr.onloadend
+    xhr.addEventListener('loadend', e => {
+        config.complete(xhr, xhr.status, e);
+    });
+    // 请求出错，对应xhr.onerror
+    xhr.addEventListener('error', e => {
+        config.error(xhr, xhr.status, e);
+    });
+    // 请求超时，对应xhr.ontimeout
+    xhr.addEventListener('timeout', e => {
+        config.error(xhr, 408, e);
+    });
+
+    let method = config.method.toUpperCase();
+    // 如果是"简单"请求,则把data参数组装在url上
+    if ((method === 'GET' || method === 'DELETE') && config.data) {
+        let paramsStr;
+        if ((config.data).constructor === Object) {
+            let paramsArr = [];
+            Object.keys(config.data).forEach(key => {
+                paramsArr.push(`${encodeURIComponent(key)}=${encodeURIComponent(config.data[key])}`);
+            });
+            paramsStr = paramsArr.join('&');
+        } else if ((config.data).constructor === String) {
+            paramsStr = config.data;
+        } else if ((config.data).constructor === Array) {
+            paramsStr = config.data.join("&");
+        } else {
+            throw new TypeError("ajax请求：数据类型错误！");
+        }
+        config.url += (config.url.indexOf('?') !== -1) ? paramsStr : '?' + paramsStr;
+    }
+
+    // 初始化请求
+    xhr.open(config.method, config.url, config.async);
+    // 设置请求头，必须要放到open()后面
+    for (const key of Object.keys(config.headers)) {
+        xhr.setRequestHeader(key, config.headers[key]);
+    }
+    // 设置超时时间
+    if (config.timeout) {
+        xhr.timeout = config.timeout;
+    }
+    // 设置预期服务器返回数据类型，并进行本地解析
+    xhr.responseType = config.responseType;
+
+    // 请求参数类型需要和请求头Content-Type对应'PUT','POST','PATCH'
+    if ((method === 'PUT' || method === 'POST' || method === 'PATCH') && config.data) {
+        let ct = config.headers["Content-Type"].split(";")[0].toLocaleLowerCase();
+        if (ct == "application/x-www-form-urlencoded") {
+            if ((config.data).constructor !== Object) {
+                throw new TypeError("ajax请求：application/x-www-form-urlencoded数据类型错误！");
+            }
+            let paramsArr = [];
+            Object.keys(config.data).forEach(key => {
+                paramsArr.push(`${encodeURIComponent(key)}=${encodeURIComponent(config.data[key])}`);
+            });
+            xhr.send(paramsArr.join('&'));
+        } else if (ct == "multipart/form-data") {
+            if ((config.data).constructor !== Object) {
+                throw new TypeError("ajax请求：multipart/form-data数据类型错误！");
+            }
+            let formData = new FormData();
+            Object.keys(config.data).forEach(key => {
+                formData.append(key, config.data[key]);
+            });
+            xhr.send(formData);
+        } else if (ct == "text/plain") {
+            if ((config.data).constructor !== String) {
+                throw new TypeError("ajax请求：text/plain数据类型错误！");
+            }
+            xhr.send(config.data);
+        } else if (ct == "application/json") {
+            if ((config.data).constructor === String) {
+                try {
+                    JSON.parse(config.data);
+                    xhr.send(config.data);
+                } catch (e) {
+                    throw new TypeError("ajax请求：application/json数据类型错误！");
+                }
+            } else if ((config.data).constructor === Array || (config.data).constructor === Object) {
+                xhr.send(JSON.stringify(config.data));
+            } else {
+                throw new TypeError("ajax请求：application/json数据类型错误！");
+            }
+        } else {
+            throw new TypeError("ajax请求：数据类型错误！");
+        }
+    } else {
+        xhr.send();
+    }
 }
 
 
@@ -92,17 +243,20 @@ const RESPONSE_TYPE = {
  */
 const download = (url, params) => {
     return new Promise((resolve, reject) => {
-        ajax.request({
+        ajax({
             url: url,
             method: METHOD.POST,
             data: params,
             responseType: RESPONSE_TYPE.BLOB,
+            headers: {
+                "test": "test"
+            },
             success: (result, status, xhr) => {
+                // console.log(xhr.getAllResponseHeaders())
                 //从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
                 let contentDisposition = xhr.getResponseHeader('Content-Disposition') || xhr.getResponseHeader('content-disposition');
-                let contentType = xhr.getResponseHeader('Content-Type') || xhr.getResponseHeader('content-type') || 'application/octet-stream;charset=utf-8';
+                let contentType = xhr.getResponseHeader('Content-Type') || xhr.getResponseHeader('content-type') || 'application/octet-stream';
                 // let contentLength = result.headers["Content-Length"] || result.headers["content-length"];
-                console.log(xhr.getAllResponseHeaders())
                 let filename;
                 // 如果从Content-Disposition中取到的文件名不为空
                 if (!util.isEmpty(contentDisposition)) {
@@ -163,7 +317,7 @@ const download = (url, params) => {
 export default {
     METHOD,
     CONTENT_TYPE,
-    DATA_TYPE,
     RESPONSE_TYPE,
+    ajax,
     download
 }
