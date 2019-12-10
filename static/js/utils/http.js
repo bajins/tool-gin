@@ -13,22 +13,27 @@ import util from "./util.js";
 
 /**
  * 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, PATCH）
+ * https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods
  *
  * @type {{TRACE: string, HEAD: string, DELETE: string, POST: string, GET: string, PATCH: string, OPTIONS: string, PUT: string}}
  */
 const METHOD = {
-    OPTIONS: "OPTIONS",
     GET: "GET",
     HEAD: "HEAD",
     POST: "POST",
     PUT: "PUT",
     DELETE: "DELETE",
+    CONNECT: "CONNECT",
+    OPTIONS: "OPTIONS",
     TRACE: "TRACE",
-    PATCH: "PATCH"
+    PATCH: "PATCH",
 }
 
 /**
  * Content-Type请求数据类型，告诉接收方，我发什么类型的数据。
+ * https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type
+ * https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+ * https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Disposition
  *
  * application/x-www-form-urlencoded：数据被编码为名称/值对。这是标准的编码格式。默认使用此类型。
  * multipart/form-data：数据被编码为一条消息，页上的每个控件对应消息中的一个部分。
@@ -42,18 +47,7 @@ const CONTENT_TYPE = {
 
 /**
  * XMLHttpRequest预期服务器返回数据类型，并根据此值进行本地解析
- *
- *  ""              将 responseType 设为空字符串与设置为"text"相同， 是默认类型 （实际上是 DOMString）。
- *  "arraybuffer"   response 是一个包含二进制数据的 JavaScript ArrayBuffer 。
- *  "blob"          response 是一个包含二进制数据的 Blob 对象 。
- *  "document"      response 是一个 HTML Document 或 XML XMLDocument ，这取决于接收到的数据的 MIME 类型。
- *  "json"          response 是一个 JavaScript 对象。这个对象是通过将接收到的数据类型视为 JSON 解析得到的。
- *  "text"          response 是包含在 DOMString 对象中的文本。
- *  "moz-chunked-arraybuffer" 与"arraybuffer"相似，但是数据会被接收到一个流中。
- *         使用此响应类型时，响应中的值仅在 progress 事件的处理程序中可用，并且只包含上一次响应 progress 事件以后收到的数据，
- *         而不是自请求发送以来收到的所有数据。在 progress 事件处理时访问 response 将返回到目前为止收到的数据。
- *         在 progress 事件处理程序之外访问， response 的值会始终为 null 。
- *  "ms-stream"  response 是下载流的一部分；此响应类型仅允许下载请求，并且仅受Internet Explorer支持。
+ * https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/responseType
  *
  * @type {{ARRAY_BUFFER: string, BLOB: string, MS_STREAM: string, DOCUMENT: string, TEXT: string, JSON: string}}
  */
@@ -63,7 +57,7 @@ const RESPONSE_TYPE = {
 
 
 /**
- * js封装ajax请求
+ * js封装ajax请求 https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest
  * 使用new XMLHttpRequest 创建请求对象,所以不考虑低端IE浏览器(IE6及以下不支持XMLHttpRequest)
  * 注意:请求参数如果包含日期类型.是否能请求成功需要后台接口配合
  *
@@ -80,7 +74,7 @@ const ajax = (settings = {}) => {
     // 初始化请求参数
     let config = Object.assign({
         url: '',
-        method: settings.type || settings.method || 'GET',// string 'GET' 'POST' 'DELETE'
+        method: settings.type || settings.method || METHOD.GET,
         // string 期望的返回数据类型:'json' 'text' 'document' ...
         responseType: settings.dataType || settings.responseType || RESPONSE_TYPE.JSON,
         async: true, //  boolean true:异步请求 false:同步请求 required
