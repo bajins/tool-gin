@@ -11,6 +11,8 @@
 import log from './utils/log.js';
 import util from './utils/util.js';
 import http from "./utils/http.js";
+import array from "./utils/array.js";
+import string from "./utils/string.js";
 
 // ECMAScript6指定元素添加事件
 // document.querySelector("#id").addEventListener("click", getKey);
@@ -319,7 +321,7 @@ window.beautifyCode = function beautifyCode() {
  */
 function onlineBeautifier(code) {
     $.ajax({
-        url: "/beautifier-nginx-conf",
+        url: "/nginx-format-py",
         type: "POST",
         data: {code: code},
         contentType: "application/x-www-form-urlencoded; charset=UTF-8",
@@ -380,13 +382,13 @@ function activateBeautifierListener(contents, indentCode, indentation) {
         cleanLines = join_opening_bracket(cleanLines);
     }
     // 执行最后的缩进
-    cleanLines = trimSpace(perform_indentation(cleanLines, indentCode));
+    cleanLines = array.trimSpace(perform_indentation(cleanLines, indentCode));
 
     // 将所有线条组合在一起
     let outputContents = cleanLines.join("\n");
 
     if ("indentWay2" == indentation) {
-        outputContents = replaceBlank(outputContents);
+        outputContents = string.replaceBlank(outputContents);
     }
     // console.log(outputContents)
     // 将所有内容保存到文件中。
@@ -404,7 +406,9 @@ function activateBeautifierListener(contents, indentCode, indentation) {
  * @date 2019/6/13 20:14
  */
 function beautifySuccess(contents) {
-    let html = "<pre style='background: black;color:#66FF66;width: 100%;height: 100%;margin: 0px;padding: 10px;'>" + contents + "</pre>";
+    let html = `<pre style='background: black;color:#66FF66;width: 100%;height: 100%;margin: 0px;padding: 10px;'>
+                    ${contents}
+                </pre>`;
     let area_width = "60%";
     if (window.innerWidth <= 419) {
         area_width = "95%";
