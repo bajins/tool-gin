@@ -38,6 +38,9 @@ set allList=%allList%_openbsd_amd64,_windows_386.exe,_windows_amd64.exe,
 set allList=%allList%_linux_386,_linux_amd64,_linux_arm,_linux_mips,
 set allList=%allList%_linux_mips64,_linux_mips64le,_linux_mipsle,_linux_s390x
 
+:: 删除旧的压缩包文件
+del *.zip *.tar *.gz
+
 :GETGOX
 set GOPROXY=https://goproxy.io
 go get github.com/mitchellh/gox
@@ -49,8 +52,6 @@ for %%i in (%allList%) do (
         if not %errorlevel% == 0 (
             goto :GETGOX
         )
-        :: 删除旧的压缩包文件
-        del *.zip *.tar *.gz
     )
 )
 
