@@ -64,12 +64,12 @@ func ApplyDebug(actions chromedp.Action) error {
 	//}
 	//defer os.RemoveAll(dir)
 
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+	opts := []chromedp.ExecAllocatorOption{
 		// 设置UA，防止有些页面识别headless模式
 		chromedp.UserAgent(UserAgent),
 		// 窗口最大化
 		chromedp.Flag("start-maximized", true),
-	)
+	}
 	return Apply(actions, opts...)
 }
 

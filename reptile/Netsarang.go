@@ -53,7 +53,7 @@ func SendMail(mail, product string) error {
 	// 定义变量，用来保存爬虫的数据
 	var res string
 
-	err := ApplyDebug(clickSubmitMail(url, mail, &res))
+	err := ApplyRun(clickSubmitMail(url, mail, &res))
 	if err != nil {
 		return err
 	}
@@ -170,7 +170,7 @@ func DownloadNetsarang(product string) (string, error) {
 
 	var attributes map[string]string
 
-	err = ApplyDebug(getDownloadUrl(tokenHtml.Text(), &attributes))
+	err = ApplyRun(getDownloadUrl(tokenHtml.Text(), &attributes))
 	if err != nil {
 		return "", err
 	}
