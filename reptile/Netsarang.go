@@ -53,7 +53,7 @@ func SendMail(mail, product string) error {
 	// 定义变量，用来保存爬虫的数据
 	var res string
 
-	err := Apply(clickSubmitMail(url, mail, &res))
+	err := ApplyDebug(clickSubmitMail(url, mail, &res))
 	if err != nil {
 		return err
 	}
@@ -136,6 +136,7 @@ func DownloadNetsarang(product string) (string, error) {
 	}
 	listLen := len(list)
 	if listLen == 0 {
+		log.Println(list)
 		return "", errors.New("没有邮件")
 	}
 	mailbox := list[listLen-1]["mailbox"].(string)
@@ -169,7 +170,7 @@ func DownloadNetsarang(product string) (string, error) {
 
 	var attributes map[string]string
 
-	err = Apply(getDownloadUrl(tokenHtml.Text(), &attributes))
+	err = ApplyDebug(getDownloadUrl(tokenHtml.Text(), &attributes))
 	if err != nil {
 		return "", err
 	}

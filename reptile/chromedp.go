@@ -24,47 +24,17 @@ import (
 	"time"
 )
 
+const UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36"
+
 // 启动
 // context.Context部分不能抽离，否则会报 context canceled
-func Apply(actions ...chromedp.Action) error {
+func Apply(actions chromedp.Action, opts ...chromedp.ExecAllocatorOption) error {
 
 	//dir, err := ioutil.TempDir("", "chromedp-example")
 	//if err != nil {
 	//	panic(err)
 	//}
 	//defer os.RemoveAll(dir)
-
-	userAgent := "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36 "
-
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.NoDefaultBrowserCheck,
-		// 无头模式
-		//chromedp.Flag("headless", false),
-		chromedp.Headless,
-		// 禁用GPU，不显示GUI
-		chromedp.DisableGPU,
-		// 隐身模式启动
-		chromedp.Flag("incognito", true),
-		// 取消沙盒模式
-		chromedp.NoSandbox,
-		// 忽略证书错误
-		chromedp.Flag("ignore-certificate-errors", true),
-		// 指定浏览器分辨率
-		chromedp.WindowSize(1600, 900),
-		//
-		chromedp.Flag("in-process-plugins", true),
-		// 不加载图片, 提升速度
-		chromedp.Flag("disable-images", true),
-		// 禁用扩展
-		chromedp.Flag("disable-extensions", true),
-		// 隐藏滚动条, 应对一些特殊页面
-		//chromedp.Flag("hide-scrollbars", true),
-		// 设置UA，防止有些页面识别headless模式
-		chromedp.UserAgent(userAgent),
-		// 设置用户数据目录
-		//chromedp.UserDataDir(dir),
-		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),
-	)
 
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	// 关闭chrome实例
@@ -83,7 +53,66 @@ func Apply(actions ...chromedp.Action) error {
 	// listen network event
 	//listenForNetworkEvent(ctx)
 
-	return chromedp.Run(ctx, actions...)
+	return chromedp.Run(ctx, actions)
+}
+
+func ApplyDebug(actions chromedp.Action) error {
+
+	//dir, err := ioutil.TempDir("", "chromedp-example")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer os.RemoveAll(dir)
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		// 设置UA，防止有些页面识别headless模式
+		chromedp.UserAgent(UserAgent),
+		// 窗口最大化
+		chromedp.Flag("start-maximized", true),
+	)
+	return Apply(actions, opts...)
+}
+
+func ApplyRun(actions chromedp.Action) error {
+
+	//dir, err := ioutil.TempDir("", "chromedp-example")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer os.RemoveAll(dir)
+
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		chromedp.NoDefaultBrowserCheck,
+		// 无头模式
+		chromedp.Flag("headless", false),
+		//chromedp.Headless,
+		// 禁用GPU，不显示GUI
+		//chromedp.DisableGPU,
+		// 隐身模式启动
+		chromedp.Flag("incognito", true),
+		// 取消沙盒模式
+		chromedp.NoSandbox,
+		// 忽略证书错误
+		chromedp.Flag("ignore-certificate-errors", true),
+		// 指定浏览器分辨率
+		//chromedp.WindowSize(1600, 900),
+		// 窗口最大化
+		chromedp.Flag("start-maximized", true),
+		//
+		chromedp.Flag("in-process-plugins", true),
+		// 不加载图片, 提升速度
+		chromedp.Flag("disable-images", true),
+		// 禁用扩展
+		chromedp.Flag("disable-extensions", true),
+		// 隐藏滚动条, 应对一些特殊页面
+		//chromedp.Flag("hide-scrollbars", true),
+		// 设置UA，防止有些页面识别headless模式
+		chromedp.UserAgent(UserAgent),
+		// 设置用户数据目录
+		//chromedp.UserDataDir(dir),
+		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),
+	)
+	return Apply(actions, opts...)
 }
 
 //监听
