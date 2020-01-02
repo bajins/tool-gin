@@ -128,7 +128,26 @@ func DownloadNetsarang(product string) (string, error) {
 	time.Sleep(20 * time.Second)
 
 	mailList := LinShiYouXiangList(prefix)
-
+	//for mailList == "" {
+	//	if mailList != "" {
+	//		break
+	//	}
+	//	time.Sleep(20 * time.Second)
+	//	mailList = LinShiYouXiangList(prefix)
+	//}
+	//GETMAIL:
+	//	if mailList == "" {
+	//		time.Sleep(20 * time.Second)
+	//		mailList = LinShiYouXiangList(prefix)
+	//		goto GETMAIL
+	//	}
+	for i := 0; i < 10; {
+		if mailList != "" {
+			break
+		}
+		time.Sleep(20 * time.Second)
+		mailList = LinShiYouXiangList(prefix)
+	}
 	var list []map[string]interface{}
 	err = json.Unmarshal([]byte(mailList), &list)
 	if err != nil {
@@ -136,7 +155,6 @@ func DownloadNetsarang(product string) (string, error) {
 	}
 	listLen := len(list)
 	if listLen == 0 {
-		log.Println(list)
 		return "", errors.New("没有邮件")
 	}
 	mailbox := list[listLen-1]["mailbox"].(string)

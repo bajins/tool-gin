@@ -83,11 +83,9 @@ func ApplyRun(actions chromedp.Action) error {
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[:],
 		chromedp.NoDefaultBrowserCheck,
-		// 无头模式
-		chromedp.Flag("headless", false),
-		//chromedp.Headless,
+		chromedp.Headless,
 		// 禁用GPU，不显示GUI
-		//chromedp.DisableGPU,
+		chromedp.DisableGPU,
 		// 隐身模式启动
 		chromedp.Flag("incognito", true),
 		// 取消沙盒模式
@@ -105,7 +103,7 @@ func ApplyRun(actions chromedp.Action) error {
 		// 禁用扩展
 		chromedp.Flag("disable-extensions", true),
 		// 隐藏滚动条, 应对一些特殊页面
-		//chromedp.Flag("hide-scrollbars", true),
+		chromedp.Flag("hide-scrollbars", true),
 		// 设置UA，防止有些页面识别headless模式
 		chromedp.UserAgent(UserAgent),
 		// 设置用户数据目录
