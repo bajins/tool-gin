@@ -36,12 +36,12 @@ func LinShiYouXiangSuffix() (string, error) {
 	return suffixArray[s], err
 }
 
-var LIN_SHI_YOU_XIANG = "https://www.linshiyouxiang.net"
+var LinShiYouXiang = "https://www.linshiyouxiang.net"
 
 // 获取邮箱号
 // prefix： 邮箱前缀
 func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
-	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/keepalive"
+	url := LinShiYouXiang + "/api/v1/mailbox/keepalive"
 	param := map[string]string{
 		"force_change": "1",
 		"mailbox":      prefix,
@@ -56,7 +56,7 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 // 获取邮件列表
 // prefix： 邮箱前缀
 func LinShiYouXiangList(prefix string) string {
-	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/" + prefix
+	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix
 	response := utils.HttpRequest("GET", url, nil, nil)
 	result, _ := ioutil.ReadAll(response.Body)
 	return string(result)
@@ -66,7 +66,7 @@ func LinShiYouXiangList(prefix string) string {
 // prefix： 邮箱前缀
 // id：		邮件编号
 func LinShiYouXiangGetMail(prefix, id string) string {
-	url := LIN_SHI_YOU_XIANG + "/mailbox/" + prefix + "/" + id + "/source"
+	url := LinShiYouXiang + "/mailbox/" + prefix + "/" + id + "/source"
 	response := utils.HttpRequest("GET", url, nil, nil)
 	result, _ := ioutil.ReadAll(response.Body)
 	return string(result)
@@ -76,7 +76,7 @@ func LinShiYouXiangGetMail(prefix, id string) string {
 // prefix： 邮箱前缀
 // id:  	邮件编号
 func LinShiYouXiangDelete(prefix, id string) string {
-	url := LIN_SHI_YOU_XIANG + "/api/v1/mailbox/" + prefix + "/" + id
+	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix + "/" + id
 	response := utils.HttpRequest("DELETE", url, nil, nil)
 	result, _ := ioutil.ReadAll(response.Body)
 	return string(result)
