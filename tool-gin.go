@@ -5,6 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
+	"time"
+	"tool-gin/reptile"
 	"tool-gin/utils"
 )
 
@@ -81,9 +83,13 @@ func Port() (port string) {
 func init() {
 	// 设置项目为发布环境
 	//gin.SetMode(gin.ReleaseMode)
+	go func() {
+		utils.SchedulerIntervalsTimer(reptile.DownloadNetsarangAll, time.Hour*24)
+	}()
 }
 
 func main() {
+
 	router := gin.Default()
 
 	// 将全局中间件附加到路由器

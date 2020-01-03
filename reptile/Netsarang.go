@@ -79,25 +79,32 @@ func clickSubmitMail(url, mail string, res *string) chromedp.Tasks {
 		chromedp.SendKeys(`input[name="email"]`, mail, chromedp.BySearch),
 		// 点击元素
 		chromedp.Click(`input[value="开始试用"][type="submit"]`, chromedp.BySearch),
-		chromedp.Sleep(10 * time.Second),
+		chromedp.Sleep(20 * time.Second),
 		// 查找并等待可见
-		chromedp.WaitVisible(`.fusion-text h1`, chromedp.BySearch),
+		chromedp.WaitVisible(`//*[@id="content"]/div/div/div[2]/div/div/div/div[1]/h1`, chromedp.BySearch),
 		// 读取HTML源码
 		//chromedp.OuterHTML(`.fusion-text h1`, res, chromedp.BySearch),
-		chromedp.Text(`.fusion-text h1`, res, chromedp.BySearch),
+		chromedp.Text(`//*[@id="content"]/div/div/div[2]/div/div/div/div[1]/h1`, res, chromedp.BySearch),
 		//chromedp.TextContent(`.fusion-text h1`, res, chromedp.BySearch),
 		//chromedp.Title(res),
 	}
 }
 
-var netsarangInfo map[string][]interface{}
+var NetsarangInfo map[string][]interface{}
+
+func DownloadNetsarangAll() {
+	log.Println(DownloadNetsarang("Xshell"))
+	log.Println(DownloadNetsarang("Xftp"))
+	log.Println(DownloadNetsarang("Xmanager"))
+	log.Println(DownloadNetsarang("Xshell Plus"))
+}
 
 // 获取下载产品信息
 func DownloadNetsarang(product string) (string, error) {
 	if product == "" || len(product) == 0 {
 		return "", errors.New("产品不能为空")
 	}
-	info := netsarangInfo[product]
+	info := NetsarangInfo[product]
 	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
 	if info != nil && len(info) > 1 {
 		// 判断日期是否为今天
@@ -125,7 +132,7 @@ func DownloadNetsarang(product string) (string, error) {
 		return "", err
 	}
 
-	time.Sleep(20 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	mailList := LinShiYouXiangList(prefix)
 	//for mailList == "" {
@@ -141,12 +148,15 @@ func DownloadNetsarang(product string) (string, error) {
 	//		mailList = LinShiYouXiangList(prefix)
 	//		goto GETMAIL
 	//	}
-	for i := 0; i < 10; {
+	for i := 0; i < 30; {
 		if mailList != "" {
 			break
 		}
-		time.Sleep(20 * time.Second)
+		time.Sleep(1 * time.Minute)
 		mailList = LinShiYouXiangList(prefix)
+	}
+	if len(mailList) == 0 || mailList == "" {
+		return "", errors.New("没有邮件")
 	}
 	var list []map[string]interface{}
 	err = json.Unmarshal([]byte(mailList), &list)
@@ -201,7 +211,7 @@ func DownloadNetsarang(product string) (string, error) {
 	url := strings.Replace(attributes["href"], ".exe", "r.exe", -1)
 
 	// 把产品信息存储到变量
-	netsarangInfo[product] = []interface{}{time.Now(), url}
+	NetsarangInfo[product] = []interface{}{time.Now(), url}
 
 	// 在s字符串中，把old字符串替换为new字符串，n表示替换的次数，小于0表示全部替换
 	return url, nil
@@ -225,5 +235,5 @@ func getDownloadUrl(url string, attributes *map[string]string) chromedp.Tasks {
 
 func init() {
 	// 第一次调用初始化
-	netsarangInfo = make(map[string][]interface{})
+	NetsarangInfo = make(map[string][]interface{})
 }
