@@ -15,7 +15,9 @@
 package utils
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
 // 返回参数的类型
@@ -80,4 +82,16 @@ func TestHttp(t *testing.T) {
 	t.Error(param)
 	result := HttpRequest("POST", "test", map[string]string{"test": "1", "t": "22"}, nil)
 	t.Log(result)
+}
+
+func TestSchedulerIntervalsTimer(t *testing.T) {
+	SchedulerIntervalsTimer(fmtp, time.Second*5)
+}
+
+func TestSchedulerFixedTimer(t *testing.T) {
+	SchedulerFixedTimer(fmtp, time.Second*5)
+}
+
+func fmtp() {
+	fmt.Println(TimeToString(time.Now()))
 }

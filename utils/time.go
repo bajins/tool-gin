@@ -81,16 +81,7 @@ func DateEqual(date1, date2 time.Time) bool {
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
 
-/**
- * 转换为自定义格式
- *
- * @param timestamp uint32
- * @param format string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:38
- */
+// 转换为自定义格式
 func GetDateFormat(timestamp uint32, format string) string {
 	if timestamp <= 0 {
 		return ""
@@ -99,15 +90,7 @@ func GetDateFormat(timestamp uint32, format string) string {
 	return tm.Format(format)
 }
 
-/**
- * 获取时间，使用默认格式
- *
- * @param timestamp uint32
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:38
- */
+// 获取时间，使用默认格式
 func GetDate(timestamp uint32) string {
 	if timestamp <= 0 {
 		return ""
@@ -116,15 +99,7 @@ func GetDate(timestamp uint32) string {
 	return tm.Format("2006-01-02")
 }
 
-/**
- * 获取时间，格式yyyy-MM-dd HH:mm
- *
- * @param timestamp uint32
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:39
- */
+// 获取时间，格式yyyy-MM-dd HH:mm
 func GetyyyyMMddHHmm(timestamp uint32) string {
 	if timestamp <= 0 {
 		return ""
@@ -133,15 +108,7 @@ func GetyyyyMMddHHmm(timestamp uint32) string {
 	return tm.Format("2006-01-02 15:04")
 }
 
-/**
- * 解析字符串时间为系统格式
- *
- * @param times string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:42
- */
+// 解析字符串时间为系统格式
 func GetTimeParse(times string) int64 {
 	if "" == times {
 		return 0
@@ -151,15 +118,7 @@ func GetTimeParse(times string) int64 {
 	return parse.Unix()
 }
 
-/**
- * 解析字符串日期为系统格式
- *
- * @param dates string
- * @return
- * @Description
- * @author claer www.bajins.com
- * @date 2019/7/16 16:42
- */
+// 解析字符串日期为系统格式
 func GetDateParse(dates string) int64 {
 	if "" == dates {
 		return 0
@@ -167,4 +126,31 @@ func GetDateParse(dates string) int64 {
 	loc, _ := time.LoadLocation("Local")
 	parse, _ := time.ParseInLocation("2006-01-02", dates, loc)
 	return parse.Unix()
+}
+
+// 启动的时候执行一次，不固定某个时间，滚动间隔时间执行
+func SchedulerIntervalsTimer(f func(), duration time.Duration) {
+	for {
+		go func() {
+			f()
+		}()
+		// 定时任务
+		ticker := time.NewTicker(duration)
+		<-ticker.C
+	}
+}
+
+// 启动的时候执行一次，固定在每天的某个时间滚动执行
+func SchedulerFixedTimer(f func(), duration time.Duration) {
+	for {
+		go func() {
+			f()
+		}()
+		now := time.Now()
+		// 计算下一个时间点
+		next := now.Add(duration)
+		next = time.Date(next.Year(), next.Month(), next.Day(), 0, 0, 0, 0, next.Location())
+		ticker := time.NewTimer(now.Sub(next))
+		<-ticker.C
+	}
 }
