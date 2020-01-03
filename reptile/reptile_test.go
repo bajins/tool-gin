@@ -45,6 +45,10 @@ func Crawler(res *string) chromedp.Tasks {
 	}
 }
 
+func TestLinShiYouXiangSuffix(t *testing.T) {
+	LinShiYouXiangSuffix()
+}
+
 func TestLinShiYouXiangList(t *testing.T) {
 	list := LinShiYouXiangList("5wij52emu")
 	t.Log(list)

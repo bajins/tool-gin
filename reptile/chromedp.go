@@ -22,9 +22,8 @@ import (
 	"log"
 	"strings"
 	"time"
+	"tool-gin/utils"
 )
-
-const UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36"
 
 // 启动
 // context.Context部分不能抽离，否则会报 context canceled
@@ -52,7 +51,6 @@ func Apply(actions chromedp.Action, opts ...chromedp.ExecAllocatorOption) error 
 
 	// listen network event
 	//listenForNetworkEvent(ctx)
-
 	return chromedp.Run(ctx, actions)
 }
 
@@ -66,7 +64,7 @@ func ApplyDebug(actions chromedp.Action) error {
 
 	opts := []chromedp.ExecAllocatorOption{
 		// 设置UA，防止有些页面识别headless模式
-		chromedp.UserAgent(UserAgent),
+		chromedp.UserAgent(utils.UserAgent),
 		// 窗口最大化
 		chromedp.Flag("start-maximized", true),
 	}
@@ -105,7 +103,7 @@ func ApplyRun(actions chromedp.Action) error {
 		// 隐藏滚动条, 应对一些特殊页面
 		chromedp.Flag("hide-scrollbars", true),
 		// 设置UA，防止有些页面识别headless模式
-		chromedp.UserAgent(UserAgent),
+		chromedp.UserAgent(utils.UserAgent),
 		// 设置用户数据目录
 		//chromedp.UserDataDir(dir),
 		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),

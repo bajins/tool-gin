@@ -12,31 +12,28 @@
 package reptile
 
 import (
+	"github.com/antchfx/htmlquery"
 	"io/ioutil"
 	"math"
 	"time"
 	"tool-gin/utils"
 )
 
+const LinShiYouXiang = "https://www.linshiyouxiang.net"
+
 // 获取邮箱号后缀
 func LinShiYouXiangSuffix() (string, error) {
-	suffixArray := [11]string{
-		"@meantinc.com",
-		"@classesmail.com",
-		"@powerencry.com",
-		"@groupbuff.com",
-		"@figurescoin.com",
-		"@navientlogin.net",
-		"@programmingant.com",
-		"@castlebranchlogin.com",
-		"@bestsoundeffects.com",
-		"@vradportal.com",
-		"@a4papersize.net"}
+	var suffixArray []string
+	response := utils.HttpRequest("GET", LinShiYouXiang, "", nil, nil)
+	root, _ := htmlquery.Parse(response.Body)
+	li := htmlquery.Find(root, "//*[@id='top']/div/div/div[2]/div/div[2]/ul/li")
+	for _, row := range li {
+		m := htmlquery.InnerText(row)
+		suffixArray = append(suffixArray, m)
+	}
 	s, err := utils.RandomNumber(1)
 	return suffixArray[s], err
 }
-
-var LinShiYouXiang = "https://www.linshiyouxiang.net"
 
 // 获取邮箱号
 // prefix： 邮箱前缀
@@ -47,7 +44,7 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 		"mailbox":      prefix,
 		"_ts":          utils.ToString(math.Round(float64(time.Now().Unix() / 1000))),
 	}
-	response := utils.HttpRequest("GET", url, param, nil)
+	response := utils.HttpRequest("GET", url, "", param, nil)
 	result, _ := ioutil.ReadAll(response.Body)
 	stu, err := utils.JsonToMap(string(result))
 	return stu, err
@@ -57,7 +54,7 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 // prefix： 邮箱前缀
 func LinShiYouXiangList(prefix string) string {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix
-	response := utils.HttpRequest("GET", url, nil, nil)
+	response := utils.HttpRequest("GET", url, "", nil, nil)
 	result, _ := ioutil.ReadAll(response.Body)
 	return string(result)
 }
@@ -67,7 +64,7 @@ func LinShiYouXiangList(prefix string) string {
 // id：		邮件编号
 func LinShiYouXiangGetMail(prefix, id string) string {
 	url := LinShiYouXiang + "/mailbox/" + prefix + "/" + id + "/source"
-	response := utils.HttpRequest("GET", url, nil, nil)
+	response := utils.HttpRequest("GET", url, "", nil, nil)
 	result, _ := ioutil.ReadAll(response.Body)
 	return string(result)
 }
@@ -77,7 +74,7 @@ func LinShiYouXiangGetMail(prefix, id string) string {
 // id:  	邮件编号
 func LinShiYouXiangDelete(prefix, id string) string {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix + "/" + id
-	response := utils.HttpRequest("DELETE", url, nil, nil)
+	response := utils.HttpRequest("DELETE", url, "", nil, nil)
 	result, _ := ioutil.ReadAll(response.Body)
 	return string(result)
 }
