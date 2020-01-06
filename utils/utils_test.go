@@ -80,8 +80,8 @@ func TestHttp(t *testing.T) {
 	}
 	param = param[0 : len(param)-1]
 	t.Error(param)
-	result := HttpRequest("POST", "test", map[string]string{"test": "1", "t": "22"}, nil)
-	t.Log(result)
+	result, err := HttpRequest("POST", "test", "", map[string]string{"test": "1", "t": "22"}, nil)
+	t.Log(result, err)
 }
 
 func TestSchedulerIntervalsTimer(t *testing.T) {

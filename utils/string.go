@@ -351,6 +351,26 @@ func RandomNumber(len int) (s int, err error) {
 	return number, nil
 }
 
+// 指定长度随机自定义数字符串
+func RandomCustomizeNumber(len int, numbers []byte) (s int, err error) {
+	var container string
+	length := bytes.NewReader(numbers).Len()
+	bigInt := big.NewInt(int64(length))
+	for i := 1; i <= len; i++ {
+		random, err := crand.Int(crand.Reader, bigInt)
+		if err != nil {
+			return 0, err
+		}
+		container += fmt.Sprintf("%d", numbers[random.Int64()])
+	}
+	// 字符串转数字
+	number, err := strconv.Atoi(container)
+	if err != nil {
+		return 0, err
+	}
+	return number, nil
+}
+
 // 解析json为map
 func JsonToMap(data string) (map[string]interface{}, error) {
 	str := []byte(data)

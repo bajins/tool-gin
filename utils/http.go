@@ -98,7 +98,7 @@ func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCl
 // method:	请求方法：POST、GET、PUT、DELETE
 // urlText:		请求地址
 // params:	请求参数
-func HttpClient(method, urlText, contentType string, params map[string]string) *http.Response {
+func HttpClient(method, urlText, contentType string, params map[string]string) (*http.Response, error) {
 	if urlText == "" {
 		panic(errors.New("url不能为空"))
 	}
@@ -128,14 +128,14 @@ func HttpClient(method, urlText, contentType string, params map[string]string) *
 			case "text/xml":
 				jsonStr, err := json.Marshal(params)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				data := strings.ReplaceAll(string(jsonStr), " ", "+")
 				resp, err = client.Post(urlText, contentType, bytes.NewBuffer([]byte(data)))
 			default: // application/json
 				jsonStr, err := json.Marshal(params)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				resp, err = client.Post(urlText, "application/json", bytes.NewBuffer(jsonStr))
 			}
@@ -157,11 +157,7 @@ func HttpClient(method, urlText, contentType string, params map[string]string) *
 			resp, err = client.Get(urlText)
 		}
 	}
-
-	if err != nil {
-		panic(err)
-	}
-	return resp
+	return resp, err
 }
 
 // http.NewRequest发送请求
@@ -169,7 +165,7 @@ func HttpClient(method, urlText, contentType string, params map[string]string) *
 // urlText:		请求地址
 // params: 	请求提交的数据
 // header:	请求体格式，如：application/json
-func HttpRequest(method, urlText, contentType string, params map[string]string, header map[string]string) *http.Response {
+func HttpRequest(method, urlText, contentType string, params, header map[string]string) (*http.Response, error) {
 	if urlText == "" {
 		panic(errors.New("url不能为空"))
 	}
@@ -211,7 +207,7 @@ func HttpRequest(method, urlText, contentType string, params map[string]string, 
 			default: // application/json
 				jsonStr, err := json.Marshal(params)
 				if err != nil {
-					panic(err)
+					return nil, err
 				}
 				req, err = http.NewRequest(method, urlText, bytes.NewBuffer(jsonStr))
 				if header == nil || req.Header.Get("content-type") == "" {
@@ -234,7 +230,7 @@ func HttpRequest(method, urlText, contentType string, params map[string]string, 
 	}
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	if header != nil {
@@ -248,19 +244,5 @@ func HttpRequest(method, urlText, contentType string, params map[string]string, 
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	// 发起请求
-	resp, error := client.Do(req)
-	if error != nil {
-		panic(error)
-	}
-	//result, _ := ioutil.ReadAll(resp.Body)
-	// 必须关闭
-	//defer resp.Body.Close()
-	// ioutil.ReadAll 会清空对应Reader
-	//resp.Body = ioutil.NopCloser(bytes.NewBuffer(result))
-	// 解析参数，填充到Form、PostForm
-	//resp.Request.ParseForm()
-	// 解析文件上传表单的post参数
-	//resp.Request.ParseMultipartForm(1024)
-
-	return resp
+	return client.Do(req)
 }

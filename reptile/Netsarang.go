@@ -134,7 +134,7 @@ func DownloadNetsarang(product string) (string, error) {
 
 	time.Sleep(30 * time.Second)
 
-	mailList := LinShiYouXiangList(prefix)
+	mailList, err := LinShiYouXiangList(prefix)
 	//for mailList == "" {
 	//	if mailList != "" {
 	//		break
@@ -149,11 +149,14 @@ func DownloadNetsarang(product string) (string, error) {
 	//		goto GETMAIL
 	//	}
 	for i := 0; i < 30; {
-		if mailList != "" {
+		if mailList != "" || err != nil {
 			break
 		}
 		time.Sleep(1 * time.Minute)
-		mailList = LinShiYouXiangList(prefix)
+		mailList, err = LinShiYouXiangList(prefix)
+	}
+	if err != nil {
+		return "", err
 	}
 	if len(mailList) == 0 || mailList == "" {
 		return "", errors.New("没有邮件")
@@ -177,8 +180,10 @@ func DownloadNetsarang(product string) (string, error) {
 	}
 
 	// 获取最新一封邮件
-	content := LinShiYouXiangGetMail(mailbox, mailId)
-
+	content, err := LinShiYouXiangGetMail(mailbox, mailId)
+	if err != nil {
+		return "", err
+	}
 	// 分割取内容
 	text := strings.Split(content, "AmazonSES")
 	if len(text) < 2 {
