@@ -2,8 +2,10 @@ package utils
 
 import (
 	"fmt"
+	"math/rand"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 // 截取小数位数
@@ -26,4 +28,14 @@ func ToInt64(value interface{}) (d int64, err error) {
 	}
 
 	return
+}
+
+// 生成随机数
+//
+// 首先要初始化随机种子，不然每次生成都是（指每次重新开始）相同的数
+// 系统每次都会先用Seed函数初始化系统资源，如果用户不提供seed参数，则默认用seed=1来初始化，这就是为什么每次都输出一样的值的原因
+func RandIntn(length int) int {
+	// 用一个不确定数来初始化随机种子
+	rand.Seed(time.Now().UnixNano())
+	return rand.Intn(length)
 }

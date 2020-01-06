@@ -15,7 +15,6 @@ import (
 	"github.com/antchfx/htmlquery"
 	"io/ioutil"
 	"math"
-	"math/rand"
 	"time"
 	"tool-gin/utils"
 )
@@ -38,7 +37,7 @@ func LinShiYouXiangSuffix() (string, error) {
 		m := htmlquery.InnerText(row)
 		suffixArray = append(suffixArray, m)
 	}
-	return suffixArray[rand.Intn(len(suffixArray)-1)], nil
+	return suffixArray[utils.RandIntn(len(suffixArray)-1)], nil
 }
 
 // 获取邮箱号
