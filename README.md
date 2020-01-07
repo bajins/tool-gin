@@ -1,15 +1,27 @@
 # tool-gin
 
-> 基于go-gin框架生成激活key项目
+> 基于go-gin框架
 
-- 此分支使用了`chromedp`
+**此分支使用了`chromedp`**
+
+**必须安装`Chrome`**
+
+> [CentOS安装Chrome](https://woytu.github.io/System/CentOS%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6.html#chrome)
+
+
+## 功能
+
+- 生成激活key
+
+- 获取`xshell`、`xftp`、`xmanager`下载链接
+
+- 格式化NGNIX配置
+
 
 
 ## 使用
 
 ### 到[releases](https://github.com/woytu/tool-gin/releases)下载解压并运行
-
-### 必须安装`Chrome`
 
 ```bash
 # Windows
