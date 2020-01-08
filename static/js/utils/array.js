@@ -17,7 +17,7 @@
  * @param array
  * @returns {*}
  */
-function trimSpace(array) {
+const trimSpace = (array) => {
     for (let i = 0; i < array.length; i++) {
         if (array[i] == " " || array[i] == null || typeof (array[i]) == "undefined") {
             array.splice(i, 1);
@@ -32,7 +32,7 @@ function trimSpace(array) {
  *
  * @param array
  */
-function trimFilter(array) {
+const trimFilter = (array) => {
     array.filter(function (s) {
         return s && s.trim(); // 注：IE9(不包含IE9)以下的版本没有trim()方法
     });
@@ -46,7 +46,7 @@ function trimFilter(array) {
  * @param retentionArr  需要保留的值数组
  * @returns {[]}        去掉值后的新数组
  */
-function notInArrayKV(arr, retentionArr) {
+const notInArrayKV = (arr, retentionArr) => {
     let newArr = [];
     arr.forEach(function (value) {
         // 判断文件名以什么开头、是否在指定数组中存在
@@ -65,7 +65,7 @@ function notInArrayKV(arr, retentionArr) {
  * @param ignoresArr    需要去除的值数组
  * @returns {[]}        去掉值后的新数组
  */
-function inArrayKV(arr, ignoresArr) {
+const inArrayKV = (arr, ignoresArr) => {
     let newArr = [];
     arr.forEach(function (value) {
         // 判断文件名以什么开头、是否在指定数组中存在
@@ -99,13 +99,13 @@ const reinsertElement = (array, element) => {
  * @returns {*}
  */
 const mergeArray = (arr1, arr2) => {
-    // var _arr = new Array();
-    // for (var i = 0; i < arr1.length; i++) {
+    // let _arr = new Array();
+    // for (let i = 0; i < arr1.length; i++) {
     //   _arr.push(arr1[i]);
     // }
-    // for (var i = 0; i < arr2.length; i++) {
-    //   var flag = true;
-    //   for (var j = 0; j < arr1.length; j++) {
+    // for (let i = 0; i < arr2.length; i++) {
+    //   let flag = true;
+    //   for (let j = 0; j < arr1.length; j++) {
     //     if (arr2[i] == arr1[j]) {
     //       flag = false;
     //       break;
@@ -148,7 +148,7 @@ const splitArray = (arr, len) => {
  * @param obj
  * @returns {boolean}
  */
-function isInArray(arr, obj) {
+const isInArray = (arr, obj) => {
     let i = arr.length;
     while (i--) {
         if (obj.match(RegExp(`^.*${arr[i]}.*`))) {

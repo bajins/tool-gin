@@ -201,7 +201,7 @@ if (!Array.prototype.insert) {
  * @param cls
  * @returns {boolean}
  */
-function hasClass(selector, cls) {
+const hasClass = (selector, cls) => {
     return (` ${document.querySelector(selector).className} `).indexOf(` ${cls} `) > -1;
 }
 
@@ -224,22 +224,22 @@ const getCurrAbsPath = () => {
     }
 
     // IE10
-    var e = new Error('');
-    var stack = e.stack || e.sourceURL || e.stacktrace || '';
-    var rExtractUri = /((?:http|https|file):\/\/.*?\/[^:]+)(?::\d+)?:\d+/;
-    // var rgx = /(?:http|https|file):\/\/.*?\/.+?.js/;
-    var absPath = rExtractUri.exec(stack);
+    let e = new Error('');
+    let stack = e.stack || e.sourceURL || e.stacktrace || '';
+    let rExtractUri = /((?:http|https|file):\/\/.*?\/[^:]+)(?::\d+)?:\d+/;
+    // let rgx = /(?:http|https|file):\/\/.*?\/.+?.js/;
+    let absPath = rExtractUri.exec(stack);
     if (absPath) {
         return absPath[1];
     }
 
     // IE5-9
-    var doc = exports.document;
-    var scripts = doc.scripts;
-    var expose = +new Date();
-    var isLtIE8 = ('' + doc.querySelector).indexOf('[native code]') === -1;
-    for (var i = 0; i < scripts.length; i++) {
-        var script = scripts[i];
+    let doc = exports.document;
+    let scripts = doc.scripts;
+    let expose = +new Date();
+    let isLtIE8 = ('' + doc.querySelector).indexOf('[native code]') === -1;
+    for (let i = 0; i < scripts.length; i++) {
+        let script = scripts[i];
         if (script.className != expose && script.readyState === 'interactive') {
             script.className = expose;
             // 如果小于ie 8，则必须通过getAttribute（src，4）获得abs路径
@@ -338,6 +338,7 @@ const isEmpty = (obj) => {
  * @return 将方法、变量暴露出去
  */
 export default {
+    hasClass,
     getCurrAbsPath,
     getPath,
     randomNum,
