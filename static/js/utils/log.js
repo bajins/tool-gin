@@ -61,7 +61,7 @@ const getParam = (...log) => {
     let params = log[0];
     let parentString = params[0].toString();
     // 正则表达式，如须匹配大小写则去掉i
-    let re = eval("/" + "{}" + "/ig");
+    let re = eval("/{}/ig");
     // 匹配正则
     let ps = parentString.match(re);
 

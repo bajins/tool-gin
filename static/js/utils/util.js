@@ -196,6 +196,17 @@ if (!Array.prototype.insert) {
 // js = js[js.length - 1].src.substring(0, js[js.length - 1].src.lastIndexOf("/") + 1);
 
 /**
+ * 判断一个元素是否含有指定class
+ * @param selector
+ * @param cls
+ * @returns {boolean}
+ */
+function hasClass(selector, cls) {
+    return (` ${document.querySelector(selector).className} `).indexOf(` ${cls} `) > -1;
+}
+
+
+/**
  * 获取当前路径
  *
  * @returns {string}
