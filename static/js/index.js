@@ -246,9 +246,6 @@ window.netSarangDownload = function netSarangDownload() {
  * 设置美化代码方式
  *
  * @return
- * @Description
- * @author claer woytu.com
- * @date 2019/6/13 17:31
  */
 window.beautificationClick = function beautificationClick(event) {
     let value = $(event).val();
@@ -264,9 +261,6 @@ window.beautificationClick = function beautificationClick(event) {
  * 设置缩进选中
  *
  * @return
- * @Description
- * @author claer woytu.com
- * @date 2019/6/13 17:23
  */
 window.indentWayButton = function indentWayButton(event) {
     // 先去掉选中的
@@ -279,9 +273,6 @@ window.indentWayButton = function indentWayButton(event) {
  * 点击美化按钮
  *
  * @return
- * @Description
- * @author claer woytu.com
- * @date 2019/6/13 17:32
  */
 window.beautifyCode = function beautifyCode() {
     let beautification = $("input[name='beautification']:checked").val();
@@ -315,9 +306,6 @@ window.beautifyCode = function beautifyCode() {
  * online美化Nginx配置
  *
  * @return
- * @Description
- * @author claer woytu.com
- * @date 2019/6/13 20:23
  */
 function onlineBeautifier(code) {
     $.ajax({
@@ -349,9 +337,6 @@ function onlineBeautifier(code) {
  *            indentWay2 按`server{`方式缩进(左花括号之后无空行)
  *            indentWay3 按`server\n{`方式缩进（左花括号在新行中）
  * @return
- * @Description
- * @author claer woytu.com
- * @date 2019/6/13 15:52
  */
 function activateBeautifierListener(contents, indentCode, indentation) {
     // 缩进代码
@@ -401,9 +386,6 @@ function activateBeautifierListener(contents, indentCode, indentation) {
  * 最后美化完成输出
  *
  * @return
- * @Description
- * @author claer woytu.com
- * @date 2019/6/13 20:14
  */
 function beautifySuccess(contents) {
     let html = `<pre style='background: black;color:#66FF66;width: 100%;height: 100%;margin: 0px;padding: 10px;'>

@@ -189,9 +189,6 @@ const dateFormat = (date, fmt) => {
  * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
  *
  * @return 将方法、变量暴露出去
- * @Description
- * @author claer woytu.com
- * @date 2019/4/29 11:58
  */
 export default {
     dateFormat

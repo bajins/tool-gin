@@ -284,9 +284,6 @@ const randomNum = (minNum, maxNum) => {
  * 设置延时后再执行下一步操作
  *
  * @return
- * @Description
- * @author claer woytu.com
- * @date 2019/7/4 20:22
  */
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -339,9 +336,6 @@ const isEmpty = (obj) => {
  * 目前 vue 编译都是依赖label 插件，最终都转化为ES5
  *
  * @return 将方法、变量暴露出去
- * @Description
- * @author claer woytu.com
- * @date 2019/4/29 11:58
  */
 export default {
     getCurrAbsPath,
