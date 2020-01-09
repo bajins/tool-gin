@@ -212,12 +212,6 @@ const hasClass = (selector, cls) => {
  * @returns {string}
  */
 const getCurrAbsPath = () => {
-
-    // ECMAScript6
-    if (import.meta) {
-        return import.meta.url;
-    }
-
     // FF,Chrome
     if (document.currentScript) {
         return document.currentScript.src;
