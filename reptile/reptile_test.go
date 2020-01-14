@@ -21,7 +21,7 @@ func TestCDP(t *testing.T) {
 	// 定义变量，用来保存爬虫的数据
 	var res string
 
-	err := Apply(Crawler(&res))
+	err := Apply(false, Crawler(&res))
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +50,7 @@ func TestLinShiYouXiangSuffix(t *testing.T) {
 }
 
 func TestLinShiYouXiangList(t *testing.T) {
-	list := LinShiYouXiangList("5wij52emu")
+	list, _ := LinShiYouXiangList("5wij52emu")
 	t.Log(list)
 }
 
@@ -69,4 +69,10 @@ func TestDownloadNetsarang(t *testing.T) {
 	url, err := DownloadNetsarang("xshell")
 	t.Log(url)
 	t.Error(err == nil)
+}
+
+func TestGetMail24(t *testing.T) {
+	//GetMail24()
+	var test string
+	t.Log(ApplyDebug(false, getMail(Mail24, &test)))
 }
