@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/http/httputil"
 	"net/url"
 	"os"
 	"strconv"
@@ -234,9 +233,8 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 	if req.Header.Get("content-type") == "" {
 		req.Header.Add("content-type", contentType)
 	}
-
-	// dump出远程服务器返回的信息
-	httputil.DumpRequest(req, false)
+	// dump出远程服务器返回的信息，调试请求
+	//bd, err := httputil.DumpRequest(req, true)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	// 发起请求
