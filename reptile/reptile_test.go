@@ -12,16 +12,23 @@
 package reptile
 
 import (
+	"fmt"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 	"testing"
 )
 
+func TestApply(t *testing.T) {
+	//ctx:=context.Background()
+}
+
 func TestCDP(t *testing.T) {
 	// 定义变量，用来保存爬虫的数据
 	var res string
-
-	err := Apply(false, Crawler(&res))
+	//ctx, cancel := ApplyDebug()
+	//defer cancel()
+	ctx, _ := Apply()
+	err := chromedp.Run(ctx, Crawler(&res))
 	if err != nil {
 		panic(err)
 	}
@@ -74,5 +81,13 @@ func TestDownloadNetsarang(t *testing.T) {
 func TestGetMail24(t *testing.T) {
 	//GetMail24()
 	var test string
-	t.Log(ApplyDebug(false, getMail(Mail24, &test)))
+	//ctx, cancel := ApplyDebug()
+	//defer cancel()
+	ctx, _ := ApplyDebug()
+	err := chromedp.Run(ctx, GetMail24(Mail24, &test))
+	t.Log(err)
+	t.Log(test)
+	err = chromedp.Run(ctx, GetMail24List(Mail24, &test))
+	t.Log(err)
+	fmt.Println(test)
 }

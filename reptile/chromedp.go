@@ -30,7 +30,7 @@ import (
 // context.Context部分不能抽离，否则会报 context canceled
 //
 // close 结束时是否关闭浏览器实例
-func Apply(close bool, actions chromedp.Action, opts ...chromedp.ExecAllocatorOption) error {
+func Apply(opts ...chromedp.ExecAllocatorOption) (context.Context, context.CancelFunc) {
 
 	//dir, err := ioutil.TempDir("", "chromedp-example")
 	//if err != nil {
@@ -39,30 +39,18 @@ func Apply(close bool, actions chromedp.Action, opts ...chromedp.ExecAllocatorOp
 	//defer os.RemoveAll(dir)
 
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	if close {
-		// 关闭chrome实例
-		defer cancel()
-	}
-
 	// 自定义记录器
 	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithLogf(log.Printf))
-	if close {
-		// 释放所有资源，并等待释放结束
-		defer cancel()
-	}
 	// 设置超时时间
 	ctx, cancel = context.WithTimeout(ctx, 3*time.Minute)
-	if close {
-		// 超时关闭chrome实例
-		defer cancel()
-	}
 	//ctx, cancel = context.WithCancel(ctx)
 	//if close {
 	//	defer cancel()
 	//}
 	// listen network event
 	//listenForNetworkEvent(ctx)
-	return chromedp.Run(ctx, actions)
+	//return chromedp.Run(ctx, actions)
+	return ctx, cancel
 }
 
 // 显示浏览器窗口启动
@@ -70,7 +58,7 @@ func Apply(close bool, actions chromedp.Action, opts ...chromedp.ExecAllocatorOp
 // context.Context部分不能抽离，否则会报 context canceled
 //
 // close 结束时是否关闭浏览器实例
-func ApplyDebug(close bool, actions chromedp.Action) error {
+func ApplyDebug() (context.Context, context.CancelFunc) {
 	// 创建缓存目录
 	//dir, err := ioutil.TempDir("", "chromedp-example")
 	//if err != nil {
@@ -84,14 +72,14 @@ func ApplyDebug(close bool, actions chromedp.Action) error {
 		// 窗口最大化
 		chromedp.Flag("start-maximized", true),
 	}
-	return Apply(close, actions, opts...)
+	return Apply(opts...)
 }
 
 // 不显示浏览器窗口启动
 //
 // context.Context部分不能抽离，否则会报 context canceled
 // close 结束时是否关闭浏览器实例
-func ApplyRun(close bool, actions chromedp.Action) error {
+func ApplyRun() (context.Context, context.CancelFunc) {
 	// 创建缓存目录
 	//dir, err := ioutil.TempDir("", "chromedp-example")
 	//if err != nil {
@@ -128,7 +116,7 @@ func ApplyRun(close bool, actions chromedp.Action) error {
 		//chromedp.UserDataDir(dir),
 		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),
 	)
-	return Apply(close, actions, opts...)
+	return Apply(opts...)
 }
 
 //监听

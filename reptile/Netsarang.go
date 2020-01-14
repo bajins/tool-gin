@@ -53,7 +53,9 @@ func SendMail(mail, product string) error {
 	// 定义变量，用来保存爬虫的数据
 	var res string
 
-	err := ApplyRun(true, clickSubmitMail(url, mail, &res))
+	ctx, cancel := ApplyRun()
+	defer cancel()
+	err := chromedp.Run(ctx, clickSubmitMail(url, mail, &res))
 	if err != nil {
 		return err
 	}
@@ -203,7 +205,9 @@ func DownloadNetsarang(product string) (string, error) {
 
 	var attributes map[string]string
 
-	err = ApplyRun(true, getDownloadUrl(tokenHtml.Text(), &attributes))
+	ctx, cancel := ApplyRun()
+	defer cancel()
+	err = chromedp.Run(ctx, getDownloadUrl(tokenHtml.Text(), &attributes))
 	if err != nil {
 		return "", err
 	}
