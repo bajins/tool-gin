@@ -25,37 +25,11 @@ import (
 	"tool-gin/utils"
 )
 
-// 启动
+// 显示浏览器窗口启动，结束时不关闭浏览器实例
+//
 // context.Context部分不能抽离，否则会报 context canceled
-func Apply(actions chromedp.Action, opts ...chromedp.ExecAllocatorOption) error {
-
-	//dir, err := ioutil.TempDir("", "chromedp-example")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer os.RemoveAll(dir)
-
-	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
-	// 关闭chrome实例
-	defer cancel()
-
-	// 自定义记录器
-	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithLogf(log.Printf))
-	// 释放所有资源，并等待释放结束
-	defer cancel()
-
-	// 设置超时时间
-	ctx, cancel = context.WithTimeout(ctx, 3*time.Minute)
-	// 超时关闭chrome实例
-	defer cancel()
-
-	// listen network event
-	//listenForNetworkEvent(ctx)
-	return chromedp.Run(ctx, actions)
-}
-
 func ApplyDebug(actions chromedp.Action) error {
-
+	// 创建缓存目录
 	//dir, err := ioutil.TempDir("", "chromedp-example")
 	//if err != nil {
 	//	panic(err)
@@ -68,11 +42,26 @@ func ApplyDebug(actions chromedp.Action) error {
 		// 窗口最大化
 		chromedp.Flag("start-maximized", true),
 	}
-	return Apply(actions, opts...)
+	ctx, _ := chromedp.NewExecAllocator(context.Background(), opts...)
+
+	// 自定义记录器
+	ctx, _ = chromedp.NewContext(ctx, chromedp.WithLogf(log.Printf))
+
+	// 设置超时时间
+	ctx, _ = context.WithTimeout(ctx, 3*time.Minute)
+
+	ctx, _ = context.WithCancel(ctx)
+
+	// listen network event
+	//listenForNetworkEvent(ctx)
+	return chromedp.Run(ctx, actions)
 }
 
+// 不显示浏览器窗口启动，结束时关闭浏览器实例
+//
+// context.Context部分不能抽离，否则会报 context canceled
 func ApplyRun(actions chromedp.Action) error {
-
+	// 创建缓存目录
 	//dir, err := ioutil.TempDir("", "chromedp-example")
 	//if err != nil {
 	//	panic(err)
@@ -108,7 +97,26 @@ func ApplyRun(actions chromedp.Action) error {
 		//chromedp.UserDataDir(dir),
 		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),
 	)
-	return Apply(actions, opts...)
+	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
+	// 关闭chrome实例
+	defer cancel()
+
+	// 自定义记录器
+	ctx, cancel = chromedp.NewContext(ctx, chromedp.WithLogf(log.Printf))
+	// 释放所有资源，并等待释放结束
+	defer cancel()
+
+	// 设置超时时间
+	ctx, cancel = context.WithTimeout(ctx, 3*time.Minute)
+	// 超时关闭chrome实例
+	defer cancel()
+
+	ctx, cancel = context.WithCancel(ctx)
+	defer cancel()
+
+	// listen network event
+	//listenForNetworkEvent(ctx)
+	return chromedp.Run(ctx, actions)
 }
 
 //监听
