@@ -34,7 +34,7 @@ func init() {
 // 获取可用mail
 func NetsarangGetMail() (context.Context, context.CancelFunc, string, error) {
 	var mail string
-	ctx, cancel := ApplyDebug()
+	ctx, cancel := ApplyRun()
 	err := chromedp.Run(ctx, GetMail24MailName(&mail))
 	if err != nil {
 		return nil, nil, "", err
