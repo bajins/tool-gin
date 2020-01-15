@@ -15,11 +15,16 @@ import (
 	"fmt"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
+	"io/ioutil"
 	"testing"
+	"tool-gin/utils"
 )
 
 func TestApply(t *testing.T) {
-	//ctx:=context.Background()
+	url := "https://www.netsarang.com/zh/downloading/?token=d1hXUC05Y3RVWXhJNWt6NF9rUHhDQUBaVjZXVkJRQU51VHEtRi1PVm1MQUFR"
+	response, err := utils.HttpRequest("GET", url, "", nil, nil)
+	result, err := ioutil.ReadAll(response.Body)
+	fmt.Println(string(result), err)
 }
 
 func TestCDP(t *testing.T) {
@@ -61,21 +66,13 @@ func TestLinShiYouXiangList(t *testing.T) {
 	t.Log(list)
 }
 
-func TestLinShiYouXiangGetMail(t *testing.T) {
-	_, err := DownloadNetsarang("xshell")
-	t.Log(err)
-
-}
-
-func TestSendMail(t *testing.T) {
-	SendMail("", "xshell")
-}
-
 func TestDownloadNetsarang(t *testing.T) {
-
-	url, err := DownloadNetsarang("xshell")
-	t.Log(url)
-	t.Error(err == nil)
+	ctx, cancel, mail, err := NetsarangGetMail()
+	defer cancel()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(NetsarangGetInfo(ctx, mail, "xshell"))
 }
 
 func TestGetMail24(t *testing.T) {
@@ -84,10 +81,10 @@ func TestGetMail24(t *testing.T) {
 	//ctx, cancel := ApplyDebug()
 	//defer cancel()
 	ctx, _ := ApplyDebug()
-	err := chromedp.Run(ctx, GetMail24(Mail24, &test))
+	err := chromedp.Run(ctx, GetMail24MailName(&test))
 	t.Log(err)
 	t.Log(test)
-	err = chromedp.Run(ctx, GetMail24List(Mail24, &test))
+	err = chromedp.Run(ctx, GetMail24LatestMail(&test))
 	t.Log(err)
 	fmt.Println(test)
 }

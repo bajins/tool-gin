@@ -178,7 +178,14 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 	info := reptile.NetsarangInfo[app]
 	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
 	if info == nil || len(info) == 1 || info[1].(string) != "" {
-		_, err := reptile.DownloadNetsarang(app)
+		ctx, cancel, mail, err := reptile.NetsarangGetMail()
+		defer cancel()
+		if err != nil {
+			log.Println(err)
+			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			return
+		}
+		_, err = reptile.NetsarangGetInfo(ctx, mail, app)
 		if err != nil {
 			log.Println(err)
 			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")

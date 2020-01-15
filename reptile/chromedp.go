@@ -25,11 +25,9 @@ import (
 	"tool-gin/utils"
 )
 
-// 启动
+// 启动，建议在主入口处调用一次即可
 //
 // context.Context部分不能抽离，否则会报 context canceled
-//
-// close 结束时是否关闭浏览器实例
 func Apply(opts ...chromedp.ExecAllocatorOption) (context.Context, context.CancelFunc) {
 
 	//dir, err := ioutil.TempDir("", "chromedp-example")
@@ -47,17 +45,12 @@ func Apply(opts ...chromedp.ExecAllocatorOption) (context.Context, context.Cance
 	//if close {
 	//	defer cancel()
 	//}
-	// listen network event
-	//listenForNetworkEvent(ctx)
-	//return chromedp.Run(ctx, actions)
 	return ctx, cancel
 }
 
 // 显示浏览器窗口启动
 //
 // context.Context部分不能抽离，否则会报 context canceled
-//
-// close 结束时是否关闭浏览器实例
 func ApplyDebug() (context.Context, context.CancelFunc) {
 	// 创建缓存目录
 	//dir, err := ioutil.TempDir("", "chromedp-example")
@@ -78,7 +71,6 @@ func ApplyDebug() (context.Context, context.CancelFunc) {
 // 不显示浏览器窗口启动
 //
 // context.Context部分不能抽离，否则会报 context canceled
-// close 结束时是否关闭浏览器实例
 func ApplyRun() (context.Context, context.CancelFunc) {
 	// 创建缓存目录
 	//dir, err := ioutil.TempDir("", "chromedp-example")
