@@ -175,24 +175,11 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 		ErrorJSON(c, 300, "请选择版本")
 		return
 	}
-	info := reptile.NetsarangInfo[app]
-	if info == nil || info["url"] == nil || info["url"].(string) == "" {
-		ctx, cancel, mail, err := reptile.NetsarangGetMail()
-		defer cancel()
-		if err != nil {
-			log.Println(err)
-			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
-			return
-		}
-		_, err = reptile.NetsarangGetInfo(ctx, mail, app)
-		if err != nil {
-			log.Println(err)
-			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
-			return
-		}
-		info = reptile.NetsarangInfo[app]
+	url, err := reptile.GetInfoUrl(app)
+	if err != nil {
+		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 	}
-	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": info["url"].(string)})
+	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": url})
 }
 
 // NGINX格式化代码页面

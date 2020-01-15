@@ -24,11 +24,34 @@ import (
 	"tool-gin/utils"
 )
 
-var NetsarangInfo map[string]map[string]interface{}
+var NetsarangMap map[string]NetsarangInfo
+
+type NetsarangInfo struct {
+	Time time.Time
+	Url  string
+}
 
 func init() {
 	// 第一次调用初始化
-	NetsarangInfo = make(map[string]map[string]interface{})
+	NetsarangMap = make(map[string]NetsarangInfo)
+}
+
+// 获取单个产品信息
+func GetInfoUrl(product string) (string, error) {
+	info := NetsarangMap[product]
+	if NetsarangMap == nil || info.Url == "" || len(info.Url) == 0 || !utils.DateEqual(time.Now(), info.Time) {
+		ctx, cancel, mail, err := NetsarangGetMail()
+		defer cancel()
+		if err != nil {
+			return "", err
+		}
+		url, err := NetsarangGetInfo(ctx, mail, product)
+		if err != nil {
+			return "", err
+		}
+		info = NetsarangInfo{Time: time.Now(), Url: url}
+	}
+	return info.Url, nil
 }
 
 // 获取可用mail
@@ -67,7 +90,7 @@ func NetsarangDownloadAll() {
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println(NetsarangInfo)
+	log.Println(NetsarangMap)
 }
 
 // 获取链接信息
@@ -81,13 +104,10 @@ func NetsarangGetInfo(ctx context.Context, mail, product string) (string, error)
 	if product == "" || len(product) == 0 {
 		return "", errors.New("product不能为空")
 	}
-	info := NetsarangInfo[product]
+	info := NetsarangMap[product]
 	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
-	if info != nil && len(info) > 1 {
-		// 判断日期是否为今天
-		if utils.DateEqual(time.Now(), info["time"].(time.Time)) {
-			return "", nil
-		}
+	if info.Url != "" && len(info.Url) > 1 && utils.DateEqual(time.Now(), info.Time) {
+		return "", nil
 	}
 	err := NetsarangSendMail(ctx, mail, product)
 	if err != nil {
@@ -121,7 +141,7 @@ func NetsarangGetInfo(ctx context.Context, mail, product string) (string, error)
 		return "", err
 	}
 	// 把产品信息存储到变量
-	NetsarangInfo[product] = map[string]interface{}{"time": time.Now(), "url": url}
+	NetsarangMap[product] = NetsarangInfo{Time: time.Now(), Url: url}
 	return url, nil
 }
 
