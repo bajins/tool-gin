@@ -31,6 +31,11 @@ type NetsarangInfo struct {
 	Url  string
 }
 
+func init() {
+	// 第一次调用初始化
+	NetsarangMap = make(map[string]NetsarangInfo)
+}
+
 // 获取单个产品信息
 func GetInfoUrl(product string) (string, error) {
 	info := NetsarangMap[product]
