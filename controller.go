@@ -176,8 +176,7 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 		return
 	}
 	info := reptile.NetsarangInfo[app]
-	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
-	if info == nil || len(info) == 1 || info[1].(string) != "" {
+	if info == nil || info["url"] == nil || info["url"].(string) == "" {
 		ctx, cancel, mail, err := reptile.NetsarangGetMail()
 		defer cancel()
 		if err != nil {
@@ -193,7 +192,7 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 		}
 		info = reptile.NetsarangInfo[app]
 	}
-	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": info[1].(string)})
+	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": info["url"].(string)})
 }
 
 // NGINX格式化代码页面
