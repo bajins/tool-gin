@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"os"
@@ -114,18 +115,26 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 			switch contentType {
 			case "axwfu": // application/x-www-form-urlencoded;
 				data := make(url.Values)
+				//data := url.Values{}
 				for k, v := range params {
 					data[k] = []string{v}
+					//data.Set(k, v)
 				}
 				body = strings.NewReader(data.Encode())
 				contentType = "application/x-www-form-urlencoded; charset=utf-8"
 			case "mfd": // multipart/form-data
-				data := url.Values{}
+				bodyBuf := &bytes.Buffer{}
+				writer := multipart.NewWriter(bodyBuf)
 				for k, v := range params {
-					data.Set(k, v)
+					if err = writer.WriteField(k, v); err != nil {
+						return nil, err
+					}
 				}
-				body = strings.NewReader(data.Encode())
-				contentType = "multipart/form-data; charset=utf-8"
+				if err = writer.Close(); err != nil {
+					return nil, err
+				}
+				body = bodyBuf
+				contentType = writer.FormDataContentType()
 			case "tx": // text/xml
 				data := url.Values{}
 				for k, v := range params {
