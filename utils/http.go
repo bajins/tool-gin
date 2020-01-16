@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -12,6 +13,14 @@ import (
 	"strconv"
 	"strings"
 	"time"
+)
+
+const (
+	ContentTypeAXWFU = "application/x-www-form-urlencoded"
+	ContentTypeMFD   = "multipart/form-data"
+	ContentTypeTX    = "text/xml"
+	ContentTypeJson  = "application/json"
+	UserAgent        = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"
 )
 
 // 下载文件
@@ -43,8 +52,6 @@ func DownFile(url, upPreDir, upDir string, proxyURL string) (string, error) {
 
 	return uploadDir + newName, err
 }
-
-const UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.88 Safari/537.36"
 
 // HttpGet获取指定的资源。如果是，则返回ErrNotFound
 // 服务器以状态404响应。
@@ -111,9 +118,9 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 	var err error
 	var body io.Reader
 	if params != nil {
-		if method == "POST" {
+		if method == http.MethodPost {
 			switch contentType {
-			case "axwfu": // application/x-www-form-urlencoded;
+			case ContentTypeAXWFU: // application/x-www-form-urlencoded;
 				data := make(url.Values)
 				//data := url.Values{}
 				for k, v := range params {
@@ -122,7 +129,7 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 				}
 				body = strings.NewReader(data.Encode())
 				contentType = "application/x-www-form-urlencoded; charset=utf-8"
-			case "mfd": // multipart/form-data
+			case ContentTypeMFD: // multipart/form-data
 				bodyBuf := &bytes.Buffer{}
 				writer := multipart.NewWriter(bodyBuf)
 				for k, v := range params {
@@ -135,7 +142,7 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 				}
 				body = bodyBuf
 				contentType = writer.FormDataContentType()
-			case "tx": // text/xml
+			case ContentTypeTX: // text/xml
 				data := url.Values{}
 				for k, v := range params {
 					data.Set(k, strings.ReplaceAll(v, " ", "+"))
@@ -169,7 +176,7 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 			req.Header.Add(key, value)
 		}
 	}
-	if req.Header.Get("Content-Type") == "" && method == "POST" {
+	if req.Header.Get("Content-Type") == "" && method == http.MethodPost {
 		req.Header.Set("Content-Type", contentType)
 	}
 	if req.Header.Get("User-Agent") == "" {
@@ -181,4 +188,55 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 	client := &http.Client{Timeout: 30 * time.Second}
 	// 发起请求
 	return client.Do(req)
+}
+
+// 请求并读取返回内容为字符串
+func HttpReadBodyString(method, urlText, contentType string, params, header map[string]string) (string, error) {
+	res, err := HttpRequest(method, urlText, contentType, params, header)
+	if err != nil {
+		return "", err
+	}
+	result, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(result), nil
+}
+
+// 请求并读取返回内容为json
+func HttpReadBodyJson(method, urlText, contentType string, params, header map[string]string) (map[string]interface{}, error) {
+	res, err := HttpRequest(method, urlText, contentType, params, header)
+	if err != nil {
+		return nil, err
+	}
+	result, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	var data map[string]interface{}
+	err = json.Unmarshal(result, &data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+type HttpClient struct {
+	Method      string
+	UrlText     string
+	ContentType string
+	Params      map[string]string
+	Header      map[string]string
+}
+
+func (hc *HttpClient) ReadBody() (*http.Response, error) {
+	return HttpRequest(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header)
+}
+
+func (hc *HttpClient) ReadBodyString() (string, error) {
+	return HttpReadBodyString(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header)
+}
+
+func (hc *HttpClient) ReadBodyJson() (map[string]interface{}, error) {
+	return HttpReadBodyJson(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header)
 }

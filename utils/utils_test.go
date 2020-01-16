@@ -16,6 +16,7 @@ package utils
 
 import (
 	"fmt"
+	"net/http"
 	"testing"
 	"time"
 )
@@ -80,8 +81,16 @@ func TestHttp(t *testing.T) {
 	}
 	param = param[0 : len(param)-1]
 	t.Error(param)
-	result, err := HttpRequest("POST", "test", "", map[string]string{"test": "1", "t": "22"}, nil)
+	result, err := HttpReadBodyString(http.MethodPost, "test", "", map[string]string{"test": "1", "t": "22"}, nil)
 	t.Log(result, err)
+	httpClient := HttpClient{
+		Method:      http.MethodPost,
+		UrlText:     "test",
+		ContentType: ContentTypeMFD,
+		Params:      nil,
+		Header:      nil,
+	}
+	t.Log(httpClient.ReadBodyJson())
 }
 
 func TestSchedulerIntervalsTimer(t *testing.T) {
