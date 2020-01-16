@@ -122,17 +122,17 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for i := 0; i < 30; {
-		if mailList != nil || err != nil {
+	for i := 0; i < 30; i++ {
+		if len(mailList) > 0 {
 			break
 		}
-		time.Sleep(1 * time.Minute)
+		time.Sleep(10 * time.Second)
 		mailList, err = LinShiYouXiangList(prefix)
 		if err != nil {
 			return "", err
 		}
 	}
-	if len(mailList) == 0 || mailList == nil {
+	if len(mailList) == 0 {
 		return "", errors.New("没有邮件")
 	}
 	mailbox := mailList[len(mailList)-1]["mailbox"].(string)
