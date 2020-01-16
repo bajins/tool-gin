@@ -90,7 +90,7 @@ func TestHttp(t *testing.T) {
 		Params:      nil,
 		Header:      nil,
 	}
-	t.Log(httpClient.ReadBodyJson())
+	t.Log(httpClient.HttpReadBodyJsonMap())
 }
 
 func TestSchedulerIntervalsTimer(t *testing.T) {
