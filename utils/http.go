@@ -185,7 +185,7 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 	// dump出远程服务器返回的信息，调试请求
 	//bd, err := httputil.DumpRequest(req, true)
 
-	client := &http.Client{Timeout: 30 * time.Second}
+	client := &http.Client{Timeout: 3 * time.Minute}
 	// 发起请求
 	return client.Do(req)
 }

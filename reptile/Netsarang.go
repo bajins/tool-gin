@@ -28,7 +28,12 @@ import (
 	"tool-gin/utils"
 )
 
-var NetsarangMap map[string]NetsarangInfo
+const NetsarangJsonUrl = "https://www.netsarang.com/json/download/process.html"
+
+var (
+	NetsarangMap     map[string]NetsarangInfo
+	NetsarangProduct = [6]string{"xshell", "xftp", "xlpd", "xshellplus", "xmanager", "powersuite"}
+)
 
 type NetsarangInfo struct {
 	Time time.Time
@@ -64,11 +69,10 @@ func NetsarangGetMail() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	res, err := LinShiYouXiangApply(prefix)
+	_, err = LinShiYouXiangApply(prefix)
 	if err != nil {
 		return "", err
 	}
-	log.Println(res)
 	mail := prefix + suffix
 	log.Println("邮箱号：", mail)
 	return mail, nil
@@ -81,21 +85,11 @@ func NetsarangDownloadAll() {
 		log.Println(err)
 		return
 	}
-	_, err = NetsarangGetInfo(mail, "Xshell")
-	if err != nil {
-		log.Println(err)
-	}
-	_, err = NetsarangGetInfo(mail, "Xftp")
-	if err != nil {
-		log.Println(err)
-	}
-	_, err = NetsarangGetInfo(mail, "Xmanager")
-	if err != nil {
-		log.Println(err)
-	}
-	_, err = NetsarangGetInfo(mail, "Xshell Plus")
-	if err != nil {
-		log.Println(err)
+	for _, app := range NetsarangProduct {
+		_, err = NetsarangGetInfo(mail, app)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 	log.Println(NetsarangMap)
 }
@@ -118,11 +112,13 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 		return "", err
 	}
 	prefix := strings.Split(mail, "@")[0]
+
+	time.Sleep(10 * time.Second)
 	mailList, err := LinShiYouXiangList(prefix)
 	if err != nil {
 		return "", err
 	}
-	for i := 0; i < 30; i++ {
+	for i := 0; i < 20; i++ {
 		if len(mailList) > 0 {
 			break
 		}
@@ -135,16 +131,12 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	if len(mailList) == 0 {
 		return "", errors.New("没有邮件")
 	}
-	mailbox := mailList[len(mailList)-1]["mailbox"].(string)
-	if mailbox == "" {
-		return "", errors.New("邮件前缀不存在")
-	}
 	mailId := mailList[len(mailList)-1]["id"].(string)
 	if mailId == "" {
 		return "", errors.New("邮件ID不存在")
 	}
 	// 获取最新一封邮件
-	content, err := LinShiYouXiangGetMail(mailbox, mailId)
+	content, err := LinShiYouXiangGetMail(prefix, mailId)
 	if err != nil {
 		return "", err
 	}
@@ -200,18 +192,25 @@ func NetsarangSendMail(mail, product string) error {
 
 	productCode := ""
 	productName := ""
-	if strings.EqualFold(product, "Xshell") {
+	switch strings.ToLower(product) {
+	case "xshell":
 		productCode = "4203"
 		productName = "xshell-download"
-	} else if strings.EqualFold(product, "Xftp") {
+	case "xftp":
 		productCode = "4242"
 		productName = "xftp-download"
-	} else if strings.EqualFold(product, "Xmanager") {
-		productCode = "4066"
-		productName = "xmanager-power-suite-download"
-	} else if strings.EqualFold(product, "Xshell Plus") || product == "" {
+	case "xlpd":
+		productCode = "4280"
+		productName = "xlpd-download"
+	case "xmanager":
+		productCode = "4162"
+		productName = "xmanager-download"
+	case "xshellplus":
 		productCode = "4132"
 		productName = "xshell-plus-download"
+	case "powersuite":
+		productCode = "4066"
+		productName = "xmanager-power-suite-download"
 	}
 	if productCode == "" || productName == "" {
 		return errors.New("产品不匹配")
@@ -235,7 +234,7 @@ func NetsarangSendMail(mail, product string) error {
 	}
 	httpClient := utils.HttpClient{
 		Method:      http.MethodPost,
-		UrlText:     "https://www.netsarang.com/json/download/process.html",
+		UrlText:     NetsarangJsonUrl,
 		ContentType: utils.ContentTypeMFD,
 		Params:      data,
 		Header:      nil,
@@ -262,29 +261,23 @@ func NetsarangGetUrl(lang, token string) (map[string]interface{}, error) {
 	switch lang {
 	case "en":
 		language = "2"
-		break
 	case "ko":
 		language = "1"
-		break
 	case "zh":
 		language = "3"
-		break
 	case "ru":
 		language = "8"
-		break
 	case "pt":
 		language = "9"
-		break
 	default:
 		language = "en"
-		break
 	}
 	params := map[string]string{
 		"md":       "checkDownload",
 		"token":    token,
 		"language": language,
 	}
-	return utils.HttpReadBodyJsonMap(http.MethodPost, "https://www.netsarang.com/json/download/process.html", utils.ContentTypeMFD, params, nil)
+	return utils.HttpReadBodyJsonMap(http.MethodPost, NetsarangJsonUrl, utils.ContentTypeMFD, params, nil)
 }
 
 // 通过ChromeDP获取所有链接信息
@@ -410,20 +403,19 @@ func NetsarangSendMailDP(ctx context.Context, mail, product string) error {
 	}
 
 	var url string
-	if strings.EqualFold(product, "Xshell") {
+	switch strings.ToLower(product) {
+	case "xshell":
 		url = "https://www.netsarang.com/zh/xshell-download"
-	}
-
-	if strings.EqualFold(product, "Xftp") {
+	case "xftp":
 		url = "https://www.netsarang.com/zh/xftp-download"
-	}
-
-	if strings.EqualFold(product, "Xmanager") {
-		url = "https://www.netsarang.com/zh/xmanager-power-suite-download"
-	}
-
-	if strings.EqualFold(product, "Xshell Plus") || product == "" {
+	case "xlpd":
+		url = "https://www.netsarang.com/zh/Xlpd"
+	case "xmanager":
+		url = "https://www.netsarang.com/zh/xmanager-download"
+	case "xshellplus":
 		url = "https://www.netsarang.com/zh/xshell-plus-download"
+	case "powersuite":
+		url = "https://www.netsarang.com/zh/xmanager-power-suite-download"
 	}
 	if url == "" {
 		return errors.New("产品不匹配，url为空")
