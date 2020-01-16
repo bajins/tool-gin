@@ -15,8 +15,8 @@ import (
 	"github.com/antchfx/htmlquery"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
-	"io/ioutil"
 	"math"
+	"net/http"
 	"time"
 	"tool-gin/utils"
 )
@@ -26,7 +26,7 @@ const LinShiYouXiang = "https://www.linshiyouxiang.net"
 // 获取邮箱号后缀
 func LinShiYouXiangSuffix() (string, error) {
 	var suffixArray []string
-	response, err := utils.HttpRequest("GET", LinShiYouXiang, "", nil, nil)
+	response, err := utils.HttpRequest(http.MethodGet, LinShiYouXiang, "", nil, nil)
 	if err != nil {
 		return "", err
 	}
@@ -51,31 +51,14 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 		"mailbox":      prefix,
 		"_ts":          utils.ToString(math.Round(float64(time.Now().Unix() / 1000))),
 	}
-	response, err := utils.HttpRequest("GET", url, "", param, nil)
-	if err != nil {
-		return nil, err
-	}
-	result, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-	stu, err := utils.JsonToMap(string(result))
-	return stu, err
+	return utils.HttpReadBodyJsonMap(http.MethodGet, url, "", param, nil)
 }
 
 // 获取邮件列表
 // prefix： 邮箱前缀
-func LinShiYouXiangList(prefix string) (string, error) {
+func LinShiYouXiangList(prefix string) ([]map[string]interface{}, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix
-	response, err := utils.HttpRequest("GET", url, "", nil, nil)
-	if err != nil {
-		return "", err
-	}
-	result, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(result), nil
+	return utils.HttpReadBodyJsonArray(http.MethodGet, url, "", nil, nil)
 }
 
 // 获取邮件内容
@@ -91,31 +74,15 @@ func LinShiYouXiangList(prefix string) (string, error) {
 // doc, err := goquery.NewDocumentFromReader(bytes.NewReader(htmlText))
 func LinShiYouXiangGetMail(prefix, id string) (string, error) {
 	url := LinShiYouXiang + "/mailbox/" + prefix + "/" + id + "/source"
-	response, err := utils.HttpRequest("GET", url, "", nil, nil)
-	if err != nil {
-		return "", err
-	}
-	result, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(result), nil
+	return utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
 }
 
 // 删除邮件
 // prefix： 邮箱前缀
 // id:  	邮件编号
-func LinShiYouXiangDelete(prefix, id string) (string, error) {
+func LinShiYouXiangDelete(prefix, id string) (map[string]interface{}, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix + "/" + id
-	response, err := utils.HttpRequest("DELETE", url, "", nil, nil)
-	if err != nil {
-		return "", err
-	}
-	result, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return "", err
-	}
-	return string(result), nil
+	return utils.HttpReadBodyJsonMap(http.MethodDelete, url, "", nil, nil)
 }
 
 const Mail24 = "http://24mail.chacuo.net"

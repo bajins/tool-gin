@@ -15,16 +15,37 @@ import (
 	"fmt"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
-	"io/ioutil"
 	"testing"
 	"tool-gin/utils"
 )
 
+func TestLinShiYouXiangSuffix(t *testing.T) {
+	LinShiYouXiangSuffix()
+}
+
+func TestLinShiYouXiangList(t *testing.T) {
+	list, _ := LinShiYouXiangList("5wij52emu")
+	t.Log(list)
+}
+
+func TestGetMail24(t *testing.T) {
+	//GetMail24()
+	var test string
+	//ctx, cancel := ApplyDebug()
+	//defer cancel()
+	ctx, _ := ApplyDebug()
+	err := chromedp.Run(ctx, GetMail24MailName(&test))
+	t.Log(err)
+	t.Log(test)
+	err = chromedp.Run(ctx, GetMail24LatestMail(&test))
+	t.Log(err)
+	fmt.Println(test)
+}
+
 func TestApply(t *testing.T) {
 	url := "https://www.netsarang.com/zh/downloading/?token=d1hXUC05Y3RVWXhJNWt6NF9rUHhDQUBaVjZXVkJRQU51VHEtRi1PVm1MQUFR"
-	response, err := utils.HttpRequest("GET", url, "", nil, nil)
-	result, err := ioutil.ReadAll(response.Body)
-	fmt.Println(string(result), err)
+	response, err := utils.HttpReadBodyString("GET", url, "", nil, nil)
+	fmt.Println(response, err)
 }
 
 func TestCDP(t *testing.T) {
@@ -55,36 +76,4 @@ func Crawler(res *string) chromedp.Tasks {
 		//chromedp.OuterHTML(`.fusion-text h1::text`, res, chromedp.BySearch),
 		chromedp.Title(res),
 	}
-}
-
-func TestLinShiYouXiangSuffix(t *testing.T) {
-	LinShiYouXiangSuffix()
-}
-
-func TestLinShiYouXiangList(t *testing.T) {
-	list, _ := LinShiYouXiangList("5wij52emu")
-	t.Log(list)
-}
-
-func TestDownloadNetsarang(t *testing.T) {
-	ctx, cancel, mail, err := NetsarangGetMail()
-	defer cancel()
-	if err != nil {
-		t.Error(err)
-	}
-	t.Log(NetsarangGetInfo(ctx, mail, "xshell"))
-}
-
-func TestGetMail24(t *testing.T) {
-	//GetMail24()
-	var test string
-	//ctx, cancel := ApplyDebug()
-	//defer cancel()
-	ctx, _ := ApplyDebug()
-	err := chromedp.Run(ctx, GetMail24MailName(&test))
-	t.Log(err)
-	t.Log(test)
-	err = chromedp.Run(ctx, GetMail24LatestMail(&test))
-	t.Log(err)
-	fmt.Println(test)
 }
