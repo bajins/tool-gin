@@ -74,6 +74,20 @@ func GetKey(c *gin.Context) {
 		return
 	}
 	if company == "netsarang" {
+		switch strings.ToLower(app) {
+		case "xshell":
+			app = "Xshell"
+		case "xftp":
+			app = "Xftp"
+		case "xlpd":
+			app = "Xlpd"
+		case "xmanager":
+			app = "Xmanager"
+		case "xshellplus":
+			app = "Xshell Plus"
+		case "powersuite":
+			app = "Xmanager"
+		}
 		out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "xshell_key.py"), app, version)
 		ExecuteScriptError(c, err)
 		if err != nil {
