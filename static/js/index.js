@@ -132,9 +132,10 @@ window.getKey = function getKey() {
             contentType: "application/x-www-form-urlencoded; charset=UTF-8",
             dataType: "json",
             success: function (result) {
+                let appName = $("#app").find("option:selected").text();
                 log.info(JSON.stringify(result));
                 if (result.code == 200) {
-                    let html = `<div style='width:100%;height:100%;padding:5%;'><p><b>产品：</b>${app}</p><hr />`;
+                    let html = `<div style='width:100%;height:100%;padding:5%;'><p><b>产品：</b>${appName}</p><hr />`;
                     if (company == "torchsoft") {
                         html = `${html}<p><b>许可证数量：</b>${version}</p><hr />`;
                     } else {

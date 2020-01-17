@@ -5,8 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
-	"time"
-	"tool-gin/reptile"
 	"tool-gin/utils"
 )
 
@@ -83,7 +81,7 @@ func Port() (port string) {
 func init() {
 	// 设置项目为发布环境
 	//gin.SetMode(gin.ReleaseMode)
-	go utils.SchedulerIntervalsTimer(reptile.NetsarangDownloadAll, time.Hour*24)
+	//go utils.SchedulerIntervalsTimer(reptile.NetsarangDownloadAll, time.Hour*24)
 }
 
 func main() {
@@ -107,11 +105,11 @@ func main() {
 	// 该目录下的资源看可以按照路径访问
 	// 如 static 目录下有图片路径 index/logo.png , 你可以通过 GET /static/index/logo.png 访问到
 	router.Static("/static", "./static")
-	//router.LoadHTMLFiles("./static/index.html")
+	//router.LoadHTMLFiles("./static/html/index.html")
 	// 注册一个路径，gin 加载模板的时候会从该目录查找
 	// 参数是一个匹配字符，如 templates/*/* 的意思是 模板目录有两层
 	// gin 在启动时会自动把该目录的文件编译一次缓存，不用担心效率问题
-	router.LoadHTMLGlob("templates/*")
+	router.LoadHTMLGlob("static/html/*")
 
 	// listen and serve on 0.0.0.0:8080
 	router.Run(Port())
