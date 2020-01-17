@@ -328,7 +328,7 @@ func GetInfoUrlDP(product string) (string, error) {
 // 通过ChromeDP获取可用mail
 func NetsarangGetMailDP() (context.Context, context.CancelFunc, string, error) {
 	var mail string
-	ctx, cancel := ApplyRun()
+	ctx, cancel := Apply(false)
 	err := chromedp.Run(ctx, GetMail24MailName(&mail))
 	if err != nil {
 		return nil, nil, "", err

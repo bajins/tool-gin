@@ -14,9 +14,11 @@ package reptile
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
 	"io/ioutil"
 	"log"
@@ -28,13 +30,54 @@ import (
 // 启动，建议在主入口处调用一次即可
 //
 // context.Context部分不能抽离，否则会报 context canceled
-func Apply(opts ...chromedp.ExecAllocatorOption) (context.Context, context.CancelFunc) {
+func Apply(debug bool) (context.Context, context.CancelFunc) {
+	// 创建缓存目录
+	//dir, err := ioutil.TempDir("", "chromedp-example")
+	//if err != nil {
+	//	panic(err)
+	//}
+	//defer os.RemoveAll(dir)
 
 	//dir, err := ioutil.TempDir("", "chromedp-example")
 	//if err != nil {
 	//	panic(err)
 	//}
 	//defer os.RemoveAll(dir)
+	opts := append(chromedp.DefaultExecAllocatorOptions[:],
+		// 禁用GPU，不显示GUI
+		chromedp.DisableGPU,
+		// 取消沙盒模式
+		chromedp.NoSandbox,
+		// 指定浏览器分辨率
+		//chromedp.WindowSize(1600, 900),
+		// 设置UA，防止有些页面识别headless模式
+		chromedp.UserAgent(utils.UserAgent),
+		// 隐身模式启动
+		chromedp.Flag("incognito", true),
+		// 忽略证书错误
+		chromedp.Flag("ignore-certificate-errors", true),
+		// 窗口最大化
+		chromedp.Flag("start-maximized", true),
+		// 不加载图片, 提升速度
+		chromedp.Flag("disable-images", true),
+		chromedp.Flag("blink-settings", "imagesEnabled=false"),
+		// 禁用扩展
+		chromedp.Flag("disable-extensions", true),
+		// 禁止加载所有插件
+		chromedp.Flag("disable-plugins", true),
+		// 禁用浏览器应用
+		chromedp.Flag("disable-software-rasterizer", true),
+		//chromedp.Flag("remote-debugging-port","9222"),
+		//chromedp.Flag("debuggerAddress","127.0.0.1:9222"),
+		chromedp.Flag("user-data-dir", "./cache"),
+		//chromedp.Flag("excludeSwitches", "enable-automation"),
+		// 设置用户数据目录
+		//chromedp.UserDataDir(dir),
+		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),
+	)
+	if debug {
+		opts = append(opts, chromedp.Flag("headless", false), chromedp.Flag("hide-scrollbars", false))
+	}
 
 	ctx, cancel := chromedp.NewExecAllocator(context.Background(), opts...)
 	// 自定义记录器
@@ -46,69 +89,6 @@ func Apply(opts ...chromedp.ExecAllocatorOption) (context.Context, context.Cance
 	//	defer cancel()
 	//}
 	return ctx, cancel
-}
-
-// 显示浏览器窗口启动
-//
-// context.Context部分不能抽离，否则会报 context canceled
-func ApplyDebug() (context.Context, context.CancelFunc) {
-	// 创建缓存目录
-	//dir, err := ioutil.TempDir("", "chromedp-example")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer os.RemoveAll(dir)
-
-	opts := []chromedp.ExecAllocatorOption{
-		// 设置UA，防止有些页面识别headless模式
-		chromedp.UserAgent(utils.UserAgent),
-		// 窗口最大化
-		chromedp.Flag("start-maximized", true),
-	}
-	return Apply(opts...)
-}
-
-// 不显示浏览器窗口启动
-//
-// context.Context部分不能抽离，否则会报 context canceled
-func ApplyRun() (context.Context, context.CancelFunc) {
-	// 创建缓存目录
-	//dir, err := ioutil.TempDir("", "chromedp-example")
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer os.RemoveAll(dir)
-
-	opts := append(chromedp.DefaultExecAllocatorOptions[:],
-		chromedp.NoDefaultBrowserCheck,
-		chromedp.Headless,
-		// 禁用GPU，不显示GUI
-		chromedp.DisableGPU,
-		// 隐身模式启动
-		chromedp.Flag("incognito", true),
-		// 取消沙盒模式
-		chromedp.NoSandbox,
-		// 忽略证书错误
-		chromedp.Flag("ignore-certificate-errors", true),
-		// 指定浏览器分辨率
-		//chromedp.WindowSize(1600, 900),
-		// 窗口最大化
-		chromedp.Flag("start-maximized", true),
-		//
-		chromedp.Flag("in-process-plugins", true),
-		// 不加载图片, 提升速度
-		chromedp.Flag("disable-images", true),
-		// 禁用扩展
-		chromedp.Flag("disable-extensions", true),
-		// 隐藏滚动条, 应对一些特殊页面
-		chromedp.Flag("hide-scrollbars", true),
-		// 设置UA，防止有些页面识别headless模式
-		chromedp.UserAgent(utils.UserAgent),
-		// 设置用户数据目录
-		//chromedp.UserDataDir(dir),
-		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),
-	)
-	return Apply(opts...)
 }
 
 //监听
@@ -200,5 +180,118 @@ func DoCrawler(url string, res *string) chromedp.Tasks {
 		//chromedp.Text(`.fusion-text h1`, res, chromedp.BySearch),
 		//chromedp.TextContent(`.fusion-text h1`, res, chromedp.BySearch),
 		chromedp.Title(res),
+	}
+}
+
+// see: https://intoli.com/blog/not-possible-to-block-chrome-headless/
+const script = `(function(w, n, wn) {
+	console.log(navigator.webdriver);
+
+	// Pass the Webdriver Test.
+	// chrome 为undefined，Firefox 为false
+	//Object.defineProperty(n, 'webdriver', {
+	//	get: () => undefined,
+	//});
+	// 通过原型删除该属性
+	delete navigator.__proto__.webdriver;
+	console.log(navigator.webdriver);
+	
+	// Pass the Plugins Length Test.
+	// Overwrite the plugins property to use a custom getter.
+	Object.defineProperty(n, 'plugins', {
+	// This just needs to have length > 0 for the current test,
+	// but we could mock the plugins too if necessary.
+	get: () =>[
+			{filename:'internal-pdf-viewer'},
+			{filename:'adsfkjlkjhalkh'},
+			{filename:'internal-nacl-plugin'}
+		],
+	});
+	
+	// Pass the Languages Test.
+	// Overwrite the plugins property to use a custom getter.
+	Object.defineProperty(n, 'languages', {
+	get: () => ['zh-CN', 'en'],
+	});
+
+	// store the existing descriptor
+	const elementDescriptor = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+	
+	// redefine the property with a patched descriptor
+	Object.defineProperty(HTMLDivElement.prototype, 'offsetHeight', {
+	  ...elementDescriptor,
+	  get: function() {
+		if (this.id === 'modernizr') {
+			return 1;
+		}
+		return elementDescriptor.get.apply(this);
+	  },
+	});
+
+	['height', 'width'].forEach(property => {
+	  // store the existing descriptor
+	  const imageDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, property);
+	
+	  // redefine the property with a patched descriptor
+	  Object.defineProperty(HTMLImageElement.prototype, property, {
+		...imageDescriptor,
+		get: function() {
+		  // return an arbitrary non-zero dimension if the image failed to load
+		  if (this.complete && this.naturalHeight == 0) {
+			return 20;
+		  }
+		  // otherwise, return the actual dimension
+		  return imageDescriptor.get.apply(this);
+		},
+	  });
+	});
+	
+	// Pass the Chrome Test.
+	// We can mock this in as much depth as we need for the test.
+	w.chrome = {
+		runtime: {},
+	};
+	window.navigator.chrome = {
+	  	runtime: {},
+	};
+	
+	// Pass the Permissions Test.
+	const originalQuery = wn.permissions.query;
+	return wn.permissions.query = (parameters) => (
+	parameters.name === 'notifications' ?
+	  Promise.resolve({ state: Notification.permission }) :
+	  originalQuery(parameters)
+	);
+
+})(window, navigator, window.navigator);`
+
+// 执行js
+func EvalJS(js string) chromedp.Tasks {
+	var res *runtime.RemoteObject
+	return chromedp.Tasks{
+		chromedp.EvaluateAsDevTools(js, &res),
+		chromedp.Evaluate(js, &res),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			b, err := res.MarshalJSON()
+			if err != nil {
+				return err
+			}
+			fmt.Println("result: ", string(b))
+			return nil
+		}),
+	}
+}
+
+// 反检测Headless
+func AntiDetectionHeadless() chromedp.Tasks {
+	return chromedp.Tasks{
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			identifier, err := page.AddScriptToEvaluateOnNewDocument(script).Do(ctx)
+			if err != nil {
+				return err
+			}
+			fmt.Println("identifier: ", identifier.String())
+			return nil
+		}),
 	}
 }
