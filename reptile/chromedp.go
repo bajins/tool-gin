@@ -69,7 +69,7 @@ func Apply(debug bool) (context.Context, context.CancelFunc) {
 		chromedp.Flag("disable-software-rasterizer", true),
 		//chromedp.Flag("remote-debugging-port","9222"),
 		//chromedp.Flag("debuggerAddress","127.0.0.1:9222"),
-		chromedp.Flag("user-data-dir", "./cache"),
+		chromedp.Flag("user-data-dir", "./.cache"),
 		//chromedp.Flag("excludeSwitches", "enable-automation"),
 		// 设置用户数据目录
 		//chromedp.UserDataDir(dir),
@@ -183,6 +183,24 @@ func DoCrawler(url string, res *string) chromedp.Tasks {
 	}
 }
 
+// 执行js
+// https://github.com/chromedp/chromedp/issues/256
+func EvalJS(js string) chromedp.Tasks {
+	var res *runtime.RemoteObject
+	return chromedp.Tasks{
+		chromedp.EvaluateAsDevTools(js, &res),
+		//chromedp.Evaluate(js, &res),
+		chromedp.ActionFunc(func(ctx context.Context) error {
+			b, err := res.MarshalJSON()
+			if err != nil {
+				return err
+			}
+			fmt.Println("result: ", string(b))
+			return nil
+		}),
+	}
+}
+
 // see: https://intoli.com/blog/not-possible-to-block-chrome-headless/
 const script = `(function(w, n, wn) {
 	console.log(navigator.webdriver);
@@ -265,24 +283,8 @@ const script = `(function(w, n, wn) {
 
 })(window, navigator, window.navigator);`
 
-// 执行js
-func EvalJS(js string) chromedp.Tasks {
-	var res *runtime.RemoteObject
-	return chromedp.Tasks{
-		chromedp.EvaluateAsDevTools(js, &res),
-		chromedp.Evaluate(js, &res),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			b, err := res.MarshalJSON()
-			if err != nil {
-				return err
-			}
-			fmt.Println("result: ", string(b))
-			return nil
-		}),
-	}
-}
-
 // 反检测Headless
+// https://github.com/chromedp/chromedp/issues/396
 func AntiDetectionHeadless() chromedp.Tasks {
 	return chromedp.Tasks{
 		chromedp.ActionFunc(func(ctx context.Context) error {
