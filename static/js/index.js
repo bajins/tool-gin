@@ -203,12 +203,12 @@ window.netSarangDownload = function netSarangDownload() {
         dataType: "json",
         success: function (result) {
             layer.close(index);
+            let appName = $("#app").find("option:selected").text();
             if (result.code == 200) {
                 let html = `<div style='width:100%;height:100%;padding:5%;text-align:center;word-wrap:break-word;'>
-                                <p><b>${app} 下载地址：</b></p>
+                                <p><b>${appName} 下载地址：</b></p>
                                 <p><a href='${result.data.url}' target='_blank'>${result.data.url}</a></p>
                             </div>`;
-
                 let area_width = "40%";
                 if (window.innerWidth <= 419) {
                     area_width = "80%";
