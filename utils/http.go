@@ -102,6 +102,8 @@ func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCl
 }
 
 // http.NewRequest发送请求
+// Content-Type只会存在于POST、PATCH、PUT等请求有请求数据实体时指定数据类型和数据字符集编码，
+// 而GET、DELETE、HEAD、OPTIONS、TRACE等请求没有请求数据实体
 //
 // method:	请求方法：POST、GET、PUT、DELETE
 // urlText:		请求地址
@@ -113,12 +115,16 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 		panic(errors.New("url不能为空"))
 	}
 	method = strings.ToUpper(method)
-
+	if method != http.MethodGet && method != http.MethodDelete && method != http.MethodHead &&
+		method != http.MethodOptions && method != http.MethodTrace && method != http.MethodPost &&
+		method != http.MethodPatch && method != http.MethodPut {
+		return nil, errors.New("method不正确")
+	}
 	var req *http.Request
 	var err error
 	var body io.Reader
 	if params != nil {
-		if method == http.MethodPost {
+		if method == http.MethodPost || method == http.MethodPatch || method == http.MethodPut {
 			switch contentType {
 			case ContentTypeAXWFU: // application/x-www-form-urlencoded;
 				data := make(url.Values)
@@ -176,7 +182,8 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 			req.Header.Add(key, value)
 		}
 	}
-	if req.Header.Get("Content-Type") == "" && method == http.MethodPost {
+	if req.Header.Get("Content-Type") == "" && (method == http.MethodPost ||
+		method == http.MethodPatch || method == http.MethodPut) {
 		req.Header.Set("Content-Type", contentType)
 	}
 	if req.Header.Get("User-Agent") == "" {

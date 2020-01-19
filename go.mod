@@ -16,14 +16,11 @@ require (
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
-	github.com/mitchellh/gox v1.0.1 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
-	github.com/robfig/cron/v3 v3.0.0 // indirect
 	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876
 	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
 	golang.org/x/sys v0.0.0-20191228213918-04cbcbbfeed8 // indirect
-	gopkg.in/go-playground/validator.v8 v8.18.2 // indirect
 	gopkg.in/go-playground/validator.v9 v9.31.0 // indirect
 	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
