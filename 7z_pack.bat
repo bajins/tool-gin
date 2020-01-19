@@ -26,7 +26,7 @@ if not "%errorlevel%" == "0" (
 )
 
 :: 需要打包的文件或文件夹
-set files=pyutils static templates
+set files=pyutils static
 
 :: 顺序循环，设置最后一个为当前目录
 for /f "delims=" %%i in ("%cd%") do set projectName=%%~ni
@@ -37,11 +37,7 @@ set allList=%allList%openbsd_amd64,windows_386.exe,windows_amd64.exe,
 set allList=%allList%linux_386,linux_amd64,linux_arm,linux_mips,
 set allList=%allList%linux_mips64,linux_mips64le,linux_mipsle,linux_s390x
 
-:GETGOX
-set GOPROXY=https://goproxy.io
-go get github.com/mitchellh/gox
-
-:: 删除旧的压缩包文件
+:: 删除旧文件
 for %%i in (%allList%) do (
     set binaryFile=%projectName%_%%i
     :: 如果二进制文件存在则删除
@@ -59,14 +55,28 @@ for %%i in (%allList%) do (
         del !binaryFile!.tar.gz
     )
 )
-gox
-if not %errorlevel% == 0 (
-    goto :GETGOX
-)
 
 :: 使用7z压缩
 for %%i in (%allList%) do (
     set binaryFile=%projectName%_%%i
+    :: 编译生成二进制运行文件，分割设置GOOS和GOARCH
+    for /f "delims=_ tokens=1,2" %%j in ( "%%i" ) do (
+        echo.
+        echo.
+        echo ::::::::::::::::::::::::::::::::::::::::::
+        echo :::::: 编译!binaryFile! ::::::
+        echo ::::::::::::::::::::::::::::::::::::::::::
+        echo.
+        set Arch=%%k
+        if "%%j" == "windows" (
+            set Arch=!Arch:.exe=!
+        )
+        set GOOS=%%j
+        set GOARCH=!Arch!
+        echo 环境变量设置成功：!GOOS!------!GOARCH!
+        echo.
+        go build -ldflags=-w -i -o !binaryFile!
+    )
     :: !!为setlocal EnableDelayedExpansion取变量的值
     if not exist "!binaryFile!" (
         echo 打包失败，文件不存在
