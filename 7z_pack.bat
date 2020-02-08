@@ -27,6 +27,11 @@ if not "%errorlevel%" == "0" (
 
 :: 需要打包的文件或文件夹
 set files=pyutils static
+if "%files%" == "" (
+    echo 请设置需要打包的静态文件或文件夹
+    @cmd /k
+    goto :EXIT
+)
 
 :: 顺序循环，设置最后一个为当前目录
 for /f "delims=" %%i in ("%cd%") do set projectName=%%~ni
@@ -185,14 +190,12 @@ function request(method, url, dataType, data, contentType) {
             WScript.StdOut.WriteLine("：" + e.message);
         }
     }
-
     //将对象转化成为querystring形式
     var paramarray = [];
     for (key in data) {
         paramarray.push(key + "=" + data[key]);
     }
     var params = paramarray.join("&");
-
     switch (method) {
         case "POST":
             // 0异步、1同步
@@ -211,7 +214,6 @@ function request(method, url, dataType, data, contentType) {
             XMLHTTP.SetRequestHeader("CONTENT-TYPE", contentType);
             XMLHTTP.Send();
     }
-
     // 把字符串转换为小写
     dataType = dataType.toLowerCase();
     switch (dataType) {
@@ -248,21 +250,18 @@ function download(url, directory, filename) {
     if (directory == "" || directory == null || directory.length <= 0) {
         throw new Error("文件存储目录不能为空！");
     }
-
     var fso = new ActiveXObject("Scripting.FileSystemObject");
     // 如果目录不存在
     if (!fso.FolderExists(directory)) {
         // 创建目录
         var strFolderName = fso.CreateFolder(directory);
     }
-
     if (filename == "" || filename == null || filename.length <= 0) {
         filename = url.substring(url.lastIndexOf("/") + 1);
         // 去掉文件名的特殊符号（包括之前的）字符
         filename = filename.replace(/^.*(\&|\=|\?|\/)/ig, "");
     }
     var path = directory + "\\" + filename;
-
     var ADO = new ActiveXObject("ADODB.Stream");
     ADO.Mode = 3;
     ADO.Type = 1;
@@ -270,10 +269,9 @@ function download(url, directory, filename) {
     ADO.Write(request("GET", url, ""));
     ADO.SaveToFile(path, 2);
     ADO.Close();
-
     // 如果文件不存在
     if (!fso.FileExists(path)) {
-        return "";
+        throw new Error("文件下载失败");
     }
     return path;
 }
@@ -287,10 +285,10 @@ function get7z() {
     // 执行7z命令判断是否执行成功
     var out = shell.Run("cmd /c 7za", 0, true);
     var directory = "c:\\windows";
-    var url = "https://github.com/woytu/woytu.github.io/releases/download/v1.0/7za.exe";
+    var url = "https://git.io/JvYAg;
     // 如果执行失败说明7z不存在
     if (out == 1) {
-        download(url, directory);
+        download(url, directory, "7za.exe");
     }
     // 执行7z命令判断是否执行成功
     out = shell.Run("cmd /c 7za", 0, true);
