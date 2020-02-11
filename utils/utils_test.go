@@ -98,7 +98,7 @@ func TestSchedulerIntervalsTimer(t *testing.T) {
 }
 
 func TestSchedulerFixedTimer(t *testing.T) {
-	SchedulerFixedTimer(fmtp, time.Second*5)
+	SchedulerFixedTicker(fmtp, time.Second*5)
 }
 
 func fmtp() {

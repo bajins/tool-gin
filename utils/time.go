@@ -130,27 +130,29 @@ func GetDateParse(dates string) int64 {
 
 // 启动的时候执行一次，不固定某个时间，滚动间隔时间执行
 func SchedulerIntervalsTimer(f func(), duration time.Duration) {
+	// 定时任务
+	ticker := time.NewTicker(duration)
 	for {
-		go func() {
-			f()
-		}()
-		// 定时任务
-		ticker := time.NewTicker(duration)
+		go f()
 		<-ticker.C
 	}
 }
 
 // 启动的时候执行一次，固定在每天的某个时间滚动执行
-func SchedulerFixedTimer(f func(), duration time.Duration) {
+func SchedulerFixedTicker(f func(), duration time.Duration) {
+	now := time.Now()
+	// 计算下一个时间点
+	next := now.Add(duration)
+	next = time.Date(next.Year(), next.Month(), next.Day(), 0, 0, 0, 0, next.Location())
+	if next.Sub(now) <= 0 {
+		next = next.Add(time.Hour * 24)
+	}
+	timer := time.NewTimer(next.Sub(now))
 	for {
-		go func() {
-			f()
-		}()
-		now := time.Now()
-		// 计算下一个时间点
-		next := now.Add(duration)
-		next = time.Date(next.Year(), next.Month(), next.Day(), 0, 0, 0, 0, next.Location())
-		ticker := time.NewTimer(now.Sub(next))
-		<-ticker.C
+		go f()
+		<-timer.C
+		// Reset 使 ticker 重新开始计时，否则会导致通道堵塞，（本方法返回后再）等待时间段 d 过去后到期。
+		// 如果调用时t还在等待中会返回真；如果 t已经到期或者被停止了会返回假
+		timer.Reset(duration)
 	}
 }

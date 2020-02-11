@@ -83,7 +83,7 @@ func Port() (port string) {
 func init() {
 	// 设置项目为发布环境
 	//gin.SetMode(gin.ReleaseMode)
-	go utils.SchedulerIntervalsTimer(reptile.NetsarangDownloadAll, time.Hour*24)
+	go utils.SchedulerFixedTicker(reptile.NetsarangDownloadAll, time.Hour*24)
 }
 
 func main() {
