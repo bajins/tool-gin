@@ -1,0 +1,49 @@
+# .github/workflows/upload-to-release.yml
+
+name: Go Release
+
+on:
+  release:
+    #types: [published]
+    types: [created]
+    
+
+jobs:
+
+  release-matrix:
+    #if: github.repository == 'woytu/tool-gin'
+    name: Build with go on ubuntu-latest and upload
+    runs-on: ubuntu-latest
+
+    #strategy:
+      #matrix:
+        #goos: [linux, windows, darwin]
+        #goarch: ["386", amd64]
+
+    steps:
+
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.13.1'
+        id: go
+
+      - name: Check out source code
+        uses: actions/checkout@v2
+
+      - name: Get dependencies
+        run: |
+          go get -v -t -d ./...
+          if [ -f Gopkg.toml ]; then
+              curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+              dep ensure
+          fi
+      - name: Build and compression
+        run: |
+          bash go_pack.sh
+      - name: Upload to release
+        uses: JasonEtco/upload-to-release@master
+        with:
+          args: tool-gin* application/octet-stream
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
