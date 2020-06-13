@@ -42,8 +42,11 @@ jobs:
         run: |
           bash go_pack.sh
       - name: Upload to release
-        uses: JasonEtco/upload-to-release@master
-        with:
-          args: tool-gin* application/octet-stream
+        uses: xresloader/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+        with:
+          file: "*.tar.gz;*.zip"
+          tags: true
+          draft: false
+          update_latest_release: true
