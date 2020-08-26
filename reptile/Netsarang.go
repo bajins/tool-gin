@@ -246,7 +246,7 @@ func NetsarangSendMail(mail, product string) error {
 	if data == nil {
 		return errors.New("构造请求数据失败")
 	}
-	data["user-name"] = mail
+	data["user_name"] = mail
 	data["email"] = mail
 	data["productName"] = productName
 	log.Println("构造数据：", data)
