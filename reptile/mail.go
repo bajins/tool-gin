@@ -39,6 +39,10 @@ func LinShiYouXiangSuffix() (string, error) {
 		m := htmlquery.InnerText(row)
 		suffixArray = append(suffixArray, m)
 	}
+	suffixArrayLen := len(suffixArray)
+	if suffixArrayLen == 0 {
+		return "", nil
+	}
 	return suffixArray[utils.RandIntn(len(suffixArray)-1)], nil
 }
 

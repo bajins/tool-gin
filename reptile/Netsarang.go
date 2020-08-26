@@ -28,7 +28,7 @@ import (
 	"tool-gin/utils"
 )
 
-const NetsarangJsonUrl = "https://www.netsarang.com/json/download/process.html"
+const NetsarangJsonUrl = "https://update.netsarang.com/json/download/process.html"
 
 var (
 	NetsarangMap     map[string]NetsarangInfo
@@ -190,49 +190,68 @@ func NetsarangSendMail(mail, product string) error {
 		return errors.New("产品不能为空！")
 	}
 
-	productCode := ""
 	productName := ""
 	switch strings.ToLower(product) {
 	case "xshell":
-		productCode = "4203"
 		productName = "xshell-download"
 	case "xftp":
-		productCode = "4242"
 		productName = "xftp-download"
 	case "xlpd":
-		productCode = "4280"
 		productName = "xlpd-download"
 	case "xmanager":
-		productCode = "4162"
 		productName = "xmanager-download"
 	case "xshellplus":
-		productCode = "4132"
 		productName = "xshell-plus-download"
 	case "powersuite":
-		productCode = "4066"
 		productName = "xmanager-power-suite-download"
 	}
-	if productCode == "" || productName == "" {
+	if productName == "" {
 		return errors.New("产品不匹配")
 	}
-	data := map[string]string{
-		"_wpcf7":                "3016",
-		"_wpcf7_version":        "5.1.1",
-		"_wpcf7_locale":         "en_US",
-		"_wpcf7_unit_tag":       "wpcf7-f3016-p" + productCode + "-o2",
-		"_wpcf7_container_post": productCode,
-		"g-recaptcha-response":  "",
-		"md":                    "setDownload",
-		"language":              "3",
-		"downloadType":          "0",
-		"licenseType":           "0",
-		"action":                "/json/download/process.html",
-		"user-name":             mail,
-		"email":                 mail,
-		"company":               "",
-		"productName":           productName,
-	}
+	// 请求并获取发送邮件的表单
 	httpClient := utils.HttpClient{
+		Method:      http.MethodGet,
+		UrlText:     "https://www.netsarang.com/" + productName,
+		ContentType: utils.ContentTypeMFD,
+		Header:      nil,
+	}
+	body, err := httpClient.ReadBody()
+	if err != nil {
+		return err
+	}
+	// 解析HTML
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	// 找到最后一个form
+	form := doc.Find(`form[novalidate="novalidate"]`).Last()
+	if form.Length() < 1 {
+		return errors.New("没有找到提交表单")
+	}
+	// 查找请求数据并构造
+	inputs := form.Find(`input[type="hidden"],input[type="text"],input[type="email"]`)
+	if inputs.Length() < 1 {
+		return errors.New("没有找到请求数据")
+	}
+	// 使用make函数创建一个非nil的map，nil map不能赋值
+	data := make(map[string]string)
+	inputs.Each(func(i int, selection *goquery.Selection) {
+		name, nbl := selection.Attr("name")
+		value, vbl := selection.Attr("value")
+		if nbl && vbl {
+			data[name] = value
+		}
+	})
+	if data == nil {
+		return errors.New("构造请求数据失败")
+	}
+	data["user-name"] = mail
+	data["email"] = mail
+	data["productName"] = productName
+	log.Println("构造数据：", data)
+	// 请求发送邮件
+	httpClient = utils.HttpClient{
 		Method:      http.MethodPost,
 		UrlText:     NetsarangJsonUrl,
 		ContentType: utils.ContentTypeMFD,
