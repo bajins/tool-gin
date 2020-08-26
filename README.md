@@ -4,7 +4,7 @@
 
 **此分支使用了`chromedp`**
 
-**必须安装`Chrome`**
+~~**必须安装`Chrome`**~~
 
 > [CentOS安装Chrome](https://woytu.github.io/System/CentOS%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6.html#chrome)
 
@@ -12,9 +12,7 @@
 ## 功能
 
 - 生成激活key
-
 - 获取`xshell`、`xftp`、`xmanager`下载链接
-
 - 格式化NGNIX配置
 
 

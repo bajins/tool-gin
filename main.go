@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -81,6 +82,9 @@ func Port() (port string) {
 }
 
 func init() {
+	// 设置日志初始化参数
+	// log.Lshortfile 简要文件路径，log.Llongfile 完整文件路径
+	log.SetFlags(log.Lshortfile | log.LstdFlags)
 	// 设置项目为发布环境
 	//gin.SetMode(gin.ReleaseMode)
 	go utils.SchedulerFixedTicker(reptile.NetsarangDownloadAll, time.Hour*24)
