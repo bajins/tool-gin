@@ -6,13 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="本网页提供Xshell和Xftp激活秘钥">
     <meta name="keywords"
-        content="Xshell,Xftp,Xftp,Xshell Plus,Xmanager Power Suite各版本激活,Xshell,Xshell5下载,Xshell5官网下载,Xshell免费版,Xshell个人版,Xftp,Xftp免费版下载,Xshell免费版下载,NetSarang" />
+          content="Xshell,Xftp,Xftp,Xshell Plus,Xmanager Power Suite各版本激活,Xshell,Xshell5下载,Xshell5官网下载,Xshell免费版,Xshell个人版,Xftp,Xftp免费版下载,Xshell免费版下载,NetSarang"/>
     <title>Shell激活</title>
-    <link rel="shortcut icon" type="image/x-icon" href="../images/favicon.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="../images/favicon.ico"/>
     <!-- <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/css?family=Raleway:200" /> -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200" />
-    <link rel="stylesheet" href="../css/pure-min.css" />
-    <link rel="stylesheet" href="../css/common.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200"/>
+    <link rel="stylesheet" href="../css/pure-min.css"/>
+    <link rel="stylesheet" href="../css/common.css"/>
 
     <script type="text/javascript" src="../js/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="../js/layer/layer.js"></script>
@@ -74,109 +74,100 @@
 </head>
 
 <body>
-    <div class="main">
-        <div class="header">
-            <h1>Xshell / Xftp 激活下载</h1>
-            <h2>支持Xshell、Xftp、Xshell Plus、Xmanager Power Suite各版本激活下载</h2>
-        </div>
-        <div class="content">
-            <p>
-                <b>官方网址：</b>
-                <a target="_blank" href="https://www.netsarang.com/zh/all-downloads">
-                    https://www.netsarang.com/zh/all-downloads
-                </a>
-            </p>
-            <h2>注意：</h2>
-            <p>安装新版本之前请把老版本先卸载！！！</p>
-            <!-- <p>清除注册表信息：在cmd中执行<code>REG DELETE HKCU\Software\NetSarang /f</code></p> -->
+<div class="main">
+    <div class="header">
+        <h1>Xshell / Xftp 激活下载</h1>
+        <h2>支持Xshell、Xftp、Xshell Plus、Xmanager Power Suite各版本激活下载</h2>
+    </div>
+    <div class="content">
+        <p>
+            <b>官方网址：</b>
+            <a target="_blank" href="https://www.netsarang.com/zh/all-downloads">
+                https://www.netsarang.com/zh/all-downloads
+            </a>
+        </p>
+        <h2>注意：</h2>
+        <p>安装新版本之前请把老版本先卸载！！！</p>
+        <!-- <p>清除注册表信息：在cmd中执行<code>REG DELETE HKCU\Software\NetSarang /f</code></p> -->
 
-            <h3>屏蔽版本升级方式一：</h3>
-            <!-- <p>把以下地址加入<code>C:\Windows\System32\drivers\etc\hosts</code>进行屏蔽</p> -->
-            <div class="pre-div">
-                <pre>
+        <h3>屏蔽版本升级方式一：</h3>
+        <!-- <p>把以下地址加入<code>C:\Windows\System32\drivers\etc\hosts</code>进行屏蔽</p> -->
+        <div class="pre-div">
+            <pre>
 127.0.0.1 transact.netsarang.com
 127.0.0.1 update.netsarang.com
 127.0.0.1 www.netsarang.com
 127.0.0.1 www.netsarang.co.kr
 127.0.0.1 sales.netsarang.com
 </pre>
-            </div>
-            <h3>屏蔽版本升级方式二：</h3>
-            <p>把以下几行保存到文件<code>reg.ini</code>，然后在cmd中执行<code>REGINI reg.ini</code></p>
-            <div class="pre-div">
-                <pre>
+        </div>
+        <h3>屏蔽版本升级方式二：</h3>
+        <p>把以下几行保存到文件<code>reg.ini</code>，然后在cmd中执行<code>REGINI reg.ini</code></p>
+        <div class="pre-div">
+            <pre>
 HKEY_CURRENT_USER\Software\NetSarang\Xshell\6\LiveUpdate [19]
 HKEY_CURRENT_USER\Software\NetSarang\Xftp\6\LiveUpdate [19]
 HKEY_CURRENT_USER\Software\NetSarang\Xmanager\6\LiveUpdate [19]
 HKEY_CURRENT_USER\Software\NetSarang\Xlpd\6\LiveUpdate [19]
 </pre>
-            </div>
-            <form class="pure-form pure-form-stacked">
-                <fieldset>
-                    <label for="company"><b>公司:</b></label>
-                    <select class="pure-input-1" id="company" onchange="selectCompany()">
-                        <option value="netsarang" selected>NetSarang</option>
-                        <option value="mobatek">Mobatek</option>
-                        <option value="torchsoft">torchsoft</option>
-                    </select>
-                    <label for="app"><b>产品:</b></label>
-                    <select class="pure-input-1" id="app">
-                        <option value="powersuite">Xmanager Power Suite</option>
-                        <option value="xmanager">Xmanager</option>
-                        <option value="xshell">Xshell</option>
-                        <option value="xlpd">Xlpd</option>
-                        <option value="xftp">Xftp</option>
-                        <option value="xshellplus" selected>Xshell Plus</option>
-                    </select>
-                    <label for="version"><b id="version-label">版本:</b></label>
-                    <select class="pure-input-1" id="version">
-                        <option value="6" selected>6</option>
-                    </select>
-                    <a class="pure-button pure-button-primary pure-input-1 pure-input-rounded submit-button"
-                        onclick="getKey()">
-                        点击获取秘钥
-                    </a>
-                    <br />
-                    <br />
-                    <a id="netSarangDownloadBtn"
-                        class="button-secondary pure-button pure-input-rounded pure-u-1 a-active"
-                        onclick="netSarangDownload()">点击获取下载链接</a>
-                </fieldset>
-            </form>
         </div>
-        <div class="pure-g footer">
-            <div class="pure-u-1-2 u-sm-1-2 legal-license">
-                This site is built with using <a href="https://www.purecss.cn" target="_black">Pure</a> v1.0.1
-            </div>
-            <div class="pure-u-1-2 u-sm-1-2 legal-copyright">
-                本网页所有代码版权归 <a href="https://woytu.github.io" target="_black">woytu</a> 所有。
-                <span class="version"></span>
-            </div>
+        <form class="pure-form pure-form-stacked">
+            <fieldset>
+                <label for="company"><b>公司:</b></label>
+                <select class="pure-input-1" id="company" onchange="selectCompany()">
+                    <option value="netsarang" selected>NetSarang</option>
+                    <option value="mobatek">Mobatek</option>
+                    <option value="torchsoft">torchsoft</option>
+                </select>
+                <label for="app"><b>产品:</b></label>
+                <select class="pure-input-1" id="app">
+                    <option value="powersuite">Xmanager Power Suite</option>
+                    <option value="xmanager">Xmanager</option>
+                    <option value="xshell">Xshell</option>
+                    <option value="xlpd">Xlpd</option>
+                    <option value="xftp">Xftp</option>
+                    <option value="xshellplus" selected>Xshell Plus</option>
+                </select>
+                <label for="version"><b id="version-label">版本:</b></label>
+                <select class="pure-input-1" id="version">
+                    <option value="6" selected>6</option>
+                </select>
+                <a class="pure-button pure-button-primary pure-input-1 pure-input-rounded submit-button"
+                   onclick="getKey()">
+                    点击获取秘钥
+                </a>
+                <br/>
+                <br/>
+                <a id="netSarangDownloadBtn"
+                   class="button-secondary pure-button pure-input-rounded pure-u-1 a-active"
+                   onclick="netSarangDownload()">点击获取下载链接</a>
+            </fieldset>
+        </form>
+    </div>
+    <div class="pure-g footer">
+        <div class="pure-u-1-2 u-sm-1-2 legal-license">
+            This site is built with using <a href="https://www.purecss.cn" target="_black">Pure</a> v1.0.1
+        </div>
+        <div class="pure-u-1-2 u-sm-1-2 legal-copyright">
+            本网页所有代码版权归 <a href="https://woytu.github.io" target="_black">woytu</a> 所有。
+            <span class="version"></span>
         </div>
     </div>
+</div>
 
-    <!-- 统计代码 -->
-    <script>
-        const _hmt = [];
-        (function () {
-            const hm = document.createElement("script");
-            hm.src = "https://hm.baidu.com/hm.js?7ac7cdb0162597bd65c904b23b4fe505";
-            const s = document.getElementsByTagName("script")[0];
-            s.parentNode.insertBefore(hm, s);
-        })();
-    </script>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-130580298-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
+<!-- 统计代码 -->
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-130580298-1"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
 
-        function gtag() {
-            dataLayer.push(arguments);
-        }
+    function gtag() {
+        dataLayer.push(arguments);
+    }
 
-        gtag('js', new Date());
-        gtag('config', 'UA-130580298-1');
-    </script>
+    gtag('js', new Date());
+    gtag('config', 'UA-130580298-1');
+</script>
 </body>
 
 </html>
