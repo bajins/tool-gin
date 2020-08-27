@@ -11,12 +11,11 @@
  */
 
 $(function () {
+    let area_width = "500px";
     if (IEVersion() != -1) {
-        var html = '<div style="font-weight:bold;text-align: center;padding: 20px;font-size: 200%">不支持IE，请使用其他浏览器</div>';
-        let area_width = "500px";
-        if (window.innerWidth <= 600) {
-            area_width = "80%";
-        }
+        const html = `<div style="font-weight:bold;text-align: center;padding: 20px;font-size: 200%">
+                        不支持IE，请使用其他浏览器
+                    </div>`;
         //自定页
         layer.open({
             // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。
@@ -28,6 +27,14 @@ $(function () {
             scrollbar: false,
             closeBtn: 0
         });
+    }
+    /**
+     * 监听窗口变化
+     */
+    window.onresize = function () {
+        if (window.innerWidth <= 600) {
+            area_width = "80%";
+        }
     }
 })
 

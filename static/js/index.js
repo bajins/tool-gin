@@ -14,10 +14,14 @@ import http from "./utils/http.js";
 import array from "./utils/array.js";
 import string from "./utils/string.js";
 
-// ECMAScript6指定元素添加事件
-// document.querySelector("#id").addEventListener("click", getKey);
+let bsAreaWidth = "";
+let keyAreaWidth = "";
+let nsdAreaWidth = "";
 
 
+/**
+ * 监听窗口变化
+ */
 $(function () {
     $.ajax({
         url: "/SystemInfo",
@@ -27,7 +31,30 @@ $(function () {
             $(".version").text(result.data.Version);
         }
     })
+    window.onload = function () {
+        area();
+    }
+    window.onresize = function () {
+        area();
+    }
 })
+
+function area() {
+    if (window.innerWidth <= 419) {
+        bsAreaWidth = "95%";
+        keyAreaWidth = "80%";
+        nsdAreaWidth = "80%";
+    } else if (window.innerWidth <= 768) {
+        bsAreaWidth = "80%";
+        keyAreaWidth = "50%";
+        nsdAreaWidth = "50%";
+    } else {
+        bsAreaWidth = "60%";
+        keyAreaWidth = "40%";
+        nsdAreaWidth = "50%";
+    }
+}
+
 
 // ==================================  获取Netsarang激活key  ===================================
 
@@ -135,27 +162,21 @@ window.getKey = function getKey() {
                 let appName = $("#app").find("option:selected").text();
                 log.info(JSON.stringify(result));
                 if (result.code == 200) {
-                    let html = `<div style='width:100%;height:100%;padding:5%;'><p><b>产品：</b>${appName}</p><hr />`;
+                    let html = `<div style='padding:5%;'><p><b>产品：</b>${appName}</p><hr />`;
                     if (company == "torchsoft") {
                         html = `${html}<p><b>许可证数量：</b>${version}</p><hr />`;
                     } else {
                         html = `${html}<p><b>版本：</b>${version}</p><hr />`;
                     }
                     html = `${html}<p><b>key：</b>
-                    <pre style='background: black;color:#66FF66;padding:5%;'>${result.data.key}</pre>
-                    </p><hr /></div>`;
+                                <pre style='background: black;color:#66FF66;padding:5%;'>${result.data.key}</pre>
+                            </p><hr /></div>`;
 
-                    let area_width = "30%";
-                    if (window.innerWidth <= 419) {
-                        area_width = "80%";
-                    } else if (window.innerWidth <= 768) {
-                        area_width = "50%";
-                    }
                     //自定页
                     layer.open({
                         // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。
                         // 当你宽高都要定义时，你可以area: ['500px', '300px']
-                        area: [area_width],
+                        //area: [keyAreaWidth],
                         type: 1,
                         icon: 1,
                         // 样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
@@ -205,21 +226,12 @@ window.netSarangDownload = function netSarangDownload() {
             layer.close(index);
             let appName = $("#app").find("option:selected").text();
             if (result.code == 200) {
-                let html = `<div style='width:100%;height:100%;padding:5%;text-align:center;word-wrap:break-word;'>
+                let html = `<div style='padding:5%;text-align:center;word-wrap:break-word;'>
                                 <p><b>${appName} 下载地址：</b></p>
                                 <p><a href='${result.data.url}' target='_blank'>${result.data.url}</a></p>
                             </div>`;
-                let area_width = "40%";
-                if (window.innerWidth <= 419) {
-                    area_width = "80%";
-                } else if (window.innerWidth <= 768) {
-                    area_width = "50%";
-                }
                 //自定页
                 layer.open({
-                    // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。
-                    // 当你宽高都要定义时，你可以area: ['500px', '300px']
-                    area: [area_width],
                     type: 1,
                     icon: 1,
                     // 样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
@@ -284,9 +296,7 @@ window.beautifyCode = function beautifyCode() {
     }
     if ("online" == beautification) {
         onlineBeautifier(code);
-
     } else if ("offline" == beautification) {
-
         let indentation = $(".pure-button-active").attr("id");
         if (util.isEmpty(indentation)) {
             layer.msg("请选择缩进方式！");
@@ -347,11 +357,9 @@ function activateBeautifierListener(contents, indentCode, indentation) {
         layer.msg("请输入配置代码！");
         return;
     }
-
     modifyOptions({INDENTATION});
     // 将文件拆分为行，清理空格
     let cleanLines = clean_lines(contents);
-
 
     // 加入左括号（如果用户希望如此）默认为true
     let trailingBlankLines;
@@ -362,7 +370,6 @@ function activateBeautifierListener(contents, indentCode, indentation) {
     }
     // 加入左括号并且不要换行
     else if ("indentWay2" == indentation) {
-
         trailingBlankLines = false;
         modifyOptions({trailingBlankLines});
         cleanLines = join_opening_bracket(cleanLines);
@@ -389,20 +396,10 @@ function activateBeautifierListener(contents, indentCode, indentation) {
  * @return
  */
 function beautifySuccess(contents) {
-    let html = `<pre style='background: black;color:#66FF66;width: 100%;height: 100%;margin: 0px;padding: 10px;'>
-                    ${contents}
-                </pre>`;
-    let area_width = "60%";
-    if (window.innerWidth <= 419) {
-        area_width = "95%";
-    } else if (window.innerWidth <= 768) {
-        area_width = "80%";
-    }
+    let html = "<pre style='max-height: calc(93vh);background: black;color: #66FF66;margin: 0px;padding:" +
+        " 10px;'>" + contents + "</pre>";
     //自定页
     layer.open({
-        // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。
-        // 当你宽高都要定义时，你可以area: ['500px', '300px']
-        area: [area_width, "80%"],
         type: 1,
         icon: 1,
         skin: 'layui-layer-lan', //样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
