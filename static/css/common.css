@@ -17,7 +17,7 @@
 @media screen and (min-width: 58em) {
     /* 弹窗的样式 */
     div[times][type="page"] {
-        width: 60vw !important;
+        width: 70vw !important;
         max-height: 95vh !important;
     }
 }
@@ -25,7 +25,7 @@
 @media screen and (min-width: 75em) {
     /* 弹窗的样式 */
     div[times][type="page"] {
-        width: 50vw !important;
+        width: 60vw !important;
         max-height: 95vh !important;
     }
 }
@@ -39,7 +39,7 @@
 
     /* 弹窗的样式 */
     div[times][type="page"] {
-        width: 93vw !important;
+        width: 90vw !important;
         max-height: 95vh !important;
     }
 }

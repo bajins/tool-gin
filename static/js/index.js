@@ -14,9 +14,6 @@ import http from "./utils/http.js";
 import array from "./utils/array.js";
 import string from "./utils/string.js";
 
-let bsAreaWidth = "";
-let keyAreaWidth = "";
-let nsdAreaWidth = "";
 
 
 /**
@@ -32,28 +29,12 @@ $(function () {
         }
     })
     window.onload = function () {
-        area();
+
     }
     window.onresize = function () {
-        area();
+
     }
 })
-
-function area() {
-    if (window.innerWidth <= 419) {
-        bsAreaWidth = "95%";
-        keyAreaWidth = "80%";
-        nsdAreaWidth = "80%";
-    } else if (window.innerWidth <= 768) {
-        bsAreaWidth = "80%";
-        keyAreaWidth = "50%";
-        nsdAreaWidth = "50%";
-    } else {
-        bsAreaWidth = "60%";
-        keyAreaWidth = "40%";
-        nsdAreaWidth = "50%";
-    }
-}
 
 
 // ==================================  获取Netsarang激活key  ===================================
@@ -176,7 +157,7 @@ window.getKey = function getKey() {
                     layer.open({
                         // 在默认状态下，layer是宽高都自适应的，但当你只想定义宽度时，你可以area: '500px'，高度仍然是自适应的。
                         // 当你宽高都要定义时，你可以area: ['500px', '300px']
-                        //area: [keyAreaWidth],
+                        //area: [keyAreaWidthWidth],
                         type: 1,
                         icon: 1,
                         // 样式类名,目前layer内置的skin有：layui-layer-lan、layui-layer-molv
