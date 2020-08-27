@@ -321,7 +321,7 @@ const isEmpty = (obj) => {
 
 /**
  * export default 服从 ES6 的规范,补充：default 其实是别名
- * module.exports 服从CommonJS 规范
+ * module.exports 服从 CommonJS 规范 https://javascript.ruanyifeng.com/nodejs/module.html
  * 一般导出一个属性或者对象用 export default
  * 一般导出模块或者说文件使用 module.exports
  *
