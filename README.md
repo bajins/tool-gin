@@ -6,7 +6,7 @@
 
 ~~**必须安装`Chrome`**~~
 
-> [CentOS安装Chrome](https://woytu.github.io/System/CentOS%E5%AE%89%E8%A3%85%E8%BD%AF%E4%BB%B6.html#chrome)
+> [CentOS安装Chrome](https://www.bajins.com/System/CentOS.html#chrome)
 
 
 ## 功能
