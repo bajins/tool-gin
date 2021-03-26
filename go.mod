@@ -1,6 +1,6 @@
 module tool-gin
 
-go 1.15
+go 1.16
 
 require (
 	github.com/PuerkitoBio/goquery v1.5.1

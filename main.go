@@ -106,6 +106,7 @@ func main() {
 	router.POST("/getXshellUrl", GetNetSarangDownloadUrl)
 	router.Any("/nginx-format", NginxFormatIndex)
 	router.POST("/nginx-format-py", NginxFormatPython)
+	router.Any("/navicat", GetNavicatDownloadUrl)
 
 	// 注册一个目录，gin 会把该目录当成一个静态的资源目录
 	// 该目录下的资源看可以按照路径访问

@@ -192,6 +192,7 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 	url, err := reptile.GetInfoUrl(app)
 	if err != nil {
 		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		return
 	}
 	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": url})
 }
@@ -233,4 +234,32 @@ func NginxFormatPython(c *gin.Context) {
 	res["contents"] = out
 	SuccessJSON(c, "请求成功", res)
 
+}
+
+// 获取navicat下载地址
+func GetNavicatDownloadUrl(c *gin.Context) {
+	location, isExist := c.GetQuery("location")
+	if location == "" || !isExist {
+		location = c.DefaultPostForm("location", "1")
+	}
+	product, isExist := c.GetQuery("product")
+	if product == "" || !isExist {
+		product = c.DefaultPostForm("product", "navicat_premium_cs_x64.exe")
+	}
+
+	// POST 获取的所有参数内容的类型都是 string
+	params := map[string]string{
+		"product":    product,
+		"location":   location,
+		"support":    "",
+		"linux_dist": "",
+	}
+	url := "https://www.navicat.com.cn/includes/Navicat/direct_download.php"
+	result, err := utils.HttpReadBodyJsonMap(http.MethodPost, url, utils.ContentTypeAXWFU, params, nil)
+
+	if result == nil || err != nil {
+		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		return
+	}
+	SuccessJSON(c, "获取下载地址成功", map[string]string{"url": result["download_link"].(string)})
 }
