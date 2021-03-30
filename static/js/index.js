@@ -15,7 +15,6 @@ import array from "./utils/array.js";
 import string from "./utils/string.js";
 
 
-
 /**
  * 监听窗口变化
  */
@@ -45,21 +44,19 @@ $(function () {
 window.selectCompany = function selectCompany() {
     let company = $("#company").val();
     if (company == "netsarang") {
-        $("#app").empty();
         //为Select追加一个Option(下拉项)
-        $("#app").append('<option value="Xmanager">Xmanager Power Suite</option>');
-        $("#app").append('<option value="Xshell">Xshell</option>');
-        $("#app").append('<option value="Xlpd">Xlpd</option>');
-        $("#app").append('<option value="Xftp">Xftp</option>');
-        $("#app").append('<option value="Xshell Plus" selected>Xshell Plus</option>');
-
+        $("#app").empty().append(`<option value="Xmanager">Xmanager Power Suite</option>
+<option value="Xshell">Xshell</option>
+<option value="Xlpd">Xlpd</option>
+<option value="Xftp">Xftp</option>
+<option value="Xshell Plus" selected>Xshell Plus</option>`);
         $("#version-label").text("版本:");
-        $("#version").empty();
-        $("#version").append('<option value="6" selected>6</option>');
-        $("#version").append('<option value="5">5</option>');
-        $("#version").append('<option value="4">4</option>');
-        $("#version").append('<option value="3">3</option>');
-        $("#version").append('<option value="2">2</option>');
+        $("#version").empty().append(`<option value="7" selected>7</option>
+<option value="6">6</option>
+<option value="5">5</option>
+<option value="4">4</option>
+<option value="3">3</option>
+<option value="2">2</option>`);
         $("#netSarangDownloadBtn").show();
     } else if (company == "mobatek") {
         $("#app").empty();
@@ -67,40 +64,42 @@ window.selectCompany = function selectCompany() {
         $("#app").append('<option value="MobaXterm" selected>MobaXterm</option>');
 
         $("#version-label").text("版本:");
-        $("#version").empty();
-        $("#version").append('<option value="11.1" selected>11.1</option>');
-        $("#version").append('<option value="11.0">11.0</option>');
-        $("#version").append('<option value="10.9">10.9</option>');
-        $("#version").append('<option value="10.8">10.8</option>');
-        $("#version").append('<option value="10.7">10.7</option>');
-        $("#version").append('<option value="10.6">10.6</option>');
-        $("#version").append('<option value="10.5">10.5</option>');
-        $("#version").append('<option value="10.4">10.4</option>');
-        $("#version").append('<option value="10.2">10.2</option>');
-        $("#version").append('<option value="10.1">10.1</option>');
-        $("#version").append('<option value="10.0">10.0</option>');
-        $("#version").append('<option value="9.4">9.4</option>');
-        $("#version").append('<option value="9.3">9.3</option>');
-        $("#version").append('<option value="9.2">9.2</option>');
-        $("#version").append('<option value="9.1">9.1</option>');
-        $("#version").append('<option value="9.0">9.0</option>');
+        $("#version").empty().append(`<option value="21.0" selected>21.0</option>
+<option value="20.0">20.0</option>
+<option value="12.4">12.4</option>
+<option value="12">12.0</option>
+<option value="11.1">11.1</option>
+<option value="11.0">11.0</option>
+<option value="10.9">10.9</option>
+<option value="10.8">10.8</option>
+<option value="10.7">10.7</option>
+<option value="10.6">10.6</option>
+<option value="10.5">10.5</option>
+<option value="10.4">10.4</option>
+<option value="10.2">10.2</option>
+<option value="10.1">10.1</option>
+<option value="10.0">10.0</option>
+<option value="9.4">9.4</option>
+<option value="9.3">9.3</option>
+<option value="9.2">9.2</option>
+<option value="9.1">9.1</option>
+<option value="9.0">9.0</option>`);
+
         $("#netSarangDownloadBtn").hide();
     } else if (company == "torchsoft") {
-        $("#app").empty();
         //为Select追加一个Option(下拉项)
-        $("#app").append('<option value="Registry Workshop" selected>Registry Workshop</option>');
+        $("#app").empty().append('<option value="Registry Workshop" selected>Registry Workshop</option>');
 
         $("#version-label").text("许可证数量:");
-        $("#version").empty();
-        $("#version").append('<option value="10">10</option>');
-        $("#version").append('<option value="9">9</option>');
-        $("#version").append('<option value="8">8</option>');
-        $("#version").append('<option value="7">7</option>');
-        $("#version").append('<option value="6">6</option>');
-        $("#version").append('<option value="4">4</option>');
-        $("#version").append('<option value="3">3</option>');
-        $("#version").append('<option value="2">2</option>');
-        $("#version").append('<option value="1" selected>1</option>');
+        $("#version").empty().append(`<option value="10">10</option>
+<option value="9">9</option>
+<option value="8">8</option>
+<option value="7">7</option>
+<option value="6">6</option>
+<option value="4">4</option>
+<option value="3">3</option>
+<option value="2">2</option>
+<option value="1" selected>1</option>`);
         $("#netSarangDownloadBtn").hide();
     }
 }

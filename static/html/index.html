@@ -11,9 +11,9 @@
     <link rel="shortcut icon" type="image/x-icon" href="/static/images/favicon.ico"/>
     <!-- <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/css?family=Raleway:200" /> -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200"/>
-    <!-- <link rel="stylesheet" href="/static/css/pure-min.css"/> -->
-    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/pure-min.css" integrity="sha384-4ZPLezkTZTsojWFhpdFembdzFudphhoOzIunR1wH6g1WQDzCAiPvDyitaK67mp0+" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://unpkg.com/purecss@2.0.3/build/grids-responsive-min.css" />
+    <!-- https://unpkg.com/browse/purecss@2.0.5/build/ -->
+    <link rel="stylesheet" href="/static/css/pure-min.css"/>
+    <link rel="stylesheet" href="/static/css/grids-responsive-min.css"/>
     <link rel="stylesheet" href="/static/css/common.css"/>
 
     <script type="text/javascript" src="/static/js/jquery-3.4.1.min.js"></script>
@@ -83,13 +83,18 @@
     </div>
     <div class="content">
         <p>
+            <a target="_blank" href="/nginx-format" style="margin-right: 20px">nginx-format</a>
+            <a target="_blank" href="/navicat">navicat</a>
+        </p>
+        <br/>
+        <p>
             <b>官方网址：</b>
             <a target="_blank" href="https://www.netsarang.com/zh/all-downloads">
                 https://www.netsarang.com/zh/all-downloads
             </a>
         </p>
         <h2>注意：</h2>
-        <p>安装新版本之前请把老版本先卸载！！！</p>
+        <strong>安装新版本之前请把老版本先卸载！！！</strong>
         <!-- <p>清除注册表信息：在cmd中执行<code>REG DELETE HKCU\Software\NetSarang /f</code></p> -->
 
         <h3>屏蔽版本升级方式一：</h3>
@@ -132,7 +137,7 @@ HKEY_CURRENT_USER\Software\NetSarang\Xlpd\6\LiveUpdate [19]
                 </select>
                 <label for="version"><b id="version-label">版本:</b></label>
                 <select class="pure-input-1" id="version">
-                    <option value="6" selected>6</option>
+                    <option value="latest" selected>latest</option>
                 </select>
                 <a class="pure-button pure-button-primary pure-input-1 pure-input-rounded submit-button"
                    onclick="getKey()">
