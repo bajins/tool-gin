@@ -1,8 +1,11 @@
 package main
 
+// 导包
 import (
+	"embed"
 	"flag"
 	"github.com/gin-gonic/gin"
+	"io/fs"
 	"log"
 	"net/http"
 	"strings"
@@ -11,10 +14,15 @@ import (
 	"tool-gin/utils"
 )
 
+// 常量
 const (
 	// 可自定义盐值
 	TokenSalt = "default_salt"
 )
+
+// 内嵌资源目录指令
+//go:embed static/* pyutils
+var local embed.FS
 
 // 认证拦截中间件
 func Authorize(c *gin.Context) {
@@ -81,6 +89,7 @@ func Port() (port string) {
 	//return ":" + os.Args[1]
 }
 
+// 初始化函数
 func init() {
 	// 设置日志初始化参数
 	// log.Lshortfile 简要文件路径，log.Llongfile 完整文件路径
@@ -90,6 +99,7 @@ func init() {
 	go utils.SchedulerFixedTicker(reptile.NetsarangDownloadAll, time.Hour*24)
 }
 
+// 运行主体函数
 func main() {
 
 	router := gin.Default()
@@ -111,7 +121,10 @@ func main() {
 	// 注册一个目录，gin 会把该目录当成一个静态的资源目录
 	// 该目录下的资源看可以按照路径访问
 	// 如 static 目录下有图片路径 index/logo.png , 你可以通过 GET /static/index/logo.png 访问到
-	router.Static("/static", "./static")
+	//router.Static("/static", "./static")
+	// embed.FS转换为http.FileSystem https://github.com/gin-contrib/static/issues/19
+	fads, _ := fs.Sub(local, "static")
+	router.StaticFS("/static/*filepath", http.FS(fads))
 	//router.LoadHTMLFiles("./static/html/index.html")
 	// 注册一个路径，gin 加载模板的时候会从该目录查找
 	// 参数是一个匹配字符，如 templates/*/* 的意思是 模板目录有两层
