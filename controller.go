@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"log"
@@ -66,13 +65,7 @@ func GetKey(c *gin.Context) {
 		ErrorJSON(c, 300, "请选择版本")
 		return
 	}
-	// 获取当前绝对路径
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
-		return
-	}
+	dir := TempDirPath + string(filepath.Separator)
 	if company == "netsarang" {
 		switch strings.ToLower(app) {
 		case "xshell":
@@ -88,8 +81,8 @@ func GetKey(c *gin.Context) {
 		case "powersuite":
 			app = "Xmanager"
 		}
-		out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "xshell_key.py"), app, version)
-		ExecuteScriptError(c, err)
+		out, err := utils.ExecutePython(dir+"xshell_key.py", app, version)
+		ExecuteScriptError(err)
 		if err != nil {
 			log.Println(err)
 			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
@@ -103,22 +96,22 @@ func GetKey(c *gin.Context) {
 			SystemErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 			return
 		}
-		_, err = utils.ExecutePython(filepath.Join(dir, "pyutils", "moba_xterm_Keygen.py"), curr, version)
-		ExecuteScriptError(c, err)
+		_, err = utils.ExecutePython(dir+"moba_xterm_Keygen.py", curr, version)
+		ExecuteScriptError(err)
 		if err != nil {
 			SystemErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 			return
 		}
 		c.Header("Content-Type", "application/octet-stream")
-		c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
+		c.Header("Content-Disposition", "attachment; filename=\"Custom.mxtpro\"")
 		//c.Writer.Header().Set("Content-Type", "application/octet-stream")
 		//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
 
 		c.FileAttachment(filepath.Join(curr, "Custom.mxtpro"), "Custom.mxtpro")
 
 	} else if company == "torchsoft" {
-		out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "reg_workshop_keygen.py"), version)
-		ExecuteScriptError(c, err)
+		out, err := utils.ExecutePython(dir+"reg_workshop_keygen.py", version)
+		ExecuteScriptError(err)
 		if err != nil {
 			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 			return
@@ -129,16 +122,10 @@ func GetKey(c *gin.Context) {
 }
 
 // 脚本执行错误处理
-func ExecuteScriptError(c *gin.Context, err error) {
+func ExecuteScriptError(err error) {
 	// 如果命令执行错误
 	if err != nil && strings.Contains(err.Error(), "exit status 1") {
-		// 获取当前绝对路径
-		dir, err := os.Getwd()
-		if err != nil {
-			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
-			return
-		}
-		p := filepath.Join(dir, "pyutils", "requirements.txt")
+		p := TempDirPath + string(filepath.Separator) + "requirements.txt"
 		utils.Execute("pip", "install", "-r", p)
 	}
 }
@@ -148,7 +135,7 @@ func Upload(c *gin.Context) {
 	// 拿到上传的文件的信息
 	file, header, err := c.Request.FormFile("upload")
 	filename := header.Filename
-	fmt.Println(header.Filename)
+	log.Println(header.Filename)
 	out, err := os.Create("./tmp/" + filename + ".png")
 	if err != nil {
 		log.Println(err)
@@ -162,7 +149,7 @@ func Upload(c *gin.Context) {
 }
 
 // 文件下载请求
-func Dowload(c *gin.Context) {
+func Download(c *gin.Context) {
 	response, err := http.Get(c.Request.Host + "/static/public/favicon.ico")
 	if err != nil || response.StatusCode != http.StatusOK {
 		c.Status(http.StatusServiceUnavailable)
@@ -217,14 +204,7 @@ func NginxFormatPython(c *gin.Context) {
 		ErrorJSON(c, 300, "请输入配置代码")
 		return
 	}
-	// 获取当前绝对路径
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Println(err)
-		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
-		return
-	}
-	out, err := utils.ExecutePython(filepath.Join(dir, "pyutils", "nginxfmt.py"), code)
+	out, err := utils.ExecutePython(TempDirPath+string(filepath.Separator)+"nginxfmt.py", code)
 	if err != nil {
 		log.Println(err)
 		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")

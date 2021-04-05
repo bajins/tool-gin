@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -203,7 +202,7 @@ func HttpReadBody(method, urlText, contentType string, params, header map[string
 	if err != nil {
 		return nil, err
 	}
-	result, err := ioutil.ReadAll(res.Body)
+	result, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -216,7 +215,7 @@ func HttpReadBodyString(method, urlText, contentType string, params, header map[
 	if err != nil {
 		return "", err
 	}
-	result, err := ioutil.ReadAll(res.Body)
+	result, err := io.ReadAll(res.Body)
 	if err != nil {
 		return "", err
 	}

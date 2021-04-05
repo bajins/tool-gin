@@ -20,8 +20,8 @@ import (
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"time"
 	"tool-gin/utils"
@@ -32,13 +32,13 @@ import (
 // context.Context部分不能抽离，否则会报 context canceled
 func Apply(debug bool) (context.Context, context.CancelFunc) {
 	// 创建缓存目录
-	//dir, err := ioutil.TempDir("", "chromedp-example")
+	//dir, err := os.MkdirTemp("", "chromedp-example")
 	//if err != nil {
 	//	panic(err)
 	//}
 	//defer os.RemoveAll(dir)
 
-	//dir, err := ioutil.TempDir("", "chromedp-example")
+	//dir, err := os.MkdirTemp("", "chromedp-example")
 	//if err != nil {
 	//	panic(err)
 	//}
@@ -149,12 +149,12 @@ func Screenshot() chromedp.Tasks {
 	task := chromedp.Tasks{
 		chromedp.CaptureScreenshot(&buf),
 		chromedp.ActionFunc(func(context.Context) error {
-			return ioutil.WriteFile("testimonials.png", buf, 0644)
+			return os.WriteFile("testimonials.png", buf, 0644)
 		}),
 	}
-	//if err := ioutil.WriteFile("fullScreenshot.png", buf, 0644); err != nil {
-	//	log.Fatal("生成图片错误：", err)
-	//}
+	/*if err := os.WriteFile("fullScreenshot.png", buf, 0644); err != nil {
+		log.Fatal("生成图片错误：", err)
+	}*/
 	return task
 }
 
