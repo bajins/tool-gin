@@ -11,7 +11,7 @@ on:
 jobs:
 
   release-matrix:
-    #if: github.repository == 'woytu/tool-gin'
+    if: github.repository == 'woytu/tool-gin'
     name: Build with go on ubuntu-latest and upload
     runs-on: ubuntu-latest
 
@@ -46,7 +46,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
         with:
-          file: "build/too-gin*;*.tar.gz;*.zip"
+          file: "build/tool-gin*;*.tar.gz;*.zip"
           tags: true
           draft: false
           update_latest_release: true
