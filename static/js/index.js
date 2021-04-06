@@ -116,13 +116,13 @@ window.getKey = function getKey() {
     let version = $("#version").val();
     if (app == "MobaXterm") {
         // 构造隐藏的form表单
-        // let form = $(`<form action="/getKey" method="post" target="_blank">
-        //     <input type="text" name="company" value="${company}"/>
-        //     <input type="text" name="app" value="${app}"/>
-        //     <input type="text" name="version" value="${version}"/>
-        //     </form>`);
-        // $(document.body).append(form);
-        // form.submit().remove();
+        /*let form = $(`<form action="/getKey" method="post" target="_blank">
+            <input type="text" name="company" value="${company}"/>
+            <input type="text" name="app" value="${app}"/>
+            <input type="text" name="version" value="${version}"/>
+            </form>`);
+        $(document.body).append(form);
+        form.submit().remove();*/
 
         http.download("/getKey", {company: company, app: app, version: version}).then(r => {
             log.info(r);
@@ -189,7 +189,7 @@ window.netSarangDownload = function netSarangDownload() {
     }
     let app = $("#app").val();
     let version = $("#version").val();
-    if (version != "6") {
+    if (version != "latest") {
         //提示层
         layer.msg("只提供NetSarang的产品最新版本下载", {icon: 5});
         return;
