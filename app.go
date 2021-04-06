@@ -19,7 +19,7 @@ const (
 )
 
 // 内嵌资源目录指令
-//go:embed static pyutils
+//go:embed static pyutils/*[^.go]
 var local embed.FS
 
 func init() {
