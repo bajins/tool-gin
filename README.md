@@ -16,6 +16,7 @@
 ## 功能
 
 - 生成激活key
+  - [mobaXtermGenerater.js](https://github.com/inused/pages/blob/master/file/tool/js/mobaXtermGenerater.js)
 - 获取`xshell`、`xftp`、`xmanager`下载链接
 - 格式化NGNIX配置
 - 获取Navicat下载地址
