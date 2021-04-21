@@ -14,7 +14,6 @@ package reptile
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"errors"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/page"
@@ -136,17 +135,11 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 		return "", errors.New("邮件ID不存在")
 	}
 	// 获取最新一封邮件
-	content, err := LinShiYouXiangGetMail(prefix, mailId)
+	msg, err := LinShiYouXiangGetMail(prefix, mailId)
 	if err != nil {
 		return "", err
 	}
-	// 分割取内容
-	text := strings.Split(content, "AmazonSES")
-	if len(text) < 2 {
-		return "", errors.New("邮件内容不正确")
-	}
-	// 解密，邮件协议Content-Transfer-Encoding指定了base64
-	htmlText, err := base64.StdEncoding.DecodeString(text[1])
+	htmlText, err := DecodeMail(msg)
 	if err != nil {
 		return "", err
 	}

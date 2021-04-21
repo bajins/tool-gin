@@ -1,3 +1,5 @@
+package reptile
+
 /**
  *
  * @Description:
@@ -9,21 +11,39 @@
  * @Package:
  * @Software: GoLand
  */
-package reptile
 
 import (
+	"encoding/base64"
+	"errors"
 	"github.com/antchfx/htmlquery"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"math"
 	"net/http"
+	"net/mail"
+	"strings"
 	"time"
 	"tool-gin/utils"
 )
 
+// DecodeMail 解码邮件内容 https://github.com/alexcesaro/quotedprintable
+func DecodeMail(msg *mail.Message) ([]byte, error) {
+	body := utils.BytesToStringByBuffer(msg.Body)
+	if len(body) == 0 || body == "" {
+		return nil, errors.New("邮件内容不正确")
+	}
+	encoding := msg.Header.Get("Content-Transfer-Encoding")
+	// 解码，邮件协议Content-Transfer-Encoding指定了编码方式
+	if encoding == "base64" {
+		body, err := base64.StdEncoding.DecodeString(body)
+		return body, err
+	}
+	return nil, errors.New("解码方式错误：" + encoding)
+}
+
 const LinShiYouXiang = "https://www.linshiyouxiang.net"
 
-// 获取邮箱号后缀
+// LinShiYouXiangSuffix 获取邮箱号后缀
 func LinShiYouXiangSuffix() (string, error) {
 	var suffixArray []string
 	response, err := utils.HttpRequest(http.MethodGet, LinShiYouXiang, "", nil, nil)
@@ -46,7 +66,7 @@ func LinShiYouXiangSuffix() (string, error) {
 	return suffixArray[utils.RandIntn(len(suffixArray)-1)], nil
 }
 
-// 获取邮箱号
+// LinShiYouXiangApply 获取邮箱号
 // prefix： 邮箱前缀
 func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/keepalive"
@@ -58,14 +78,14 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 	return utils.HttpReadBodyJsonMap(http.MethodGet, url, "", param, nil)
 }
 
-// 获取邮件列表
+// LinShiYouXiangList 获取邮件列表
 // prefix： 邮箱前缀
 func LinShiYouXiangList(prefix string) ([]map[string]interface{}, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix
 	return utils.HttpReadBodyJsonArray(http.MethodGet, url, "", nil, nil)
 }
 
-// 获取邮件内容
+// LinShiYouXiangGetMail 获取邮件内容
 // prefix： 邮箱前缀
 // id：		邮件编号
 //
@@ -76,12 +96,18 @@ func LinShiYouXiangList(prefix string) ([]map[string]interface{}, error) {
 // htmlText, err := base64.StdEncoding.DecodeString(text[1])
 // 解析HTML
 // doc, err := goquery.NewDocumentFromReader(bytes.NewReader(htmlText))
-func LinShiYouXiangGetMail(prefix, id string) (string, error) {
+func LinShiYouXiangGetMail(prefix, id string) (*mail.Message, error) {
 	url := LinShiYouXiang + "/mailbox/" + prefix + "/" + id + "/source"
-	return utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
+	content, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	r := strings.NewReader(content)
+	m, err := mail.ReadMessage(r) // 解析邮件
+	return m, err
 }
 
-// 删除邮件
+// LinShiYouXiangDelete 删除邮件
 // prefix： 邮箱前缀
 // id:  	邮件编号
 func LinShiYouXiangDelete(prefix, id string) (map[string]interface{}, error) {

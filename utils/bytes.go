@@ -1,7 +1,9 @@
 package utils
 
 import (
+	"bytes"
 	"errors"
+	"io"
 	"strconv"
 	"strings"
 	"unicode"
@@ -25,7 +27,7 @@ const (
 
 var invalidByteQuantityError = errors.New("字节数量必须是一个正整数，其单位为测量单位 M, MB, MiB, G, GiB, or GB")
 
-// ByteSize返回10M，12.5K等形式的人类可读字节串。以下单位可供选择：
+// ByteSize 返回10M，12.5K等形式的人类可读字节串。以下单位可供选择：
 //	E: Exabyte
 //	P: Petabyte
 //	T: Terabyte
@@ -68,7 +70,7 @@ func ByteSize(bytes uint64) string {
 	return result + unit
 }
 
-// ToMegabytes将ByteSize格式化的字符串解析为兆字节。
+// ToMegabytes 将ByteSize格式化的字符串解析为兆字节。
 func ToMegabytes(s string) (uint64, error) {
 	bytes, err := ToBytes(s)
 	if err != nil {
@@ -78,7 +80,7 @@ func ToMegabytes(s string) (uint64, error) {
 	return bytes / MEGABYTE, nil
 }
 
-// ToBytes将ByteSize格式化的字符串解析为字节。注意二进制前缀和SI前缀单位均表示基数为2的单位
+// ToBytes 将ByteSize格式化的字符串解析为字节。注意二进制前缀和SI前缀单位均表示基数为2的单位
 // KB = K = KiB	= 1024
 // MB = M = MiB = 1024 * K
 // GB = G = GiB = 1024 * M
@@ -119,4 +121,25 @@ func ToBytes(s string) (uint64, error) {
 	default:
 		return 0, invalidByteQuantityError
 	}
+}
+
+// BytesToStringByBuffer io.ReadCloser类型转换为string
+func BytesToStringByBuffer(body io.Reader) string {
+	buf := new(bytes.Buffer) // io.ReadCloser类型转换为string
+	buf.ReadFrom(body)
+	//b := *(*string)(unsafe.Pointer(&body))
+	/*_, err := io.Copy(buf, body)
+	b :=buf.String()*/
+	return buf.String()
+}
+
+// BytesToStringByIo io.ReadCloser类型转换为string
+func BytesToStringByIo(body io.Reader) (string, error) {
+	bd, err := io.ReadAll(body)
+	if err != nil {
+		return "", err
+	}
+	b := string(bd)
+	//b :=fmt.Sprintf("%s", body)
+	return b, err
 }
