@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-// 内嵌bytes.Buffer，支持连写
+// Buffer 内嵌bytes.Buffer，支持连写
 type Buffer struct {
 	*bytes.Buffer
 }
@@ -28,9 +28,15 @@ func (b *Buffer) Append(i interface{}) *Buffer {
 	case string:
 		b.append(val)
 	case []byte:
-		b.Write(val)
+		_, err := b.Write(val)
+		if err != nil {
+			return nil
+		}
 	case rune:
-		b.WriteRune(val)
+		_, err := b.WriteRune(val)
+		if err != nil {
+			return nil
+		}
 	}
 
 	return b
@@ -43,6 +49,9 @@ func (b *Buffer) append(s string) *Buffer {
 		}
 	}()
 
-	b.WriteString(s)
+	_, err := b.WriteString(s)
+	if err != nil {
+		return nil
+	}
 	return b
 }

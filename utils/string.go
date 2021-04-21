@@ -15,7 +15,7 @@ import (
 	"unicode"
 )
 
-// 将任何类型转换为字符串
+// ToString 将任何类型转换为字符串
 func ToString(value interface{}) (s string) {
 	switch v := value.(type) {
 	case bool:
@@ -56,7 +56,7 @@ func ToString(value interface{}) (s string) {
 	return s
 }
 
-// 驼峰转下划线
+// CamelCase 驼峰转下划线
 // 1. 普通使用
 // log.Println(CamelCase("AAAA"))
 // log.Println(CamelCase("IconUrl"))
@@ -115,7 +115,7 @@ func isASCIIDigit(c byte) bool {
 	return '0' <= c && c <= '9'
 }
 
-// 转换为snake
+// ToSnakeCase 转换为snake
 func ToSnakeCase(str string) string {
 	var matchAllCap = regexp.MustCompile("([a-z0-9])([A-Z])")
 	snake := matchAllCap.ReplaceAllString(str, "${1}_${2}")
@@ -123,7 +123,7 @@ func ToSnakeCase(str string) string {
 	return strings.ToLower(snake)
 }
 
-// 转换为驼峰
+// ToCamelCase 转换为驼峰
 func ToCamelCase(str string) string {
 	temp := strings.Split(str, "-")
 	for i, r := range temp {
@@ -134,7 +134,7 @@ func ToCamelCase(str string) string {
 	return strings.Join(temp, "")
 }
 
-// 转换为驼峰，使用正则
+// ToCamelCaseRegexp 转换为驼峰，使用正则
 func ToCamelCaseRegexp(str string) string {
 	var reg = regexp.MustCompile("(_|-)([a-zA-Z]+)")
 	camel := reg.ReplaceAllString(str, " $2")
@@ -143,7 +143,7 @@ func ToCamelCaseRegexp(str string) string {
 	return camel
 }
 
-// 驼峰式写法转为下划线写法
+// UnderscoreName 驼峰式写法转为下划线写法
 func UnderscoreName(name string) string {
 	buffer := NewBuffer()
 	for i, r := range name {
@@ -159,14 +159,14 @@ func UnderscoreName(name string) string {
 	return buffer.String()
 }
 
-// 下划线写法转为驼峰写法
+// CamelName 下划线写法转为驼峰写法
 func CamelName(str string) string {
 	str = strings.ReplaceAll(str, "_", " ")
 	str = strings.Title(str)
 	return strings.ReplaceAll(str, " ", "")
 }
 
-// 搜索字符串数组中是否存在指定字符串
+// SearchString 搜索字符串数组中是否存在指定字符串
 // 返回-1为未搜寻到
 func SearchString(slice []string, s string) int {
 	for i, v := range slice {
@@ -177,7 +177,7 @@ func SearchString(slice []string, s string) int {
 	return -1
 }
 
-// 蛇形字符串
+// SnakeString 蛇形字符串
 // snake string, XxYy to xx_yy , XxYY to xx_yy
 func SnakeString(s string) string {
 	data := make([]byte, 0, len(s)*2)
@@ -196,7 +196,7 @@ func SnakeString(s string) string {
 	return strings.ToLower(string(data[:]))
 }
 
-// 驼峰字符串转换
+// CamelString 驼峰字符串转换
 func CamelString(s string) string {
 	data := make([]byte, 0, len(s))
 	j := false
@@ -221,7 +221,7 @@ func CamelString(s string) string {
 	return string(data[:])
 }
 
-// 判断字符串是否为空
+// IsStringEmpty 判断字符串是否为空
 func IsStringEmpty(str string) bool {
 	if str == "" || len(str) == 0 || strings.TrimSpace(str) == "" {
 		return true
@@ -233,7 +233,7 @@ func IsStringEmpty(str string) bool {
 	return false
 }
 
-// 字符串截取
+// Substring 字符串截取
 func Substring(str string, pos, length int) string {
 	runes := []rune(str)
 	l := pos + length
@@ -243,7 +243,7 @@ func Substring(str string, pos, length int) string {
 	return string(runes[pos:l])
 }
 
-// 首字母转大写
+// ToUpper 首字母转大写
 func ToUpper(str string) string {
 	for i, v := range str {
 		return string(unicode.ToUpper(v)) + str[i+1:]
@@ -251,7 +251,7 @@ func ToUpper(str string) string {
 	return ""
 }
 
-// 首字母转小写
+// ToLower 首字母转小写
 func ToLower(str string) string {
 	for i, v := range str {
 		return string(unicode.ToLower(v)) + str[i+1:]
@@ -259,7 +259,7 @@ func ToLower(str string) string {
 	return ""
 }
 
-// Unicode转汉字
+// UnicodeToChinese Unicode转汉字
 func UnicodeToChinese(str string) string {
 	buf := bytes.NewBuffer(nil)
 
@@ -290,7 +290,7 @@ func UnicodeToChinese(str string) string {
 	return buf.String()
 }
 
-// 生成指定长度大写字母随机字符串
+// RandString 生成指定长度大写字母随机字符串
 func RandString(len int) string {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	bytes := make([]byte, len)
@@ -301,7 +301,7 @@ func RandString(len int) string {
 	return string(bytes)
 }
 
-// 生成指定长度数字、小写字母、大写字母随机字符串
+// RandomString 生成指定长度数字、小写字母、大写字母随机字符串
 // 随机字符串生成库 https://github.com/lifei6671/gorand
 func RandomString(len int) (s string, err error) {
 	var container string
@@ -318,7 +318,7 @@ func RandomString(len int) (s string, err error) {
 	return container, nil
 }
 
-// 生成指定长度数字、小写字母随机字符串
+// RandomLowercaseAlphanumeric 生成指定长度数字、小写字母随机字符串
 func RandomLowercaseAlphanumeric(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyz"
 	bytes := []byte(str)
@@ -330,7 +330,7 @@ func RandomLowercaseAlphanumeric(length int) string {
 	return string(result)
 }
 
-// 指定长度随机数字符串
+// RandomNumber 指定长度随机数字符串
 func RandomNumber(len int) (s int, err error) {
 	numbers := []byte{1, 2, 3, 4, 5, 7, 8, 9}
 	var container string
@@ -351,7 +351,7 @@ func RandomNumber(len int) (s int, err error) {
 	return number, nil
 }
 
-// 指定长度随机自定义数字符串
+// RandomCustomizeNumber 指定长度随机自定义数字符串
 func RandomCustomizeNumber(len int, numbers []byte) (s int, err error) {
 	var container string
 	length := bytes.NewReader(numbers).Len()
@@ -371,7 +371,7 @@ func RandomCustomizeNumber(len int, numbers []byte) (s int, err error) {
 	return number, nil
 }
 
-// 解析json为map
+// JsonToMap 解析json为map
 func JsonToMap(data string) (map[string]interface{}, error) {
 	str := []byte(data)
 	stu := make(map[string]interface{})
@@ -383,7 +383,7 @@ func JsonToMap(data string) (map[string]interface{}, error) {
 	return stu, nil
 }
 
-// 反序列化为map
+// ParseJsonReader 反序列化为map
 func ParseJsonReader(input io.Reader) (map[string]interface{}, error) {
 	var m map[string]interface{}
 	decoder := json.NewDecoder(input)

@@ -22,7 +22,7 @@ const (
 	UserAgent        = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
 )
 
-// 下载文件
+// DownFile 下载文件
 func DownFile(url, upPreDir, upDir string, proxyURL string) (string, error) {
 	fileType := url[strings.LastIndex(url, "."):]
 	if fileType != ".jpeg" && fileType != ".png" && fileType != ".jpg" {
@@ -52,7 +52,7 @@ func DownFile(url, upPreDir, upDir string, proxyURL string) (string, error) {
 	return uploadDir + newName, err
 }
 
-// HttpGet获取指定的资源。如果是，则返回ErrNotFound
+// HttpProxyGet HttpGet获取指定的资源。如果是，则返回ErrNotFound
 // 服务器以状态404响应。
 func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCloser, error) {
 	req, err := http.NewRequest("GET", rawurl, nil)
@@ -100,7 +100,7 @@ func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCl
 	return nil, err
 }
 
-// http.NewRequest发送请求
+// HttpRequest http.NewRequest发送请求
 // Content-Type只会存在于POST、PATCH、PUT等请求有请求数据实体时指定数据类型和数据字符集编码，
 // 而GET、DELETE、HEAD、OPTIONS、TRACE等请求没有请求数据实体
 //
@@ -196,7 +196,7 @@ func HttpRequest(method, urlText, contentType string, params, header map[string]
 	return client.Do(req)
 }
 
-// 请求并读取返回内容
+// HttpReadBody 请求并读取返回内容
 func HttpReadBody(method, urlText, contentType string, params, header map[string]string) ([]byte, error) {
 	res, err := HttpRequest(method, urlText, contentType, params, header)
 	if err != nil {
@@ -209,7 +209,7 @@ func HttpReadBody(method, urlText, contentType string, params, header map[string
 	return result, nil
 }
 
-// 请求并读取返回内容为字符串
+// HttpReadBodyString 请求并读取返回内容为字符串
 func HttpReadBodyString(method, urlText, contentType string, params, header map[string]string) (string, error) {
 	res, err := HttpRequest(method, urlText, contentType, params, header)
 	if err != nil {
@@ -222,7 +222,7 @@ func HttpReadBodyString(method, urlText, contentType string, params, header map[
 	return string(result), nil
 }
 
-// 请求并读取返回内容为json对象
+// HttpReadBodyJsonObject 请求并读取返回内容为json对象
 func HttpReadBodyJsonObject(method, urlText, contentType string, params, header map[string]string, obj *interface{}) error {
 	res, err := HttpReadBody(method, urlText, contentType, params, header)
 	if err != nil {
@@ -235,7 +235,7 @@ func HttpReadBodyJsonObject(method, urlText, contentType string, params, header 
 	return nil
 }
 
-// 请求并读取返回内容为json map
+// HttpReadBodyJsonMap 请求并读取返回内容为json map
 func HttpReadBodyJsonMap(method, urlText, contentType string, params, header map[string]string) (map[string]interface{}, error) {
 	res, err := HttpReadBody(method, urlText, contentType, params, header)
 	if err != nil {
@@ -249,7 +249,7 @@ func HttpReadBodyJsonMap(method, urlText, contentType string, params, header map
 	return data, nil
 }
 
-// 请求并读取返回内容为json数组
+// HttpReadBodyJsonArray 请求并读取返回内容为json数组
 func HttpReadBodyJsonArray(method, urlText, contentType string, params, header map[string]string) ([]map[string]interface{}, error) {
 	res, err := HttpReadBody(method, urlText, contentType, params, header)
 	if err != nil {
