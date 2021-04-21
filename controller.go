@@ -13,7 +13,7 @@ import (
 	"tool-gin/utils"
 )
 
-// 首页
+// WebRoot 首页
 func WebRoot(c *gin.Context) {
 	// 301重定向
 	//c.Redirect(http.StatusMovedPermanently, "/static")
@@ -22,7 +22,7 @@ func WebRoot(c *gin.Context) {
 	c.HTML(http.StatusOK, "index.html", gin.H{})
 }
 
-// 获取系统信息
+// SystemInfo 获取系统信息
 func SystemInfo(c *gin.Context) {
 	data := make(map[string]interface{}, 0)
 	data["Version"] = utils.ToUpper(runtime.Version())
@@ -44,7 +44,7 @@ func SystemInfo(c *gin.Context) {
 	SuccessJSON(c, "获取系统信息成功", data)
 }
 
-// 获取key
+// GetKey 获取key
 func GetKey(c *gin.Context) {
 	// GET 获取参数内容，没有则返回空字符串
 	//company := c.Query("company")
@@ -121,7 +121,7 @@ func GetKey(c *gin.Context) {
 
 }
 
-// 脚本执行错误处理
+// ExecuteScriptError 脚本执行错误处理
 func ExecuteScriptError(err error) {
 	// 如果命令执行错误
 	if err != nil && strings.Contains(err.Error(), "exit status 1") {
@@ -130,7 +130,7 @@ func ExecuteScriptError(err error) {
 	}
 }
 
-// 文件上传请求
+// Upload 文件上传请求
 func Upload(c *gin.Context) {
 	// 拿到上传的文件的信息
 	file, header, err := c.Request.FormFile("upload")
@@ -148,7 +148,7 @@ func Upload(c *gin.Context) {
 	}
 }
 
-// 文件下载请求
+// Download 文件下载请求
 func Download(c *gin.Context) {
 	response, err := http.Get(c.Request.Host + "/static/public/favicon.ico")
 	if err != nil || response.StatusCode != http.StatusOK {
@@ -163,7 +163,7 @@ func Download(c *gin.Context) {
 	c.DataFromReader(http.StatusOK, response.ContentLength, response.Header.Get("Content-Type"), response.Body, extraHeaders)
 }
 
-// 获取NetSarang下载url
+// GetNetSarangDownloadUrl 获取NetSarang下载url
 func GetNetSarangDownloadUrl(c *gin.Context) {
 	// POST 获取的所有参数内容的类型都是 string
 	app := c.PostForm("app")
@@ -184,7 +184,7 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": url})
 }
 
-// NGINX格式化代码页面
+// NginxFormatIndex NGINX格式化代码页面
 func NginxFormatIndex(c *gin.Context) {
 	// 301重定向
 	//c.Redirect(http.StatusMovedPermanently, "/static")
@@ -193,7 +193,7 @@ func NginxFormatIndex(c *gin.Context) {
 	c.HTML(http.StatusOK, "nginx-format.html", gin.H{})
 }
 
-// 格式化nginx配置代码
+// NginxFormatPython 格式化nginx配置代码
 func NginxFormatPython(c *gin.Context) {
 	// GET 获取参数内容，没有则返回空字符串
 	//code := c.Query("code")
@@ -216,7 +216,7 @@ func NginxFormatPython(c *gin.Context) {
 
 }
 
-// 获取navicat下载地址
+// GetNavicatDownloadUrl 获取navicat下载地址
 func GetNavicatDownloadUrl(c *gin.Context) {
 	location, isExist := c.GetQuery("location")
 	if location == "" || !isExist {

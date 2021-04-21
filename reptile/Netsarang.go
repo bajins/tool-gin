@@ -1,3 +1,5 @@
+package reptile
+
 /**
  *
  * @Description:
@@ -9,7 +11,6 @@
  * @Package:
  * @Software: GoLand
  */
-package reptile
 
 import (
 	"bytes"
@@ -44,7 +45,7 @@ func init() {
 	NetsarangMap = make(map[string]NetsarangInfo)
 }
 
-// 获取单个产品信息
+// GetInfoUrl 获取单个产品信息
 func GetInfoUrl(product string) (string, error) {
 	info := NetsarangMap[product]
 	if NetsarangMap == nil || info.Url == "" || len(info.Url) == 0 || !utils.DateEqual(time.Now(), info.Time) {
@@ -61,7 +62,7 @@ func GetInfoUrl(product string) (string, error) {
 	return info.Url, nil
 }
 
-// 获取可用mail
+// NetsarangGetMail 获取可用mail
 func NetsarangGetMail() (string, error) {
 	prefix := utils.RandomLowercaseAlphanumeric(9)
 	suffix, err := LinShiYouXiangSuffix()
@@ -77,7 +78,7 @@ func NetsarangGetMail() (string, error) {
 	return mail, nil
 }
 
-// 获取所有链接信息
+// NetsarangDownloadAll 获取所有链接信息
 func NetsarangDownloadAll() {
 	mail, err := NetsarangGetMail()
 	if err != nil {
@@ -93,7 +94,7 @@ func NetsarangDownloadAll() {
 	log.Println(NetsarangMap)
 }
 
-// 获取链接信息
+// NetsarangGetInfo 获取链接信息
 func NetsarangGetInfo(mail, product string) (string, error) {
 	if mail == "" || len(mail) == 0 {
 		return "", errors.New("mail不能为空")
@@ -174,7 +175,7 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	return ur, nil
 }
 
-// 发送邮件
+// NetsarangSendMail 发送邮件
 func NetsarangSendMail(mail, product string) error {
 	if mail == "" || len(mail) == 0 {
 		return errors.New("邮箱号不能为空！")
@@ -261,7 +262,7 @@ func NetsarangSendMail(mail, product string) error {
 	return nil
 }
 
-// 获取下载产品信息
+// NetsarangGetUrl 获取下载产品信息
 func NetsarangGetUrl(lang, token string) (map[string]interface{}, error) {
 	if lang == "" || len(lang) == 0 {
 		return nil, errors.New("lang不能为空")
@@ -292,7 +293,7 @@ func NetsarangGetUrl(lang, token string) (map[string]interface{}, error) {
 	return utils.HttpReadBodyJsonMap(http.MethodPost, NetsarangJsonUrl, utils.ContentTypeMFD, params, nil)
 }
 
-// 通过ChromeDP获取所有链接信息
+// NetsarangDownloadAllDP 通过ChromeDP获取所有链接信息
 func NetsarangDownloadAllDP() {
 	ctx, cancel, mail, err := NetsarangGetMailDP()
 	defer cancel()
@@ -319,7 +320,7 @@ func NetsarangDownloadAllDP() {
 	log.Println(NetsarangMap)
 }
 
-// 获取单个产品信息
+// GetInfoUrlDP 获取单个产品信息
 func GetInfoUrlDP(product string) (string, error) {
 	info := NetsarangMap[product]
 	if NetsarangMap == nil || info.Url == "" || len(info.Url) == 0 || !utils.DateEqual(time.Now(), info.Time) {
@@ -337,7 +338,7 @@ func GetInfoUrlDP(product string) (string, error) {
 	return info.Url, nil
 }
 
-// 通过ChromeDP获取可用mail
+// NetsarangGetMailDP 通过ChromeDP获取可用mail
 func NetsarangGetMailDP() (context.Context, context.CancelFunc, string, error) {
 	var mail string
 	ctx, cancel := Apply(false)
@@ -349,7 +350,7 @@ func NetsarangGetMailDP() (context.Context, context.CancelFunc, string, error) {
 	return ctx, cancel, mail, nil
 }
 
-// 通过ChromeDP通过ChromeDP获取链接信息
+// NetsarangGetInfoDP 通过ChromeDP通过ChromeDP获取链接信息
 func NetsarangGetInfoDP(ctx context.Context, mail, product string) (string, error) {
 	if ctx == nil {
 		return "", errors.New("context不能为空")
@@ -402,7 +403,7 @@ func NetsarangGetInfoDP(ctx context.Context, mail, product string) (string, erro
 	return url, nil
 }
 
-// 通过ChromeDP发送邮件
+// NetsarangSendMailDP 通过ChromeDP发送邮件
 func NetsarangSendMailDP(ctx context.Context, mail, product string) error {
 	if ctx == nil {
 		return errors.New("context不能为空")
@@ -464,7 +465,7 @@ func NetsarangSendMailDP(ctx context.Context, mail, product string) error {
 	return nil
 }
 
-// 通过ChromeDP获取下载产品信息
+// NetsarangGetUrlDP 通过ChromeDP获取下载产品信息
 func NetsarangGetUrlDP(ctx context.Context, url string) (string, error) {
 	if ctx == nil {
 		return "", errors.New("context不能为空")
