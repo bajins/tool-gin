@@ -14,11 +14,14 @@ package reptile
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"github.com/antchfx/htmlquery"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
+	"log"
 	"math"
+	"math/big"
 	"net/http"
 	"net/mail"
 	"strings"
@@ -39,6 +42,65 @@ func DecodeMail(msg *mail.Message) ([]byte, error) {
 		return body, err
 	}
 	return nil, errors.New("解码方式错误：" + encoding)
+}
+
+const secmail1 = "https://www.1secmail.com/api/v1/"
+
+var mailUser []string
+
+// GetSecmailUser 获取一次性邮箱
+func GetSecmailUser() ([]string, error) {
+	if len(mailUser) == 0 || mailUser == nil {
+		// 获取邮箱
+		res, err := utils.HttpReadBodyString(http.MethodGet, secmail1+"?action=genRandomMailbox&count=1", "",
+			nil, nil)
+		if err != nil {
+			return nil, err
+		}
+		var data []interface{}
+		err = json.Unmarshal([]byte(res), &data)
+		mailUser = strings.Split(data[0].(string), "@") // 获取用户名和域名
+	}
+	return mailUser, nil
+}
+
+// GetSecmailList 获取邮件列表
+func GetSecmailList() ([]map[string]interface{}, error) {
+	mailListUrl := secmail1 + "?action=getMessages&login=" + mailUser[0] + "&domain=" + mailUser[1]
+	// 获取邮件列表
+	return utils.HttpReadBodyJsonMapArray(http.MethodGet, mailListUrl, "", nil, nil)
+}
+
+// GetSecmailLatestId 获取最新一封邮件ID
+func GetSecmailLatestId(mailList []map[string]interface{}) (string, error) {
+	if mailList == nil || len(mailList) == 0 {
+		// 获取邮件列表
+		mailList, err := GetSecmailList()
+		if err != nil {
+			return "", err
+		}
+		log.Println(mailList, err, mailUser)
+	}
+	if len(mailList) == 0 {
+		return "", errors.New("没有邮件")
+	}
+	// 科学计数法转换string数字
+	newNum := big.NewRat(1, 1)
+	newNum.SetFloat64(mailList[0]["id"].(float64))
+	id := newNum.FloatString(0)
+	return id, nil
+}
+
+// GetSecmailMessage 获取邮件内容
+func GetSecmailMessage(id string) (map[string]interface{}, error) {
+	mailMessageUrl := secmail1 + "?action=readMessage&login=" + mailUser[0] + "&domain=" + mailUser[1] + "&id=" + id
+	// 获取邮件内容
+	message, err := utils.HttpReadBodyJsonMap(http.MethodGet, mailMessageUrl, "", nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	//log.Println(message, err, mailUser)
+	return message, err
 }
 
 const LinShiYouXiang = "https://www.linshiyouxiang.net"
@@ -75,14 +137,15 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 		"mailbox":      prefix,
 		"_ts":          utils.ToString(math.Round(float64(time.Now().Unix() / 1000))),
 	}
-	return utils.HttpReadBodyJsonMap(http.MethodGet, url, "", param, nil)
+	r, e := utils.HttpReadBodyJsonMap(http.MethodGet, url, "", param, nil)
+	return r, e
 }
 
 // LinShiYouXiangList 获取邮件列表
 // prefix： 邮箱前缀
 func LinShiYouXiangList(prefix string) ([]map[string]interface{}, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix
-	return utils.HttpReadBodyJsonArray(http.MethodGet, url, "", nil, nil)
+	return utils.HttpReadBodyJsonMapArray(http.MethodGet, url, "", nil, nil)
 }
 
 // LinShiYouXiangGetMail 获取邮件内容
