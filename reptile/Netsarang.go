@@ -156,22 +156,22 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	}
 	htmlText := msg["body"].(string)
 	// 解析HTML
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(htmlText)))
-	if err != nil {
-		return "", err
-	}
-	href := doc.Find(`a[target="_blank"]`).Text()
+	/*doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(htmlText)))
+	  if err != nil {
+	      return "", err
+	  }
+	  href := doc.Find(`a[target="_blank"]`).Text()*/
 
-	exp, err := regexp.Compile(`https://www\.netsarang\.com/(.*)/downloading/\?token=(.*)`)
+	exp, err := regexp.Compile(`https://www\.netsarang\.com/(.*)/downloading/\?token=(.*)<br><br>This link`)
 	if err != nil {
 		return "", err
 	}
-	hrf := exp.FindAllStringSubmatch(href, -1)
-	log.Println("token链接：", hrf[0][0])
-	if hrf == nil || len(hrf) == 0 {
+	href := exp.FindAllStringSubmatch(htmlText, -1)
+	if href == nil || len(href) == 0 {
 		return "", errors.New("获取token链接为空")
 	}
-	url, err := NetsarangGetUrl(hrf[0][1], hrf[0][2])
+	log.Println("token链接：", href)
+	url, err := NetsarangGetUrl(href[0][1], href[0][2])
 	if err != nil {
 		return "", err
 	}
