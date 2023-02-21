@@ -18,7 +18,7 @@
  * @param str 指定字符串范围，默认小写字母、数字、下划线
  * @returns {string}
  */
-const randomString=(len, str)=> {
+const randomString = (len, str) => {
     str = str || 'abcdefghijklmnopqrstuvwxyz0123456789_';
     let randomString = '';
     for (let i = 0; i < len; i++) {
@@ -35,7 +35,7 @@ const randomString=(len, str)=> {
  * @param oldStr
  * @returns {string}
  */
-const replaceBlank=(oldStr)=> {
+const replaceBlank = (oldStr) => {
     if (typeof oldStr != "string") {
         throw new Error("正则表达式去除空行，传入的不为字符串！");
     }

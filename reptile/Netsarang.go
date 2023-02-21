@@ -17,7 +17,6 @@ import (
 	"context"
 	"errors"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
 	"log"
@@ -65,14 +64,14 @@ func GetInfoUrl(product string) (string, error) {
 // NetsarangGetMail 获取可用mail
 func NetsarangGetMail() (string, error) {
 	/*prefix := utils.RandomLowercaseAlphanumeric(9)
-	suffix, err := LinShiYouXiangSuffix()
-	if err != nil {
-		return "", err
-	}
-	_, err = LinShiYouXiangApply(prefix)
-	if err != nil {
-		return "", err
-	}*/
+	  suffix, err := LinShiYouXiangSuffix()
+	  if err != nil {
+	  	return "", err
+	  }
+	  _, err = LinShiYouXiangApply(prefix)
+	  if err != nil {
+	  	return "", err
+	  }*/
 	mailUser, err := GetSecmailUser()
 	if err != nil {
 		return "", err
@@ -147,10 +146,10 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	}
 	// 获取最新一封邮件
 	/*msg, err := LinShiYouXiangGetMail(prefix, mailId)
-	if err != nil {
-		return "", err
-	}
-	htmlText, err := DecodeMail(msg)*/
+	  if err != nil {
+	  	return "", err
+	  }
+	  htmlText, err := DecodeMail(msg)*/
 	msg, err := GetSecmailMessage(mailId)
 	if err != nil {
 		return "", err
@@ -456,7 +455,7 @@ func NetsarangSendMailDP(ctx context.Context, mail, product string) error {
 	defer cancel()
 	err := chromedp.Run(ctx, chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
-		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
 		// 跳转页面
 		chromedp.Navigate(url),
 		chromedp.SendKeys(`input[name="user-name"]`, strings.Split(mail, "@")[0], chromedp.BySearch),
@@ -491,7 +490,7 @@ func NetsarangGetUrlDP(ctx context.Context, url string) (string, error) {
 	defer cancel()
 	err := chromedp.Run(ctx, chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
-		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
 		// 跳转页面
 		chromedp.Navigate(url),
 		// 获取属性和值

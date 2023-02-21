@@ -9,8 +9,6 @@
  * @Software: GoLand
  */
 
-import util from "./util.js";
-
 /**
  * 请求方式（OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, PATCH）
  * https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Methods
@@ -42,7 +40,11 @@ const METHOD = {
  * @type {{FORM_DATA: string, URLENCODED: string, TEXT_PLAIN: string}}
  */
 const CONTENT_TYPE = {
-    URLENCODED: "application/x-www-form-urlencoded", FORM_DATA: "multipart/form-data", TEXT_PLAIN: "text/plain"
+    URLENCODED: "application/x-www-form-urlencoded",
+    FORM_DATA: "multipart/form-data",
+    TEXT_PLAIN: "text/plain",
+    APP_JSON: "application/json",
+    APP_OS: "application/octet-stream",
 }
 
 /**
@@ -68,14 +70,12 @@ const RESPONSE_TYPE = {
  *   responseType： 响应的数据类型（text,arraybuffer,blob,document,json,ms-stream）
  *   timeout：      超时时间，0表示不设置超时
  *
- * @param config 请求参数
+ * @param settings
  */
 const ajax = (settings = {}) => {
     // 初始化请求参数
-    let config = Object.assign({
-        url: '',
-        method: settings.type || settings.method || METHOD.GET,
-        // string 期望的返回数据类型:'json' 'text' 'document' ...
+    const config = Object.assign({
+        method: settings.type || settings.method || METHOD.GET, // string 期望的返回数据类型:'json' 'text' 'document' ...
         responseType: settings.dataType || settings.responseType || RESPONSE_TYPE.JSON,
         async: true, //  boolean true:异步请求 false:同步请求 required
         data: null, // any 请求参数,data需要和请求头Content-Type对应
@@ -97,12 +97,14 @@ const ajax = (settings = {}) => {
 
     if (!config.headers["Content-Type"]) {
         // 服务器会根据此值解析参数，同时在返回时也指定此值
-        config.headers["Content-Type"] = settings.contentType || config.headers["Content-Type"]
-            || config.headers["content-type"] || CONTENT_TYPE.URLENCODED;
+        config.headers["Content-Type"] = settings.contentType || config.headers["content-type"] || CONTENT_TYPE.URLENCODED;
+    }
+    if (!config.headers["Content-Type"]) { // 应对上传文件，会自动设置为multipart/form-data; boundary=----WebKitFormBoundary
+        delete config.headers["Content-Type"];
     }
     // 参数验证
     if (!config.url) {
-        throw new TypeError("ajax请求：url参数不正确");
+        throw new TypeError("ajax请求：url为空");
     }
     if (!config.method) {
         throw new TypeError("ajax请求：type或method参数不正确");
@@ -122,16 +124,59 @@ const ajax = (settings = {}) => {
     });
     // 请求成功回调函数，对应xhr.onload
     xhr.addEventListener('load', e => {
-        if ((xhr.status >= 200 && xhr.status < 300) || xhr.status === 304) {
-            if (xhr.responseType === 'text') {
-                config.success(xhr.responseText, xhr.status, xhr);
-            } else if (xhr.responseType === 'document') {
-                config.success(xhr.responseXML, xhr.status, xhr);
-            } else {
-                config.success(xhr.response, xhr.status, xhr);
+        // https://blog.csdn.net/qq_43418737/article/details/121851847
+        if ((xhr.status < 200 || xhr.status >= 300) && xhr.status !== 304) {
+            config.error(xhr, xhr.status, e);
+            return;
+        }
+        if (xhr.responseType === 'text') {
+            config.success(xhr.responseText, xhr.status, xhr);
+        } else if (xhr.responseType === 'document') {
+            config.success(xhr.responseXML, xhr.status, xhr);
+        } else if (Object.getPrototypeOf(xhr.response) === Blob.prototype) { // 二进制，用于下载文件
+            const ct = xhr.getResponseHeader("content-type");
+            if (xhr.response.type === CONTENT_TYPE.APP_OS && new RegExp(CONTENT_TYPE.APP_OS, "i").test(ct)) {
+                // console.log(xhr.getAllResponseHeaders())
+                // 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
+                const contentDisposition = xhr.getResponseHeader('Content-Disposition');
+                const contentType = xhr.getResponseHeader('Content-Type') || 'application/octet-stream';
+                // let contentLength = result.headers["Content-Length"] || result.headers["content-length"];
+                let filename;
+                // 如果从Content-Disposition中取到的文件名不为空
+                if (contentDisposition) {
+                    // 取出文件名，这里正则注意顺序 (.*)在|前如果有;号那么永远都会是真 把分号以及后面的字符取到
+                    let reg = new RegExp("(?<=filename=)((.*)(?=;|%3B)|(.*))").exec(contentDisposition);
+                    // 取文件名信息中的文件名,替换掉文件名中多余的符号
+                    filename = reg[1].replaceAll("\\\\|/|\"", "");
+                } else {
+                    const urls = xhr.responseURL.split("/");
+                    filename = urls[urls.length - 1];
+                }
+                // 解决中文乱码，编码格式
+                filename = decodeURI(decodeURIComponent(filename));
+                const ael = document.createElement('a');
+                ael.style.display = 'none';
+                // 创建下载的链接
+                // downloadElement.href = URL.createObjectURL(new Blob([xhr.response], {type: contentType}));
+                ael.href = URL.createObjectURL(xhr.response);
+                // 下载后文件名
+                ael.download = filename;
+                // 点击下载
+                ael.click();
+                // 释放掉blob对象
+                URL.revokeObjectURL(ael.href);
+                ael.remove();
+            } else if (xhr.response.type === CONTENT_TYPE.APP_JSON) { // 如果服务器返回JSON
+                const reader = new FileReader();
+                reader.readAsText(xhr.response, 'UTF-8');
+                reader.onload = () => {
+                    config.success(JSON.parse(reader.result), xhr.status, xhr);
+                }
+            } else { // 失败返回信息
+                config.error(xhr, xhr.status, e);
             }
         } else {
-            config.error(xhr, xhr.status, e);
+            config.success(xhr.response, xhr.status, xhr);
         }
     });
     // 请求结束，对应xhr.onloadend
@@ -147,7 +192,17 @@ const ajax = (settings = {}) => {
         config.error(xhr, 408, e);
     });
 
-    let method = config.method.toUpperCase();
+    // 上传文件进度
+    const progressBar = document.querySelector('progress');
+    xhr.upload.onprogress = function (e) {
+        if (e.lengthComputable) {
+            progressBar.value = (e.loaded / e.total) * 100;
+            // 兼容不支持 <progress> 元素的老式浏览器
+            progressBar.textContent = progressBar.value;
+        }
+    };
+
+    const method = config.method.toUpperCase();
     // 如果是"简单"请求,则把data参数组装在url上
     if ((method === 'GET' || method === 'DELETE') && config.data) {
         let paramsStr;
@@ -182,31 +237,31 @@ const ajax = (settings = {}) => {
 
     // 请求参数类型需要和请求头Content-Type对应'PUT','POST','PATCH'
     if ((method === 'PUT' || method === 'POST' || method === 'PATCH') && config.data) {
-        let ct = config.headers["Content-Type"].split(";")[0].toLocaleLowerCase();
-        if (ct == "application/x-www-form-urlencoded") {
+        const ct = config.headers["Content-Type"].split(";")[0].toLocaleLowerCase();
+        if (ct === "application/x-www-form-urlencoded") {
             if ((config.data).constructor !== Object) {
                 throw new TypeError("ajax请求：application/x-www-form-urlencoded数据类型错误！");
             }
-            let paramsArr = [];
+            const paramsArr = [];
             Object.keys(config.data).forEach(key => {
                 paramsArr.push(`${encodeURIComponent(key)}=${encodeURIComponent(config.data[key])}`);
             });
             xhr.send(paramsArr.join('&'));
-        } else if (ct == "multipart/form-data") {
+        } else if (ct === "multipart/form-data") {
             if ((config.data).constructor !== Object) {
                 throw new TypeError("ajax请求：multipart/form-data数据类型错误！");
             }
-            let formData = new FormData();
+            const formData = new FormData();
             Object.keys(config.data).forEach(key => {
                 formData.append(key, config.data[key]);
             });
             xhr.send(formData);
-        } else if (ct == "text/plain") {
+        } else if (ct === "text/plain") {
             if ((config.data).constructor !== String) {
                 throw new TypeError("ajax请求：text/plain数据类型错误！");
             }
             xhr.send(config.data);
-        } else if (ct == "application/json") {
+        } else if (ct === "application/json") {
             if ((config.data).constructor === String) {
                 try {
                     JSON.parse(config.data);
@@ -227,69 +282,6 @@ const ajax = (settings = {}) => {
     }
 }
 
-
-/**
- * 文件下载api封装
- *
- * @param url
- * @param params
- * @returns {Promise<unknown>}
- */
-const download = (url, params) => {
-    return new Promise((resolve, reject) => {
-        ajax({
-            url: url,
-            method: METHOD.POST,
-            data: params,
-            responseType: RESPONSE_TYPE.BLOB,
-            success: (result, status, xhr) => {
-                // console.log(xhr.getAllResponseHeaders())
-                //从response的headers中获取filename, 后端response.setHeader("Content-Disposition", "attachment; filename=xxxx.xxx") 设置的文件名;
-                let contentDisposition = xhr.getResponseHeader('Content-Disposition') || xhr.getResponseHeader('content-disposition');
-                let contentType = xhr.getResponseHeader('Content-Type') || xhr.getResponseHeader('content-type') || 'application/octet-stream';
-                // let contentLength = result.headers["Content-Length"] || result.headers["content-length"];
-                let filename;
-                // 如果从Content-Disposition中取到的文件名不为空
-                if (!util.isEmpty(contentDisposition)) {
-                    // 取出文件名，这里正则注意顺序 (.*)在|前如果有;号那么永远都会是真 把分号以及后面的字符取到
-                    let reg = new RegExp("(?<=filename=)((.*)(?=;|%3B)|(.*))").exec(contentDisposition);
-                    // 取文件名信息中的文件名,替换掉文件名中多余的符号
-                    filename = reg[1].replaceAll("\\\\|/|\"", "");
-                } else {
-                    let urls = url.split("/");
-                    filename = urls[urls.length - 1];
-                }
-                // 解决中文乱码，编码格式
-                filename = decodeURI(escape(filename));
-                let downloadElement = document.createElement('a');
-                downloadElement.style.display = 'none';
-                // 创建下载的链接
-                downloadElement.href = URL.createObjectURL(new Blob([xhr.response], {type: contentType}));
-                // 下载后文件名
-                downloadElement.download = filename;
-                // 点击下载
-                downloadElement.click();
-                // 释放掉blob对象
-                URL.revokeObjectURL(downloadElement.href);
-            },
-            error: (xhr, status, error) => {
-                // 如果服务器自定义错误返回
-                if (xhr.response && xhr.response.type === 'application/json') {
-                    let reader = new FileReader();
-                    reader.readAsText(xhr.response, 'utf-8');
-                    reader.onload = () => {
-                        console.log(reader.result)
-                        reject(JSON.parse(reader.result).message);
-                    }
-                    return;
-                }
-                reject(xhr.response);
-            }
-        })
-    })
-}
-
-
 /**
  * export default 服从 ES6 的规范,补充：default 其实是别名
  * module.exports 服从 CommonJS 规范 https://javascript.ruanyifeng.com/nodejs/module.html
@@ -303,9 +295,5 @@ const download = (url, params) => {
  * @return 将方法、变量暴露出去
  */
 export default {
-    METHOD,
-    CONTENT_TYPE,
-    RESPONSE_TYPE,
-    ajax,
-    download
+    METHOD, CONTENT_TYPE, RESPONSE_TYPE, ajax
 }

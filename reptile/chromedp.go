@@ -13,7 +13,6 @@ package reptile
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/network"
@@ -91,7 +90,7 @@ func Apply(debug bool) (context.Context, context.CancelFunc) {
 	return ctx, cancel
 }
 
-//监听
+// 监听
 func listenForNetworkEvent(ctx context.Context) {
 	chromedp.ListenTarget(ctx, func(ev interface{}) {
 		switch ev := ev.(type) {
@@ -122,7 +121,7 @@ func visitWeb(url string) chromedp.Tasks {
 		chromedp.ActionFunc(func(ctxt context.Context) error {
 			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
 			// 设置cookie
-			success, err := network.SetCookie("ASP.NET_SessionId", "这里是值").
+			err := network.SetCookie("ASP.NET_SessionId", "这里是值").
 				WithExpires(&expr).
 				// 访问网站主体
 				WithDomain(url).
@@ -131,10 +130,6 @@ func visitWeb(url string) chromedp.Tasks {
 			if err != nil {
 				return err
 			}
-			if !success {
-				return errors.New("无法设置cookie")
-			}
-
 			return nil
 		}),
 		// 页面跳转
@@ -162,7 +157,7 @@ func Screenshot() chromedp.Tasks {
 func DoCrawler(url string, res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
-		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
 		network.Enable(),
 		//visitWeb(url),
 		//doCrawler(&res),

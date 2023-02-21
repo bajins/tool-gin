@@ -77,8 +77,14 @@ func CreateTmpFiles(name string) {
 		}
 		tempFile, err := os.Create(tempDir + fileName)
 		if err == nil {
-			tempFile.Write(bytes)
+			_, err := tempFile.Write(bytes)
+			if err != nil {
+				return
+			}
 		}
-		tempFile.Close()
+		err = tempFile.Close()
+		if err != nil {
+			return
+		}
 	}
 }

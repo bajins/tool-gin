@@ -123,14 +123,19 @@ window.getKey = function getKey() {
             </form>`);
         $(document.body).append(form);
         form.submit().remove();*/
-
-        http.download("/getKey", {company: company, app: app, version: version}).then(r => {
-            log.info(r);
-        }).catch(function (err) {
-            console.log(err)
-            layer.msg(err, {icon: 5});
+        http.ajax({
+            url: "/getKey",
+            method: http.METHOD.POST,
+            data: {company: company, app: app, version: version},
+            responseType: http.RESPONSE_TYPE.BLOB,
+            success: (result, status, xhr) => {
+                log.info(result);
+            },
+            error: (xhr, status, error) => {
+                console.log(error)
+                layer.msg(error, {icon: 5});
+            }
         });
-
     } else {
         $.ajax({
             url: "/getKey",

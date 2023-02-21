@@ -17,7 +17,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/antchfx/htmlquery"
-	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
 	"log"
 	"math"
@@ -183,7 +182,7 @@ const Mail24 = "http://24mail.chacuo.net"
 func GetMail24MailName(res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
-		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
 		//network.Enable(),
 		//visitWeb(url),
 		//doCrawler(&res),
@@ -209,7 +208,7 @@ func GetMail24MailName(res *string) chromedp.Tasks {
 func GetMail24List(res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
-		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
 		chromedp.Sleep(20 * time.Second),
 		// 读取HTML源码
 		chromedp.InnerHTML(`//*[@id="convertd"]`, res, chromedp.BySearch),
@@ -220,7 +219,7 @@ func GetMail24List(res *string) chromedp.Tasks {
 func GetMail24LatestMail(res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
-		page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
+		//page.SetDownloadBehavior(page.SetDownloadBehaviorBehaviorDeny),
 		chromedp.WaitVisible(`//*[@id="convertd"]/tr[1]`, chromedp.BySearch),
 		chromedp.Click(`//*[@id="convertd"]/tr[1]`, chromedp.BySearch),
 		chromedp.Sleep(10 * time.Second),

@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"html/template"
 	"io/fs"
+	"log"
 	"net/http"
 	"strings"
 	"tool-gin/utils"
@@ -14,11 +15,12 @@ import (
 
 // 常量
 const (
-	// 可自定义盐值
+	// TokenSalt 可自定义盐值
 	TokenSalt = "default_salt"
 )
 
 // 内嵌资源目录指令
+//
 //go:embed static pyutils/*[^.go]
 var local embed.FS
 
@@ -38,9 +40,10 @@ func (e embedFileSystem) Exists(prefix, path string) bool {
 	return true
 }
 
-// embed.FS转换为http.FileSystem https://github.com/gin-contrib/static/issues/19
+// EmbedFolder embed.FS转换为http.FileSystem https://github.com/gin-contrib/static/issues/19
 func EmbedFolder(fsEmbed embed.FS, targetPath string) static.ServeFileSystem {
-	fsys, err := fs.Sub(fsEmbed, targetPath)
+	//http.FS(os.DirFS(targetPath))
+	fsys, err := fs.Sub(fsEmbed, targetPath) // 获取目录下的文件
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +56,7 @@ func EmbedDir(targetPath string) static.ServeFileSystem {
 	return EmbedFolder(local, targetPath)
 }
 
-// 认证拦截中间件
+// Authorize 认证拦截中间件
 func Authorize(c *gin.Context) {
 	username := c.Query("username") // 用户名
 	ts := c.Query("ts")             // 时间戳
@@ -71,7 +74,7 @@ func Authorize(c *gin.Context) {
 	}
 }
 
-// 禁止浏览器页面缓存
+// FilterNoCache 禁止浏览器页面缓存
 func FilterNoCache(c *gin.Context) {
 	c.Header("Cache-Control", "no-cache, no-store, must-revalidate")
 	c.Header("Pragma", "no-cache")
@@ -80,7 +83,7 @@ func FilterNoCache(c *gin.Context) {
 	c.Next()
 }
 
-// 处理跨域请求,支持options访问
+// Cors 处理跨域请求,支持options访问
 func Cors(c *gin.Context) {
 
 	// 它指定允许进入来源的域名、ip+端口号 。 如果值是 ‘*’ ，表示接受任意的域名请求，这个方式不推荐，
@@ -92,7 +95,7 @@ func Cors(c *gin.Context) {
 	c.Header("Access-Control-Allow-Methods", "POST, GET, PUT, OPTIONS, DELETE, PATCH")
 	// Access-Control-Max-Age 用于 CORS 相关配置的缓存
 	c.Header("Access-Control-Max-Age", "3600")
-	// 设置允许的请求头信息
+	// 设置允许的请求头信息 DNT,X-Mx-ReqToken,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization
 	c.Header("Access-Control-Allow-Headers", "Token,Origin, X-Requested-With, Content-Type, Accept,mid,X-Token,AccessToken,X-CSRF-Token, Authorization")
 
 	c.Header("Access-Control-Expose-Headers", "Content-Length, Access-Control-Allow-Origin, Access-Control-Allow-Headers, Content-Type")
@@ -106,7 +109,7 @@ func Cors(c *gin.Context) {
 	c.Next()
 }
 
-// 获取传入参数的端口，如果没传默认值为8000
+// Port 获取传入参数的端口，如果没传默认值为8000
 func Port() (port string) {
 	flag.StringVar(&port, "p", "8000", "默认端口:8000")
 	flag.Parse()
@@ -159,17 +162,20 @@ func run() {
 	//router.LoadHTMLGlob("static/html/*") // 在go:embed下无效
 
 	// listen and serve on 0.0.0.0:8080
-	router.Run(Port())
+	err := router.Run(Port())
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	/*listener, err := net.Listen("tcp", "0.0.0.0"+Port())
-	if err != nil {
-		panic(listener)
-	}
-	httpServer := &http.Server{
-		Handler: router,
-	}
-	err = httpServer.Serve(listener)
-	if err != nil {
-		panic(err)
-	}*/
+	  if err != nil {
+	  	panic(listener)
+	  }
+	  httpServer := &http.Server{
+	  	Handler: router,
+	  }
+	  err = httpServer.Serve(listener)
+	  if err != nil {
+	  	panic(err)
+	  }*/
 }
