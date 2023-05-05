@@ -9,6 +9,7 @@ require (
 	github.com/chromedp/cdproto v0.0.0-20230220211738-2b1ec77315c9
 	github.com/chromedp/chromedp v0.8.7
 	github.com/gin-contrib/static v0.0.1
-	github.com/gin-gonic/gin v1.8.2
+	github.com/gin-gonic/gin v1.9.0
+	github.com/ugorji/go v1.2.7 // indirect
 	golang.org/x/crypto v0.6.0
 )
