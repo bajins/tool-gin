@@ -19,8 +19,16 @@ const (
 	ContentTypeMFD   = "multipart/form-data"
 	ContentTypeTX    = "text/xml"
 	ContentTypeJson  = "application/json"
-	UserAgent        = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
 )
+
+// UserAgent
+// https://useragentstring.com
+// https://www.useragents.me
+// https://www.whatismybrowser.com
+// https://explore.whatismybrowser.com/useragents/explore
+// https://www.user-agents.org/allagents.xml
+// https://techpatterns.com/downloads/firefox/useragentswitcher.xml
+var UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
 
 // DownFile 下载文件
 func DownFile(url, upPreDir, upDir string, proxyURL string) (string, error) {
@@ -46,7 +54,12 @@ func DownFile(url, upPreDir, upDir string, proxyURL string) (string, error) {
 		return "", err
 	}
 
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+
+		}
+	}(f)
 	_, err = io.Copy(f, rc)
 
 	return uploadDir + newName, err
@@ -90,7 +103,12 @@ func HttpProxyGet(rawurl string, header http.Header, proxyURL string) (io.ReadCl
 		return resp.Body, nil
 	}
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(resp.Body)
 	if resp.StatusCode == 404 {
 		err = errors.New("请求未发现")
 	} else {

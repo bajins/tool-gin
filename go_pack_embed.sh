@@ -30,6 +30,9 @@ for item in ${os_arch_array}; do
   if [[ "$os" == "android" ]] || [[ "$os" == "ios" ]] || [[ "$os" == "darwin" && "$arch" == *arm* ]]; then
     continue
   fi
+  # if [ "$os" != "linux" ] || [ "$arch" != "amd64" ]; then
+    # continue
+  # fi
 
   # 设置变量
   export GOOS="$os" GOARCH="$arch"
@@ -62,7 +65,7 @@ for item in ${os_arch_array}; do
     flags="-w"
   fi
   # 编译二进制文件并输出到build目录
-  go build -ldflags=$flags -o "build/$binary_file"
+  go build -ldflags=$flags -o "build/$binary_file" -buildvcs=false
 done
 
 # 还原默认分隔符

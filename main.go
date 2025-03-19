@@ -20,6 +20,8 @@ func init() {
 	//gin.SetMode(gin.ReleaseMode)
 
 	go utils.SchedulerFixedTicker(reptile.NetsarangDownloadAll, time.Hour*24)
+
+	go utils.SchedulerFixedTicker(reptile.GetSvpDP, time.Minute*30)
 }
 
 // 运行主体函数

@@ -126,7 +126,10 @@ func ExecuteScriptError(err error) {
 	// 如果命令执行错误
 	if err != nil && strings.Contains(err.Error(), "exit status 1") {
 		p := TempDirPath + string(filepath.Separator) + "requirements.txt"
-		utils.Execute("pip", "install", "-r", p)
+		_, err := utils.Execute("pip", "install", "-r", p)
+		if err != nil {
+			return
+		}
 	}
 }
 
@@ -140,7 +143,12 @@ func Upload(c *gin.Context) {
 	if err != nil {
 		log.Println(err)
 	}
-	defer out.Close()
+	defer func(out *os.File) {
+		err := out.Close()
+		if err != nil {
+			log.Println(err)
+		}
+	}(out)
 	// 拷贝上传的文件信息到新建的out文件中
 	_, err = io.Copy(out, file)
 	if err != nil {
@@ -242,4 +250,14 @@ func GetNavicatDownloadUrl(c *gin.Context) {
 		return
 	}
 	SuccessJSON(c, "获取下载地址成功", map[string]string{"url": result["download_link"].(string)})
+}
+
+func GetSvp(c *gin.Context) {
+	defer func() { // 捕获panic
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+			c.String(http.StatusOK, r.(string))
+		}
+	}()
+	c.String(http.StatusOK, reptile.GetSvpAll())
 }

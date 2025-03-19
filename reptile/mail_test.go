@@ -66,7 +66,7 @@ func TestGetSecmail(t *testing.T) {
 	fmt.Println(res, err)
 	r := strings.Split(data[0].(string), "@") // 获取用户名和域名*/
 	//url := secmail1 + "?action=getMessages&login=" + r[0] + "&domain=" + r[1]
-	url := secmail1 + "?action=getMessages&login=qw7dtxz8gu&domain=1secmail.org"
+	url := "?action=getMessages&login=qw7dtxz8gu&domain=1secmail.org"
 	// 获取邮件列表
 	mailList, err := utils.HttpReadBodyJsonMapArray(http.MethodGet, url, "", nil, nil)
 	fmt.Println(mailList, err)
@@ -78,7 +78,7 @@ func TestGetSecmail(t *testing.T) {
 	newNum.SetFloat64(mailList[0]["id"].(float64))
 	id := newNum.FloatString(0)
 	// 获取邮件内容
-	m, err := utils.HttpReadBodyJsonMap(http.MethodGet, secmail1+"?action=readMessage&login=qw7dtxz8gu&domain=1secmail.org&id="+id, "",
+	m, err := utils.HttpReadBodyJsonMap(http.MethodGet, "?action=readMessage&login=qw7dtxz8gu&domain=1secmail.org&id="+id, "",
 		nil, nil)
 	fmt.Println(m, err)
 }

@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// 判断时间是否为空
+// IsTimeEmpty 判断时间是否为空
 func IsTimeEmpty(t time.Time) bool {
 	if !t.IsZero() {
 		return false
@@ -12,7 +12,7 @@ func IsTimeEmpty(t time.Time) bool {
 	return true
 }
 
-// 转换为自定义格式
+// FormatDateString 转换为自定义格式
 func FormatDateString(timestamp uint32, format string) string {
 	if timestamp <= 0 {
 		return ""
@@ -24,7 +24,7 @@ func FormatDateString(timestamp uint32, format string) string {
 	return tm.Format(format)
 }
 
-// 获取时间，格式yyyy-MM-dd HH:mm:ss
+// FormatDateTimeString 获取时间，格式yyyy-MM-dd HH:mm:ss
 func FormatDateTimeString(timestamp uint32, format string) string {
 	if timestamp <= 0 {
 		return ""
@@ -36,7 +36,7 @@ func FormatDateTimeString(timestamp uint32, format string) string {
 	return tm.Format(format)
 }
 
-// 时间转字符串，格式yyyy-MM-dd HH:mm:ss
+// TimeToString 时间转字符串，格式yyyy-MM-dd HH:mm:ss
 func TimeToString(t time.Time) string {
 	if IsTimeEmpty(t) {
 		t = time.Now()
@@ -44,7 +44,7 @@ func TimeToString(t time.Time) string {
 	return t.Format("2006-01-02 15:04:05")
 }
 
-// 字符串转时间
+// StringToTime 字符串转时间
 func StringToTime(str string) time.Time {
 	if IsStringEmpty(str) {
 		return time.Now()
@@ -54,7 +54,7 @@ func StringToTime(str string) time.Time {
 	return t
 }
 
-// 解析字符串时间为系统格式
+// ParseTime 解析字符串时间为系统格式
 func ParseTime(times string) int64 {
 	if "" == times {
 		return 0
@@ -64,7 +64,7 @@ func ParseTime(times string) int64 {
 	return parse.Unix()
 }
 
-// 解析字符串日期为系统格式
+// ParseDate 解析字符串日期为系统格式
 func ParseDate(dates string) int64 {
 	if "" == dates {
 		return 0
@@ -74,14 +74,14 @@ func ParseDate(dates string) int64 {
 	return parse.Unix()
 }
 
-// 判断两个日期是否相等
+// DateEqual 判断两个日期是否相等
 func DateEqual(date1, date2 time.Time) bool {
 	y1, m1, d1 := date1.Date()
 	y2, m2, d2 := date2.Date()
 	return y1 == y2 && m1 == m2 && d1 == d2
 }
 
-// 转换为自定义格式
+// GetDateFormat 转换为自定义格式
 func GetDateFormat(timestamp uint32, format string) string {
 	if timestamp <= 0 {
 		return ""
@@ -90,7 +90,7 @@ func GetDateFormat(timestamp uint32, format string) string {
 	return tm.Format(format)
 }
 
-// 获取时间，使用默认格式
+// GetDate 获取时间，使用默认格式
 func GetDate(timestamp uint32) string {
 	if timestamp <= 0 {
 		return ""
@@ -99,7 +99,7 @@ func GetDate(timestamp uint32) string {
 	return tm.Format("2006-01-02")
 }
 
-// 获取时间，格式yyyy-MM-dd HH:mm
+// GetyyyyMMddHHmm 获取时间，格式yyyy-MM-dd HH:mm
 func GetyyyyMMddHHmm(timestamp uint32) string {
 	if timestamp <= 0 {
 		return ""
@@ -108,7 +108,7 @@ func GetyyyyMMddHHmm(timestamp uint32) string {
 	return tm.Format("2006-01-02 15:04")
 }
 
-// 解析字符串时间为系统格式
+// GetTimeParse 解析字符串时间为系统格式
 func GetTimeParse(times string) int64 {
 	if "" == times {
 		return 0
@@ -118,7 +118,7 @@ func GetTimeParse(times string) int64 {
 	return parse.Unix()
 }
 
-// 解析字符串日期为系统格式
+// GetDateParse 解析字符串日期为系统格式
 func GetDateParse(dates string) int64 {
 	if "" == dates {
 		return 0
@@ -128,7 +128,7 @@ func GetDateParse(dates string) int64 {
 	return parse.Unix()
 }
 
-// 启动的时候执行一次，不固定某个时间，滚动间隔时间执行
+// SchedulerIntervalsTimer 启动的时候执行一次，不固定某个时间，滚动间隔时间执行
 func SchedulerIntervalsTimer(f func(), duration time.Duration) {
 	// 定时任务
 	ticker := time.NewTicker(duration)
@@ -138,7 +138,7 @@ func SchedulerIntervalsTimer(f func(), duration time.Duration) {
 	}
 }
 
-// 启动的时候执行一次，固定在每天的某个时间滚动执行
+// SchedulerFixedTicker 启动的时候执行一次，固定在每天的某个时间滚动执行
 func SchedulerFixedTicker(f func(), duration time.Duration) {
 	now := time.Now()
 	// 计算下一个时间点

@@ -5,6 +5,8 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"io"
 	"math/big"
 	"math/rand"
@@ -128,7 +130,7 @@ func ToCamelCase(str string) string {
 	temp := strings.Split(str, "-")
 	for i, r := range temp {
 		if i > 0 {
-			temp[i] = strings.Title(r)
+			temp[i] = cases.Title(language.English).String(r)
 		}
 	}
 	return strings.Join(temp, "")
@@ -136,9 +138,9 @@ func ToCamelCase(str string) string {
 
 // ToCamelCaseRegexp 转换为驼峰，使用正则
 func ToCamelCaseRegexp(str string) string {
-	var reg = regexp.MustCompile("(_|-)([a-zA-Z]+)")
+	var reg = regexp.MustCompile("([_\\-])([a-zA-Z]+)")
 	camel := reg.ReplaceAllString(str, " $2")
-	camel = strings.Title(camel)
+	camel = cases.Title(language.English).String(camel)
 	camel = strings.ReplaceAll(camel, " ", "")
 	return camel
 }
@@ -162,7 +164,7 @@ func UnderscoreName(name string) string {
 // CamelName 下划线写法转为驼峰写法
 func CamelName(str string) string {
 	str = strings.ReplaceAll(str, "_", " ")
-	str = strings.Title(str)
+	str = cases.Title(language.English).String(str)
 	return strings.ReplaceAll(str, " ", "")
 }
 
@@ -293,12 +295,12 @@ func UnicodeToChinese(str string) string {
 // RandString 生成指定长度大写字母随机字符串
 func RandString(len int) string {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
-	bytes := make([]byte, len)
+	by := make([]byte, len)
 	for i := 0; i < len; i++ {
 		b := r.Intn(26) + 65
-		bytes[i] = byte(b)
+		by[i] = byte(b)
 	}
-	return string(bytes)
+	return string(by)
 }
 
 // RandomString 生成指定长度数字、小写字母、大写字母随机字符串
@@ -321,11 +323,11 @@ func RandomString(len int) (s string, err error) {
 // RandomLowercaseAlphanumeric 生成指定长度数字、小写字母随机字符串
 func RandomLowercaseAlphanumeric(length int) string {
 	str := "0123456789abcdefghijklmnopqrstuvwxyz"
-	bytes := []byte(str)
+	by := []byte(str)
 	var result []byte
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	for i := 0; i < length; i++ {
-		result = append(result, bytes[r.Intn(len(bytes))])
+		result = append(result, by[r.Intn(len(by))])
 	}
 	return string(result)
 }
@@ -392,4 +394,26 @@ func ParseJsonReader(input io.Reader) (map[string]interface{}, error) {
 		return nil, err
 	}
 	return m, nil
+}
+
+// RandomLower 纯小写
+func RandomLower(n int) string {
+	const letters = "abcdefghijklmnopqrstuvwxyz"
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+// RandomMixed 大小写混合
+func RandomMixed(n int) string {
+	const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }

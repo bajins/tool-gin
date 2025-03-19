@@ -130,6 +130,14 @@ func run() {
 	router.Use(FilterNoCache)
 	//router.Use(Cors())
 	//router.Use(Authorize())
+	// 设置可信代理的 IP 地址或 CIDR 范围
+	//router.TrustedPlatform = "CF-Connecting-IP" // 信任特定平台，来自请求头部信息
+	//router.ForwardedByClientIP = true // 启用基于客户端 IP 的转发功能
+	//err := router.SetTrustedProxies([]string{"127.0.0.1"})
+	err := router.SetTrustedProxies(nil) // 禁用代理信任，直接使用 Request.RemoteAddr 作为客户端 IP，忽略所有代理头部
+	if err != nil {
+		log.Println(err)
+	}
 
 	// 在go:embed下必须指定模板路径
 	t, _ := template.ParseFS(local, "static/html/*.html")
@@ -142,6 +150,24 @@ func run() {
 	router.Any("/nginx-format", NginxFormatIndex)
 	router.POST("/nginx-format-py", NginxFormatPython)
 	router.Any("/navicat", GetNavicatDownloadUrl)
+	router.Any("/svp", GetSvp)
+
+	// 为 multipart forms 设置文件大小限制, 默认是32MB
+	// 此处为左移位运算符, << 20 表示1MiB，8 << 20就是8MiB
+	/*router.MaxMultipartMemory = 8 << 20
+	      router.POST("/upload", func(c *gin.Context) {
+	          // 单文件
+	          file, _ := c.FormFile("file")
+	          log.Println(file.Filename)
+
+	          // 上传文件至指定的完整文件路径
+	          dst := "/home/test" + file.Filename
+	  		err := c.SaveUploadedFile(file, dst)
+	  		if err != nil {
+	  			log.Println(err)
+	  		}
+	          c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
+	      })*/
 
 	// 注册一个目录，gin 会把该目录当成一个静态的资源目录
 	// 如 static 目录下有图片路径 index/logo.png , 你可以通过 GET /static/index/logo.png 访问到
@@ -162,7 +188,7 @@ func run() {
 	//router.LoadHTMLGlob("static/html/*") // 在go:embed下无效
 
 	// listen and serve on 0.0.0.0:8080
-	err := router.Run(Port())
+	err = router.Run(Port())
 	if err != nil {
 		log.Fatal(err)
 	}

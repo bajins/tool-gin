@@ -145,15 +145,16 @@ const ajax = (settings = {}) => {
                 // 如果从Content-Disposition中取到的文件名不为空
                 if (contentDisposition) {
                     // 取出文件名，这里正则注意顺序 (.*)在|前如果有;号那么永远都会是真 把分号以及后面的字符取到
-                    let reg = new RegExp("(?<=filename=)((.*)(?=;|%3B)|(.*))").exec(contentDisposition);
-                    // 取文件名信息中的文件名,替换掉文件名中多余的符号
-                    filename = reg[1].replaceAll("\\\\|/|\"", "");
+                    filename = new RegExp("(?<=filename=)((.*)(?=;|%3B)|(.*))").exec(contentDisposition)[1];
+                    //filename = contentDisposition.split(/filename=/i)[1].split(";")[0];
                 } else {
                     const urls = xhr.responseURL.split("/");
                     filename = urls[urls.length - 1];
                 }
                 // 解决中文乱码，编码格式
-                filename = decodeURI(decodeURIComponent(filename));
+                filename = decodeURIComponent(filename);// 需要后端进行转义序列
+                // filename = unescape(filename.replace(/\\/g, "%"));
+                // filename = btoa(filename);
                 const ael = document.createElement('a');
                 ael.style.display = 'none';
                 // 创建下载的链接

@@ -26,7 +26,7 @@ import (
 	"tool-gin/utils"
 )
 
-// 启动，建议在主入口处调用一次即可
+// Apply 启动，建议在主入口处调用一次即可
 //
 // context.Context部分不能抽离，否则会报 context canceled
 func Apply(debug bool) (context.Context, context.CancelFunc) {
@@ -73,6 +73,20 @@ func Apply(debug bool) (context.Context, context.CancelFunc) {
 		// 设置用户数据目录
 		//chromedp.UserDataDir(dir),
 		//chromedp.ExecPath("C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"),
+		//chromedp.Flag("disable-dev-shm-usage", true),
+		chromedp.Flag("disable-application-cache", true), // 禁用应用缓存
+		chromedp.Flag("disk-cache-dir", ""),              // 禁用磁盘缓存，可能会导致加载缓慢
+		chromedp.Flag("no-cache", true),                  // 禁用内存缓存，可能会导致加载缓慢
+		//chromedp.Flag("disable-gpu", true),
+		//chromedp.Flag("disable-gpu-compositing", true),
+		//chromedp.Flag("disable-gpu-sandbox", true),
+		//chromedp.Flag("disable-web-security", true),
+		//chromedp.Flag("disable-webgl", true),
+		//chromedp.Flag("disable-web-security-warnings", true),
+		//chromedp.Flag("disable-webgl2", true),
+		//chromedp.Flag("disable-web-security-csp", true),
+		//chromedp.Flag("disable-web-security-x-frame-options", true),
+		//chromedp.Flag("disable-web-security-x-frame-options-allow-from", true),
 	)
 	if debug {
 		opts = append(opts, chromedp.Flag("headless", false), chromedp.Flag("hide-scrollbars", false))
@@ -186,7 +200,7 @@ func EvalJS(js string) chromedp.Tasks {
 		chromedp.EvaluateAsDevTools(js, &res),
 		//chromedp.Evaluate(js, &res),
 		chromedp.ActionFunc(func(ctx context.Context) error {
-			b, err := res.MarshalJSON()
+			b, err := res.Value.MarshalJSON()
 			if err != nil {
 				return err
 			}

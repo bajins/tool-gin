@@ -63,20 +63,16 @@ func GetInfoUrl(product string) (string, error) {
 
 // NetsarangGetMail 获取可用mail
 func NetsarangGetMail() (string, error) {
-	/*prefix := utils.RandomLowercaseAlphanumeric(9)
-	  suffix, err := LinShiYouXiangSuffix()
-	  if err != nil {
-	  	return "", err
-	  }
-	  _, err = LinShiYouXiangApply(prefix)
-	  if err != nil {
-	  	return "", err
-	  }*/
-	mailUser, err := GetSecmailUser()
+	prefix := utils.RandomLowercaseAlphanumeric(9)
+	suffix, err := LinShiYouXiangSuffix()
 	if err != nil {
 		return "", err
 	}
-	mail := mailUser[0] + "@" + mailUser[1]
+	_, err = LinShiYouXiangApply(prefix)
+	if err != nil {
+		return "", err
+	}
+	mail := prefix + "@" + suffix
 	log.Println("邮箱号：", mail)
 	return mail, nil
 }
@@ -114,11 +110,10 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	//prefix := strings.Split(mail, "@")[0]
+	prefix := strings.Split(mail, "@")[0]
 
 	time.Sleep(10 * time.Second)
-	//mailList, err := LinShiYouXiangList(prefix)
-	mailList, err := GetSecmailList()
+	mailList, err := LinShiYouXiangList(prefix)
 	if err != nil {
 		return "", err
 	}
@@ -127,8 +122,7 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 			break
 		}
 		time.Sleep(10 * time.Second)
-		//mailList, err = LinShiYouXiangList(prefix)
-		mailList, err = GetSecmailList()
+		mailList, err = LinShiYouXiangList(prefix)
 		if err != nil {
 			return "", err
 		}
@@ -136,25 +130,19 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	if len(mailList) == 0 {
 		return "", errors.New("没有邮件")
 	}
-	//mailId := mailList[len(mailList)-1]["id"].(string)
-	mailId, err := GetSecmailLatestId(mailList)
-	if err != nil {
-		return "", err
-	}
+	mailId := mailList[len(mailList)-1]["id"].(string)
 	if mailId == "" {
 		return "", errors.New("邮件ID不存在")
 	}
 	// 获取最新一封邮件
-	/*msg, err := LinShiYouXiangGetMail(prefix, mailId)
-	  if err != nil {
-	  	return "", err
-	  }
-	  htmlText, err := DecodeMail(msg)*/
-	msg, err := GetSecmailMessage(mailId)
+	msg, err := LinShiYouXiangGetMail(prefix, mailId)
 	if err != nil {
 		return "", err
 	}
-	htmlText := msg["body"].(string)
+	htmlText, err := DecodeMail(msg)
+	if err != nil {
+		return "", err
+	}
 	// 解析HTML
 	/*doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(htmlText)))
 	  if err != nil {
@@ -166,7 +154,7 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	href := exp.FindAllStringSubmatch(htmlText, -1)
+	href := exp.FindAllStringSubmatch(string(htmlText), -1)
 	if href == nil || len(href) == 0 {
 		return "", errors.New("获取token链接为空")
 	}
@@ -386,8 +374,8 @@ func NetsarangGetInfoDP(ctx context.Context, mail, product string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	for i := 0; i < 30; {
-		if mailContent != "" || err != nil {
+	for {
+		if mailContent != "" {
 			break
 		}
 		err = chromedp.Run(ctx, GetMail24LatestMail(&mailContent))

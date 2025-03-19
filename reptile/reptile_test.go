@@ -14,6 +14,8 @@ package reptile
 import (
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
+	"log"
+	"regexp"
 	"testing"
 	"time"
 )
@@ -42,4 +44,44 @@ func TestApply(t *testing.T) {
 	})
 	t.Log(err)
 	t.Log(res)
+}
+
+func TestGetSvpDP(t *testing.T) {
+	defer func() { // 捕获panic
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+		}
+	}()
+	content := getSvpDP1()
+	t.Log(content)
+}
+
+func TestUrlRegx(t *testing.T) {
+	urls := []string{
+		"http://www.example.com",
+		"https://example.com/path?query=123",
+		"www.example.com",
+		"example.com",
+		"example.com/path",
+		"ftp://example.com",
+		"192.168.1.1", // IP address
+		"localhost",
+		"localhost:8080",
+		"subdomain.example.co.uk",
+		"example.museum",
+		"http://[::1]:8080",          // IPv6
+		"https://[2001:db8::1]/path", //IPv6
+		"www.example-.com",           // Invalid, but test edge cases
+		"-example.com",               // Invalid
+		"ww-example.com",             // Invalid
+		"example",                    // Invalid , but test edge cases
+	}
+	// 不适用于有其他文本内容参杂的情况
+	//urlRegex := regexp.MustCompile(`(https?://)?([\w.-]+)(:\d+)?(/[\w./?%&=-]*)?`)
+	// 更宽松，兼容性更好的正则表达式：
+	urlRegex := regexp.MustCompile(`(?:(?:https?|ftp)://)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\[(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:[/?#]\S*)?`)
+
+	for _, url := range urls {
+		log.Println(url, "|||||||||||", urlRegex.MatchString(url))
+	}
 }

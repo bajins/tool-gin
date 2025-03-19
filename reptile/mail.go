@@ -14,13 +14,10 @@ package reptile
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"github.com/antchfx/htmlquery"
 	"github.com/chromedp/chromedp"
-	"log"
 	"math"
-	"math/big"
 	"net/http"
 	"net/mail"
 	"strings"
@@ -41,65 +38,6 @@ func DecodeMail(msg *mail.Message) ([]byte, error) {
 		return body, err
 	}
 	return nil, errors.New("解码方式错误：" + encoding)
-}
-
-const secmail1 = "https://www.1secmail.com/api/v1/"
-
-var mailUser []string
-
-// GetSecmailUser 获取一次性邮箱
-func GetSecmailUser() ([]string, error) {
-	if len(mailUser) == 0 || mailUser == nil {
-		// 获取邮箱
-		res, err := utils.HttpReadBodyString(http.MethodGet, secmail1+"?action=genRandomMailbox&count=1", "",
-			nil, nil)
-		if err != nil {
-			return nil, err
-		}
-		var data []interface{}
-		err = json.Unmarshal([]byte(res), &data)
-		mailUser = strings.Split(data[0].(string), "@") // 获取用户名和域名
-	}
-	return mailUser, nil
-}
-
-// GetSecmailList 获取邮件列表
-func GetSecmailList() ([]map[string]interface{}, error) {
-	mailListUrl := secmail1 + "?action=getMessages&login=" + mailUser[0] + "&domain=" + mailUser[1]
-	// 获取邮件列表
-	return utils.HttpReadBodyJsonMapArray(http.MethodGet, mailListUrl, "", nil, nil)
-}
-
-// GetSecmailLatestId 获取最新一封邮件ID
-func GetSecmailLatestId(mailList []map[string]interface{}) (string, error) {
-	if mailList == nil || len(mailList) == 0 {
-		// 获取邮件列表
-		mailList, err := GetSecmailList()
-		if err != nil {
-			return "", err
-		}
-		log.Println(mailList, err, mailUser)
-	}
-	if len(mailList) == 0 {
-		return "", errors.New("没有邮件")
-	}
-	// 科学计数法转换string数字
-	newNum := big.NewRat(1, 1)
-	newNum.SetFloat64(mailList[0]["id"].(float64))
-	id := newNum.FloatString(0)
-	return id, nil
-}
-
-// GetSecmailMessage 获取邮件内容
-func GetSecmailMessage(id string) (map[string]interface{}, error) {
-	mailMessageUrl := secmail1 + "?action=readMessage&login=" + mailUser[0] + "&domain=" + mailUser[1] + "&id=" + id
-	// 获取邮件内容
-	message, err := utils.HttpReadBodyJsonMap(http.MethodGet, mailMessageUrl, "", nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	//log.Println(message, err, mailUser)
-	return message, err
 }
 
 const LinShiYouXiang = "https://www.linshiyouxiang.net"
@@ -204,7 +142,7 @@ func GetMail24MailName(res *string) chromedp.Tasks {
 	}
 }
 
-// 获取邮件列表
+// GetMail24List 获取邮件列表
 func GetMail24List(res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
@@ -215,7 +153,7 @@ func GetMail24List(res *string) chromedp.Tasks {
 	}
 }
 
-// 获取最新邮件
+// GetMail24LatestMail 获取最新邮件
 func GetMail24LatestMail(res *string) chromedp.Tasks {
 	return chromedp.Tasks{
 		// 浏览器下载行为，注意设置顺序，如果不是第一个会失败
@@ -228,29 +166,3 @@ func GetMail24LatestMail(res *string) chromedp.Tasks {
 		chromedp.TextContent(`//*[@id="mailview_data"]`, res, chromedp.BySearch),
 	}
 }
-
-const GuerrillaMail = "https://www.guerrillamail.com/zh"
-
-const TempMail = "https://temp-mail.org/zh"
-
-const Moakt = "https://www.moakt.com/zh"
-
-const Mail5 = "http://www.5-mail.com"
-
-const YopMail = "http://www.yopmail.com/zh"
-
-const MinuteMail10 = "https://10minutemail.com/10MinuteMail/index.html"
-
-const IncognitoMail = "http://www.incognitomail.com"
-
-const MailCatch = "http://mailcatch.com/en/disposable-email"
-
-const MinteMail = "https://www.mintemail.com"
-
-const Maildu = "http://www.maildu.de"
-
-const MailDrop = "https://maildrop.cc"
-
-const EM9 = "https://9em.org"
-
-const CS = "https://www.cs.email/zh"
