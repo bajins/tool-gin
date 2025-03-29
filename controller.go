@@ -184,7 +184,7 @@ func GetNetSarangDownloadUrl(c *gin.Context) {
 		ErrorJSON(c, 300, "请选择版本")
 		return
 	}
-	url, err := reptile.GetInfoUrl(app)
+	url, err := reptile.NetsarangGetInfo(app)
 	if err != nil {
 		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
 		return

@@ -253,8 +253,8 @@ func getSvpDP1() string {
 }
 
 func GetSvpDP() {
-	SvpMap[0] = getSvp()
-	SvpMap[1] = getSvpDP()
+	SvpMap[0] = getSvpDP()
+	SvpMap[1] = getSvpDP1()
 }
 
 // GetSvpAll 获取SVP

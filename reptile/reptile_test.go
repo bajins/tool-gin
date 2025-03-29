@@ -46,6 +46,15 @@ func TestApply(t *testing.T) {
 	t.Log(res)
 }
 
+func TestNetsarang(t *testing.T) {
+	defer func() { // 捕获panic
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+		}
+	}()
+	NetsarangDownloadAll()
+}
+
 func TestGetSvpDP(t *testing.T) {
 	defer func() { // 捕获panic
 		if r := recover(); r != nil {

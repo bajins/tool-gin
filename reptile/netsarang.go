@@ -4,7 +4,7 @@ package reptile
  *
  * @Description:
  * @Author: https://www.bajins.com
- * @File: Netsarang.go
+ * @File: netsarang.go
  * @Version: 1.0.0
  * @Time: 2019/9/19 11:03
  * @Project: tool-gin
@@ -19,6 +19,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
+	mailtmM "github.com/msuny-c/mailtm"
 	"log"
 	"net/http"
 	"regexp"
@@ -27,139 +28,99 @@ import (
 	"tool-gin/utils"
 )
 
-const NetsarangJsonUrl = "https://update.netsarang.com/json/download/process.html"
-
 var (
-	NetsarangMap     map[string]NetsarangInfo
-	NetsarangProduct = [6]string{"xshell", "xftp", "xlpd", "xshellplus", "xmanager", "powersuite"}
+	netsarangMap            = make(map[string]NetsarangInfo)
+	netsarangProduct        = [6]string{"xshell", "xftp", "xlpd", "xshellplus", "xmanager", "powersuite"}
+	mailAccount, mailtmMerr = mailtmM.NewAccount()
 )
+
+func init() {
+	if mailtmMerr != nil {
+		log.Println(mailtmMerr)
+	}
+}
 
 type NetsarangInfo struct {
 	Time time.Time
 	Url  string
 }
 
-func init() {
-	// 第一次调用初始化
-	NetsarangMap = make(map[string]NetsarangInfo)
-}
-
-// GetInfoUrl 获取单个产品信息
-func GetInfoUrl(product string) (string, error) {
-	info := NetsarangMap[product]
-	if NetsarangMap == nil || info.Url == "" || len(info.Url) == 0 || !utils.DateEqual(time.Now(), info.Time) {
-		mail, err := NetsarangGetMail()
-		if err != nil {
-			return "", err
-		}
-		url, err := NetsarangGetInfo(mail, product)
-		if err != nil {
-			return "", err
-		}
-		info = NetsarangInfo{Time: time.Now(), Url: url}
-	}
-	return info.Url, nil
-}
-
-// NetsarangGetMail 获取可用mail
-func NetsarangGetMail() (string, error) {
-	prefix := utils.RandomLowercaseAlphanumeric(9)
-	suffix, err := LinShiYouXiangSuffix()
-	if err != nil {
-		return "", err
-	}
-	_, err = LinShiYouXiangApply(prefix)
-	if err != nil {
-		return "", err
-	}
-	mail := prefix + "@" + suffix
-	log.Println("邮箱号：", mail)
-	return mail, nil
-}
-
 // NetsarangDownloadAll 获取所有链接信息
 func NetsarangDownloadAll() {
-	mail, err := NetsarangGetMail()
-	if err != nil {
-		log.Println(err)
-		return
-	}
-	for _, app := range NetsarangProduct {
-		_, err = NetsarangGetInfo(mail, app)
+	for _, app := range netsarangProduct {
+		_, err := NetsarangGetInfo(app)
 		if err != nil {
 			log.Println(err)
 		}
 	}
-	log.Println(NetsarangMap)
+	log.Println(netsarangMap)
 }
 
 // NetsarangGetInfo 获取链接信息
-func NetsarangGetInfo(mail, product string) (string, error) {
-	if mail == "" || len(mail) == 0 {
-		return "", errors.New("mail不能为空")
-	}
+func NetsarangGetInfo(product string) (string, error) {
 	if product == "" || len(product) == 0 {
 		return "", errors.New("product不能为空")
 	}
-	info := NetsarangMap[product]
+	info := netsarangMap[product]
 	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
 	if info.Url != "" && len(info.Url) > 1 && utils.DateEqual(time.Now(), info.Time) {
-		return "", nil
+		return info.Url, nil
 	}
-	err := NetsarangSendMail(mail, product)
+	// 发送邮件
+	actionUrl, err := netsarangSendMail(product)
 	if err != nil {
 		return "", err
 	}
-	prefix := strings.Split(mail, "@")[0]
-
-	time.Sleep(10 * time.Second)
-	mailList, err := LinShiYouXiangList(prefix)
-	if err != nil {
-		return "", err
-	}
-	for i := 0; i < 20; i++ {
-		if len(mailList) > 0 {
-			break
+	// 获取邮件
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	ch := mailAccount.MessagesChan(ctx)
+	var message mailtmM.Message
+	select {
+	case msg, ok := <-ch:
+		if ok {
+			message = msg
 		}
-		time.Sleep(10 * time.Second)
-		mailList, err = LinShiYouXiangList(prefix)
-		if err != nil {
-			return "", err
+	case <-ctx.Done():
+		if err := ctx.Err(); err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				log.Println("超时:", err)
+			}
+			if errors.Is(err, context.Canceled) {
+				log.Println("主动取消:", err)
+			}
 		}
 	}
-	if len(mailList) == 0 {
-		return "", errors.New("没有邮件")
-	}
-	mailId := mailList[len(mailList)-1]["id"].(string)
-	if mailId == "" {
-		return "", errors.New("邮件ID不存在")
-	}
-	// 获取最新一封邮件
-	msg, err := LinShiYouXiangGetMail(prefix, mailId)
+	exp, err := regexp.Compile(`https://www\..*\.com/(.*)/downloading/\?token=(.*)`)
 	if err != nil {
 		return "", err
 	}
-	htmlText, err := DecodeMail(msg)
-	if err != nil {
-		return "", err
-	}
-	// 解析HTML
-	/*doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(htmlText)))
-	  if err != nil {
-	      return "", err
-	  }
-	  href := doc.Find(`a[target="_blank"]`).Text()*/
-
-	exp, err := regexp.Compile(`https://www\.netsarang\.com/(.*)/downloading/\?token=(.*)<br><br>This link`)
-	if err != nil {
-		return "", err
-	}
-	href := exp.FindAllStringSubmatch(string(htmlText), -1)
+	href := exp.FindAllStringSubmatch(message.Text, -1)
 	if href == nil || len(href) == 0 {
 		return "", errors.New("获取token链接为空")
 	}
 	log.Println("token链接：", href)
-	url, err := NetsarangGetUrl(href[0][1], href[0][2])
+	var language string
+	switch href[0][1] {
+	case "en":
+		language = "2"
+	case "ko":
+		language = "1"
+	case "zh":
+		language = "3"
+	case "ru":
+		language = "8"
+	case "pt":
+		language = "9"
+	default:
+		language = "en"
+	}
+	params := map[string]string{
+		"md":       "checkDownload",
+		"token":    href[0][2],
+		"language": language,
+	}
+	url, err := utils.HttpReadBodyJsonMap(http.MethodPost, actionUrl, utils.ContentTypeMFD, params, nil)
 	if err != nil {
 		return "", err
 	}
@@ -170,19 +131,15 @@ func NetsarangGetInfo(mail, product string) (string, error) {
 	// 在s字符串中，把old字符串替换为new字符串，n表示替换的次数，小于0表示全部替换
 	ur := strings.Replace(url["downlink"].(string), ".exe", "r.exe", -1)
 	// 把产品信息存储到变量
-	NetsarangMap[product] = NetsarangInfo{Time: time.Now(), Url: ur}
+	netsarangMap[product] = NetsarangInfo{Time: time.Now(), Url: ur}
 	return ur, nil
 }
 
-// NetsarangSendMail 发送邮件
-func NetsarangSendMail(mail, product string) error {
-	if mail == "" || len(mail) == 0 {
-		return errors.New("邮箱号不能为空！")
-	}
+// netsarangSendMail 发送邮件
+func netsarangSendMail(product string) (string, error) {
 	if product == "" || len(product) == 0 {
-		return errors.New("产品不能为空！")
+		return "", errors.New("产品不能为空！")
 	}
-
 	productName := ""
 	switch strings.ToLower(product) {
 	case "xshell":
@@ -199,97 +156,80 @@ func NetsarangSendMail(mail, product string) error {
 		productName = "xmanager-power-suite-download"
 	}
 	if productName == "" {
-		return errors.New("产品不匹配")
+		return "", errors.New("产品不匹配")
 	}
+	//domain:="netsarang.com"
+	domain := "xshell.com"
 	// 请求并获取发送邮件的表单
 	httpClient := utils.HttpClient{
 		Method:      http.MethodGet,
-		UrlText:     "https://www.netsarang.com/" + productName,
+		UrlText:     "https://www." + domain + "/zh/" + productName,
 		ContentType: utils.ContentTypeMFD,
 		Header:      nil,
 	}
 	body, err := httpClient.ReadBody()
 	if err != nil {
-		return err
+		return "", err
 	}
 	// 解析HTML
 	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(body))
 	if err != nil {
-		return err
+		return "", err
 	}
 	// 找到最后一个form
 	form := doc.Find(`form[novalidate="novalidate"]`).Last()
 	if form.Length() < 1 {
-		return errors.New("没有找到提交表单")
+		return "", errors.New("没有找到提交表单")
 	}
 	// 查找请求数据并构造
-	inputs := form.Find(`input[type="hidden"],input[type="text"],input[type="email"]`)
+	inputs := form.Find(`input`)
 	if inputs.Length() < 1 {
-		return errors.New("没有找到请求数据")
+		return "", errors.New("没有找到请求数据")
+	}
+	//action, bol := doc.Find(`#formAction`).Attr("value")
+	action, bol := form.Find(`input[name="action"]`).Attr("value")
+	if !bol {
+		return "", errors.New("没有找到请求地址")
 	}
 	// 使用make函数创建一个非nil的map，nil map不能赋值
 	data := make(map[string]string)
 	inputs.Each(func(i int, selection *goquery.Selection) {
+		typed, _ := selection.Attr("type")
+		if typed == "submit" {
+			return
+		}
 		name, nbl := selection.Attr("name")
+		if name == "action" {
+			return
+		}
 		value, vbl := selection.Attr("value")
 		if nbl && vbl {
 			data[name] = value
 		}
 	})
 	if data == nil {
-		return errors.New("构造请求数据失败")
+		return "", errors.New("构造请求数据失败")
 	}
-	data["user_name"] = mail
-	data["email"] = mail
+	data["user_name"] = mailAccount.Address()
+	data["email"] = mailAccount.Address()
 	data["productName"] = productName
 	log.Println("构造数据：", data)
 	// 请求发送邮件
 	httpClient = utils.HttpClient{
 		Method:      http.MethodPost,
-		UrlText:     NetsarangJsonUrl,
+		UrlText:     "https://update." + domain + action,
 		ContentType: utils.ContentTypeMFD,
 		Params:      data,
 		Header:      nil,
 	}
 	js, err := httpClient.HttpReadBodyJsonMap()
 	if err != nil {
-		return err
+		return "", err
 	}
 	if js == nil || !js["result"].(bool) || js["errorCounter"].(float64) != 0 {
-		return errors.New("邮箱发送失败！")
+		return "", errors.New("邮箱发送失败！")
 	}
-	return nil
-}
-
-// NetsarangGetUrl 获取下载产品信息
-func NetsarangGetUrl(lang, token string) (map[string]interface{}, error) {
-	if lang == "" || len(lang) == 0 {
-		return nil, errors.New("lang不能为空")
-	}
-	if token == "" || len(token) == 0 {
-		return nil, errors.New("token不能为空")
-	}
-	var language string
-	switch lang {
-	case "en":
-		language = "2"
-	case "ko":
-		language = "1"
-	case "zh":
-		language = "3"
-	case "ru":
-		language = "8"
-	case "pt":
-		language = "9"
-	default:
-		language = "en"
-	}
-	params := map[string]string{
-		"md":       "checkDownload",
-		"token":    token,
-		"language": language,
-	}
-	return utils.HttpReadBodyJsonMap(http.MethodPost, NetsarangJsonUrl, utils.ContentTypeMFD, params, nil)
+	return httpClient.UrlText, nil
 }
 
 // NetsarangDownloadAllDP 通过ChromeDP获取所有链接信息
@@ -316,13 +256,13 @@ func NetsarangDownloadAllDP() {
 	if err != nil {
 		log.Println(err)
 	}
-	log.Println(NetsarangMap)
+	log.Println(netsarangMap)
 }
 
 // GetInfoUrlDP 获取单个产品信息
 func GetInfoUrlDP(product string) (string, error) {
-	info := NetsarangMap[product]
-	if NetsarangMap == nil || info.Url == "" || len(info.Url) == 0 || !utils.DateEqual(time.Now(), info.Time) {
+	info := netsarangMap[product]
+	if netsarangMap == nil || info.Url == "" || len(info.Url) == 0 || !utils.DateEqual(time.Now(), info.Time) {
 		ctx, cancel, mail, err := NetsarangGetMailDP()
 		defer cancel()
 		if err != nil {
@@ -360,7 +300,7 @@ func NetsarangGetInfoDP(ctx context.Context, mail, product string) (string, erro
 	if product == "" || len(product) == 0 {
 		return "", errors.New("product不能为空")
 	}
-	info := NetsarangMap[product]
+	info := netsarangMap[product]
 	// 如果数据不为空，并且日期为今天，这么做是为了避免消耗过多的性能，每天只查询一次
 	if info.Url != "" && len(info.Url) > 1 && utils.DateEqual(time.Now(), info.Time) {
 		return "", nil
@@ -398,7 +338,7 @@ func NetsarangGetInfoDP(ctx context.Context, mail, product string) (string, erro
 	}
 
 	// 把产品信息存储到变量
-	NetsarangMap[product] = NetsarangInfo{Time: time.Now(), Url: url}
+	netsarangMap[product] = NetsarangInfo{Time: time.Now(), Url: url}
 	return url, nil
 }
 

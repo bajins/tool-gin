@@ -2,14 +2,19 @@ package reptile
 
 import (
 	"bytes"
+	"context"
+	"errors"
 	"fmt"
 	"github.com/chromedp/chromedp"
+	mailtmF "github.com/felixstrobel/mailtm"
+	mailtmM "github.com/msuny-c/mailtm"
 	"log"
 	"math/big"
 	"net/http"
 	"net/mail"
 	"strings"
 	"testing"
+	"time"
 	"tool-gin/utils"
 )
 
@@ -81,4 +86,56 @@ func TestGetSecmail(t *testing.T) {
 	m, err := utils.HttpReadBodyJsonMap(http.MethodGet, "?action=readMessage&login=qw7dtxz8gu&domain=1secmail.org&id="+id, "",
 		nil, nil)
 	fmt.Println(m, err)
+}
+
+func TestMailtmM(t *testing.T) {
+	account, err := mailtmM.NewAccount()
+	if err != nil {
+		panic(err)
+	}
+	log.Println(account.Address())
+	log.Println(account.Bearer())
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Second)
+	defer cancel()
+	ch := account.MessagesChan(ctx)
+	//loop: // 定义标签
+	//for { // for select 通常用于持续监听多个通道（channels）
+	select { // select 语句允许 goroutine 等待多个通道操作中的一个完成
+	case msg, ok := <-ch:
+		if ok {
+			log.Println(msg.Text)
+			//break loop // 跳出标签为 loop 的 for 循环
+		}
+	case <-ctx.Done():
+		if err := ctx.Err(); err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				log.Println("超时:", err)
+			}
+			if errors.Is(err, context.Canceled) {
+				log.Println("主动取消:", err)
+			}
+		}
+		//case <-time.After(30 * time.Second): // 总超时 N 秒
+		//	log.Println("总处理超时，强制退出")
+	}
+	//}
+	defer func(account *mailtmM.Account) {
+		err := account.Delete()
+		if err != nil {
+			log.Println(err)
+		}
+	}(account)
+	log.Println("删除成功")
+}
+
+func TestMailtmF(t *testing.T) {
+	client := mailtmF.New()
+	ctx, cancel := context.WithCancel(context.Background())
+	err := client.Authenticate(ctx, "xxxxxxxx", "xxxxxxxx")
+	account, err := client.CreateAccount(ctx, "xxxxxxxx", "xxxxxxxx")
+	fmt.Println(account.ID)
+	if err != nil {
+		fmt.Println(err)
+	}
+	cancel()
 }
