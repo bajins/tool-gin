@@ -21,7 +21,7 @@ func init() {
 
 	go utils.SchedulerFixedTicker(reptile.NetsarangDownloadAll, time.Hour*24)
 
-	go utils.SchedulerFixedTicker(reptile.GetSvpDP, time.Minute*30)
+	go utils.SchedulerFixedTicker(reptile.GetSvpDP, time.Minute*20)
 }
 
 // 运行主体函数

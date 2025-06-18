@@ -259,5 +259,6 @@ func GetSvp(c *gin.Context) {
 			c.String(http.StatusOK, r.(string))
 		}
 	}()
+	log.Println("GetSvp Header：", c.Request.Header)
 	c.String(http.StatusOK, reptile.GetSvpAll())
 }

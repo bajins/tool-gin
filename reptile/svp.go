@@ -1,17 +1,24 @@
 package reptile
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
 	cu "github.com/Davincible/chromedp-undetected"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/cdproto/page"
 	"github.com/chromedp/chromedp"
+	"github.com/go-resty/resty/v2"
+	"github.com/guonaihong/gout"
+	"github.com/levigross/grequests/v2"
 	"log"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"tool-gin/utils"
 )
@@ -20,9 +27,10 @@ var (
 	SvpMap = make([]string, 2)
 )
 
-// getSvp 获取SVP
-func getSvp() string {
-	result, err := utils.HttpReadBodyString(http.MethodGet, "https://raw.githubusercontent.com/abshare/abshare.github.io/main/README.md", "", nil, nil)
+// getSvpGit 获取SVP
+func getSvpGit() string {
+	url := "https://raw.githubusercontent.com/abshare/abshare.github.io/main/README.md"
+	result, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -31,6 +39,10 @@ func getSvp() string {
 	reu := regexp.MustCompile("https?:/+(.*)")
 	matches := re.FindAllString(result, -1)
 	uniqueURLs := make(map[string]bool)
+
+	header := map[string]string{
+		"User-Agent": "v2rayN/7.12.5",
+	}
 
 	var content string
 	for _, match := range matches {
@@ -44,7 +56,7 @@ func getSvp() string {
 			continue
 		}
 		uniqueURLs[str] = true
-		result, err := utils.HttpReadBodyString(http.MethodGet, str, "", nil, nil)
+		result, err := utils.HttpReadBodyString(http.MethodGet, str, "", nil, header)
 		if err != nil {
 			continue
 		}
@@ -63,13 +75,93 @@ func getSvp() string {
 			content += "\n"
 		}
 		content += string(by)
-		log.Println("content:", content)
 	}
+	log.Println("getSvpGit:", len(content))
 	return content
 }
 
 // getSvpDP 获取SVP
 func getSvpDP() string {
+	url := "https://tuijianvpn.com/1044"
+
+	/*
+		硬编码请求
+	*/
+
+	result, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	// 解析HTML
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(result)))
+	if err != nil {
+		panic(err.Error())
+	}
+	// 找到最后一个pre
+	pre := doc.Find(`pre`).Last()
+	if pre.Length() > 0 {
+		return pre.Text()
+	}
+
+	/*
+		模拟浏览器
+	*/
+
+	sess := grequests.NewSession(nil)
+	/*jar, err := cookiejar.New(nil)
+	if err != nil {
+		log.Fatalf("Failed to create cookie jar: %v", err)
+	}
+	sess.HTTPClient.Jar = jar*/
+	resp, err := sess.Get(context.Background(), url, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	//log.Println(resp.String())
+
+	// Step 2: 模拟表单提交评论
+	resp, err = sess.Post(context.Background(),
+		"https://tuijianvpn.com/wp-admin/admin-ajax.php",
+		&grequests.RequestOptions{
+			Data: map[string]string{
+				"action":              "wpdAddComment",
+				"wc_comment":          utils.RandomLower(5),
+				"wc_name":             "csbxdh",
+				"wc_email":            "hskdcbf@gmail.com",
+				"wc_website":          "",
+				"submit":              "发表评论",
+				"wpdiscuz_unique_id":  "0_0",
+				"comment_mail_notify": "comment_mail_notify",
+				"wpd_comment_depth":   "1",
+				"postId":              "1044",
+			},
+		})
+	if err != nil {
+		//fmt.Printf("表单提交失败: %v\n", err)
+		panic(err.Error())
+	}
+
+	// Step 3: 再次 GET 请求获取内容
+	resp, err = sess.Get(context.Background(), url, nil)
+	if err != nil {
+		//fmt.Printf("获取内容失败: %v\n", err)
+		panic(err.Error())
+	}
+	// 解析HTML
+	doc, err = goquery.NewDocumentFromReader(bytes.NewReader(resp.Bytes()))
+	if err != nil {
+		panic(fmt.Sprintf("解析HTML失败: %v", err))
+	}
+	// 找到最后一个pre
+	pre = doc.Find(`pre`).Last()
+	if pre.Length() > 0 {
+		return pre.Text()
+	}
+
+	/*
+		调用浏览器请求
+	*/
+
 	ctx, cancel, err := cu.New(cu.NewConfig(
 		// Remove this if you want to see a browser window.
 		cu.WithHeadless(),
@@ -90,7 +182,6 @@ func getSvpDP() string {
 	//ctx, cancel := reptile.Apply(false)
 	defer cancel()
 
-	url := "https://tuijianvpn.com/1044"
 	// 定义变量，用来保存爬虫的数据
 	var res string
 	/*tags, _ := chromedp.Targets(ctx)
@@ -172,11 +263,132 @@ func getSvpDP() string {
 		// JS更好的获取值，原生CSS selector和XPath不支持匹配到相同标签元素时获取第几个
 		chromedp.Evaluate(`document.querySelectorAll(".su-box-content.su-u-clearfix.su-u-trim pre")[1].innerText`, &res),
 	})
-	log.Println("res:", res)
+	log.Println("getSvpDP:", len(res))
 	return res
 }
 
 func getSvpDP1() string {
+	url := "https://vpnea.com/mfjd.html"
+
+	/*
+		硬编码请求
+	*/
+
+	var cookies []*http.Cookie
+	cookies = append(cookies, &http.Cookie{
+		Name:  "92d9977e3c8736e482bb9e23ef9e1c3b__typecho_remember_author",
+		Value: "csbxdh",
+	})
+	cookies = append(cookies, &http.Cookie{
+		Name:  "92d9977e3c8736e482bb9e23ef9e1c3b__typecho_remember_mail",
+		Value: "hskdcbf%40gmail.com",
+	})
+	s := ""
+	err := gout.GET(url).
+		SetCookies(cookies...).
+		BindBody(&s). //解析响应body内容
+		Do()          // 自动存储 Cookie
+	if err != nil {
+		panic(err.Error())
+	}
+	// 解析HTML
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(s)))
+	if err != nil {
+		panic(err.Error())
+	}
+	// 找到最后一个pre
+	pre := doc.Find(`pre`).Last()
+	if pre.Length() > 0 {
+		return pre.Text()
+	}
+
+	/*
+		模拟浏览器
+	*/
+
+	// 创建 resty 客户端
+	client := resty.New()
+	/*jar, err := cookiejar.New(nil)
+	if err != nil {
+		log.Fatalf("Failed to create cookie jar: %v", err)
+	}
+	client.SetCookieJar(jar)*/
+	client.SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36")
+
+	// 1. 首次 GET 请求（获取 Cookie）
+	firstGetResp, err := client.R().Get(url) // 替换为目标 URL
+	if err != nil {
+		panic(fmt.Sprintf("首次 GET 请求失败: %v", err))
+	}
+	fmt.Printf("首次 GET 响应状态: %d\n", firstGetResp.StatusCode())
+	//fmt.Println("页面内容:", firstGetResp.String())
+
+	// 解析HTML
+	doc, err = goquery.NewDocumentFromReader(bytes.NewReader(firstGetResp.Body()))
+	if err != nil {
+		panic(fmt.Sprintf("解析HTML失败: %v", err))
+	}
+	// 找到最后一个form
+	form := doc.Find(`.joe_comment__respond-form`).Last()
+	if form.Length() == 0 {
+		panic("未找到form")
+	}
+	caction, _ := form.Attr("action")
+	//cdt, _ := form.Attr("data-type")
+	//cdc, _ := form.Attr("data-coid")
+	ckb, _ := form.Find(`input[name='_']`).Last().Attr("value")
+	fmt.Println(caction, ckb)
+
+	// 2. 模拟表单提交（自动携带 Cookie）
+	_, err = client.R().
+		//SetDebug(true).
+		//SetCookies(firstGetResp.Cookies()).
+		SetHeader("referer", url).
+		SetFormData(map[string]string{ // 设置表单数据
+			"author": "csbxdh",
+			"mail":   "hskdcbf@gmail.com",
+			"text":   utils.RandomLower(5),
+			//"parent": cdc,
+			"url": "",
+			"_":   "2ec89e4c7a2e4a09e1a8cfea818253de",
+		}).
+		Post(caction + "?time=" + strconv.FormatInt(time.Now().UnixNano()/1e6, 10)) // 替换为评论提交 URL
+	if err != nil {
+		panic(fmt.Sprintf("提交评论失败: %v", err))
+	}
+	//fmt.Printf("评论提交状态: %d\n", postResp.StatusCode())
+	//fmt.Printf("Cookies: %v\n", postResp.Header().Values("Set-Cookie"))
+
+	/*var cookies []*http.Cookie
+	for _, cookie := range postResp.Cookies() {
+		cookies = append(cookies, &http.Cookie{
+			Name:  cookie.Name,
+			Value: cookie.Value,
+		})
+	}*/
+
+	// 3. 再次 GET 请求验证评论
+	secondGetResp, err := client.R().Get(url) // 同首次 URL
+	if err != nil {
+		panic(fmt.Sprintf("二次 GET 请求失败: %v", err))
+	}
+	//fmt.Printf("二次 GET 响应状态: %d\n", secondGetResp.StatusCode())
+	//fmt.Println("页面内容:", secondGetResp.String())
+	// 解析HTML
+	doc, err = goquery.NewDocumentFromReader(bytes.NewReader(secondGetResp.Body()))
+	if err != nil {
+		panic(fmt.Sprintf("解析HTML失败: %v", err))
+	}
+	// 找到最后一个pre
+	pre = doc.Find(`pre`).Last()
+	if pre.Length() > 0 {
+		return pre.Text()
+	}
+
+	/*
+		调用浏览器请求
+	*/
+
 	ctx, cancel, err := cu.New(cu.NewConfig(
 		// Remove this if you want to see a browser window.
 		cu.WithHeadless(),
@@ -197,7 +409,6 @@ func getSvpDP1() string {
 	//ctx, cancel := reptile.Apply(false)
 	defer cancel()
 
-	url := "https://vpnea.com/mfjd.html"
 	// 定义变量，用来保存爬虫的数据
 	var res string
 	/*tags, _ := chromedp.Targets(ctx)
@@ -248,35 +459,60 @@ func getSvpDP1() string {
 		// JS更好的获取值，原生CSS selector和XPath不支持匹配到相同标签元素时获取第几个
 		chromedp.Evaluate(`document.querySelectorAll(".joe_container code")[1].innerText`, &res),
 	})
-	log.Println("res:", res)
+	log.Println("getSvpDP1:", len(res))
 	return res
 }
 
 func GetSvpDP() {
+	defer func() { // 捕获panic
+		if r := recover(); r != nil {
+			log.Println("Recovered from panic:", r)
+		}
+	}()
 	SvpMap[0] = getSvpDP()
 	SvpMap[1] = getSvpDP1()
 }
 
 // GetSvpAll 获取SVP
 func GetSvpAll() string {
-	/*
-		// 创建 channel 用于接收结果
-		ch1 := make(chan string)
-		ch2 := make(chan string)
-		// 启动协程执行任务
-		go func() {
-			ch1 <- getSvp()
+
+	// 创建 channel 用于接收结果
+	/*ch1 := make(chan string)
+	ch2 := make(chan string)
+	ch3 := make(chan string)
+	// 启动协程执行任务
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("捕获 panic:", r)
+			}
 		}()
-		go func() {
-			ch2 <- getSvpDP()
+		ch1 <- getSvpGit()
+	}()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("捕获 panic:", r)
+			}
 		}()
-		// 等待并收集结果
-		result1 := <-ch1
-		result2 := <-ch2
-		// 合并结果
-		finalResult := result1 + "\n" + result2
-	*/
-	/*var wg sync.WaitGroup
+		ch2 <- getSvpDP()
+	}()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("捕获 panic:", r)
+			}
+		}()
+		ch3 <- getSvpDP1()
+	}()
+	// 等待并收集结果
+	result1 := <-ch1
+	result2 := <-ch2
+	result3 := <-ch3
+	// 合并结果
+	finalResult := result1 + "\n" + result2 + "\n" + result3*/
+
+	var wg sync.WaitGroup
 	results := make([]string, 3)
 	// 启动协程执行任务
 	wg.Add(len(results))
@@ -287,8 +523,8 @@ func GetSvpAll() string {
 			}
 		}()
 		defer wg.Done()
-		results[0] = getSvp()
-		log.Println("getSvp() 结果：", len(results[0]))
+		results[0] = getSvpGit()
+		//log.Println("getSvpGit() 结果：", len(results[0]))
 	}()
 	go func() {
 		defer func() {
@@ -298,7 +534,7 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done()
 		results[1] = getSvpDP()
-		log.Println("getSvpDP() 结果：", len(results[1]))
+		//log.Println("getSvpDP() 结果：", len(results[1]))
 	}()
 	go func() {
 		defer func() {
@@ -308,13 +544,15 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done()
 		results[2] = getSvpDP1()
-		log.Println("getSvpDP1() 结果：", len(results[2]))
+		//log.Println("getSvpDP1() 结果：", len(results[2]))
 	}()
 	// 等待所有协程完成
 	wg.Wait()
 	// 合并结果
-	finalResult := results[0] + "\n" + results[1] + "\n" + results[2]*/
-	res := base64.StdEncoding.EncodeToString([]byte(getSvp() + "\n" + SvpMap[0] + "\n" + SvpMap[1]))
+	finalResult := results[0] + "\n" + results[1] + "\n" + results[2]
+	//finalResult := getSvpGit() + "\n" + SvpMap[0] + "\n" + SvpMap[1]
+	log.Println("finalResult:", strings.Count(finalResult, "\n"))
+	res := base64.StdEncoding.EncodeToString([]byte(finalResult))
 	if res == "" || len(res) == 0 {
 		panic("没有获取到内容")
 	}
