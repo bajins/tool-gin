@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// 请求返回成功
+// SuccessJSON 请求返回成功
 func SuccessJSON(c *gin.Context, msg string, data interface{}) {
 	//var d = &struct {
 	//	code    int
@@ -15,7 +15,7 @@ func SuccessJSON(c *gin.Context, msg string, data interface{}) {
 	c.JSON(http.StatusOK, gin.H{"code": http.StatusOK, "message": msg, "data": data})
 }
 
-// 请求返回错误
+// ErrorJSON 请求返回错误
 func ErrorJSON(c *gin.Context, code int, msg string) {
 	//var d = &struct {
 	//	code    int
@@ -25,7 +25,7 @@ func ErrorJSON(c *gin.Context, code int, msg string) {
 	c.JSON(http.StatusOK, gin.H{"code": code, "message": msg, "data": ""})
 }
 
-// 默认系统错误
+// SystemErrorJSON 默认系统错误
 func SystemErrorJSON(c *gin.Context, code int, msg string) {
 	//var d = &struct {
 	//	code    int

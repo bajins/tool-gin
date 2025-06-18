@@ -24,7 +24,10 @@ const (
 //go:embed static pyutils/*[^.go]
 var local embed.FS
 
+// init函数用于初始化应用程序，将在程序启动时自动执行
 func init() {
+	// 这里调用了CreateTmpFiles函数，目的是在程序运行前创建必要的临时文件目录
+	// 参数"pyutils"指定了创建的临时文件目录的名称
 	CreateTmpFiles("pyutils")
 }
 
@@ -32,6 +35,21 @@ type embedFileSystem struct {
 	http.FileSystem
 }
 
+// Exists 检查给定路径的文件或目录是否存在。
+// 该方法通过尝试打开文件来判断路径是否存在，如果能够成功打开，则认为路径存在。
+// 此方法适用于嵌入式文件系统，允许程序检查资源是否可用。
+// 参数:
+//
+//	prefix: 资源的前缀，用于区分不同的文件系统或资源集。
+//	path: 要检查的文件或目录的路径。
+//
+// 返回值:
+//
+//	bool: 如果文件或目录存在，则返回true；否则返回false。
+//
+// 注意:
+//   - 此方法依赖于e.Open方法来实际检查路径。
+//   - 不存在的路径将返回false，而实际上可能是因为其他原因（如权限问题）导致的打开失败。
 func (e embedFileSystem) Exists(prefix, path string) bool {
 	_, err := e.Open(path)
 	if err != nil {
@@ -52,6 +70,15 @@ func EmbedFolder(fsEmbed embed.FS, targetPath string) static.ServeFileSystem {
 	}
 }
 
+// EmbedDir 返回一个 ServeFileSystem 接口，用于提供目录服务。
+// 该函数通过调用 EmbedFolder 函数，将指定路径的目录嵌入到可执行文件中。
+// 参数:
+//
+//	targetPath - 目标目录的路径，表示要嵌入的目录。
+//
+// 返回值:
+//
+//	static.ServeFileSystem - 一个接口类型，提供了访问嵌入目录中文件和子目录的功能。
 func EmbedDir(targetPath string) static.ServeFileSystem {
 	return EmbedFolder(local, targetPath)
 }

@@ -118,7 +118,6 @@ func GetKey(c *gin.Context) {
 		}
 		SuccessJSON(c, "获取key成功", map[string]string{"key": out})
 	}
-
 }
 
 // ExecuteScriptError 脚本执行错误处理
@@ -221,7 +220,6 @@ func NginxFormatPython(c *gin.Context) {
 	res := make(map[string]string)
 	res["contents"] = out
 	SuccessJSON(c, "请求成功", res)
-
 }
 
 // GetNavicatDownloadUrl 获取navicat下载地址
