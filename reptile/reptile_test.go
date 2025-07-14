@@ -62,7 +62,9 @@ func TestNetsarang(t *testing.T) {
 }
 
 func TestGetSvpGit(t *testing.T) {
-	getSvpGit()
+	//fmt.Println(getSvpGit())
+	//fmt.Println(getSvpDP())
+	fmt.Println(getSvpDP1())
 }
 
 func TestGetSvpDP1(t *testing.T) {

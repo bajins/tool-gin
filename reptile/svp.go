@@ -76,7 +76,6 @@ func getSvpGit() string {
 		}
 		content += string(by)
 	}
-	log.Println("getSvpGit:", len(content))
 	return content
 }
 
@@ -92,17 +91,10 @@ func getSvpDP() string {
 	if err != nil {
 		panic(err.Error())
 	}
-	// 解析HTML
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(result)))
-	if err != nil {
-		panic(err.Error())
+	urls := ParseSvpHtml([]byte(result))
+	if urls != "" {
+		return urls
 	}
-	// 找到最后一个pre
-	pre := doc.Find(`pre`).Last()
-	if pre.Length() > 0 {
-		return pre.Text()
-	}
-
 	/*
 		模拟浏览器
 	*/
@@ -147,15 +139,9 @@ func getSvpDP() string {
 		//fmt.Printf("获取内容失败: %v\n", err)
 		panic(err.Error())
 	}
-	// 解析HTML
-	doc, err = goquery.NewDocumentFromReader(bytes.NewReader(resp.Bytes()))
-	if err != nil {
-		panic(fmt.Sprintf("解析HTML失败: %v", err))
-	}
-	// 找到最后一个pre
-	pre = doc.Find(`pre`).Last()
-	if pre.Length() > 0 {
-		return pre.Text()
+	urls = ParseSvpHtml(resp.Bytes())
+	if urls != "" {
+		return urls
 	}
 
 	/*
@@ -263,7 +249,6 @@ func getSvpDP() string {
 		// JS更好的获取值，原生CSS selector和XPath不支持匹配到相同标签元素时获取第几个
 		chromedp.Evaluate(`document.querySelectorAll(".su-box-content.su-u-clearfix.su-u-trim pre")[1].innerText`, &res),
 	})
-	log.Println("getSvpDP:", len(res))
 	return res
 }
 
@@ -291,15 +276,9 @@ func getSvpDP1() string {
 	if err != nil {
 		panic(err.Error())
 	}
-	// 解析HTML
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader([]byte(s)))
-	if err != nil {
-		panic(err.Error())
-	}
-	// 找到最后一个pre
-	pre := doc.Find(`pre`).Last()
-	if pre.Length() > 0 {
-		return pre.Text()
+	urls := ParseSvpHtml([]byte(s))
+	if urls != "" {
+		return urls
 	}
 
 	/*
@@ -320,11 +299,11 @@ func getSvpDP1() string {
 	if err != nil {
 		panic(fmt.Sprintf("首次 GET 请求失败: %v", err))
 	}
-	fmt.Printf("首次 GET 响应状态: %d\n", firstGetResp.StatusCode())
+	//fmt.Printf("首次 GET 响应状态: %d\n", firstGetResp.StatusCode())
 	//fmt.Println("页面内容:", firstGetResp.String())
 
 	// 解析HTML
-	doc, err = goquery.NewDocumentFromReader(bytes.NewReader(firstGetResp.Body()))
+	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(firstGetResp.Body()))
 	if err != nil {
 		panic(fmt.Sprintf("解析HTML失败: %v", err))
 	}
@@ -374,15 +353,9 @@ func getSvpDP1() string {
 	}
 	//fmt.Printf("二次 GET 响应状态: %d\n", secondGetResp.StatusCode())
 	//fmt.Println("页面内容:", secondGetResp.String())
-	// 解析HTML
-	doc, err = goquery.NewDocumentFromReader(bytes.NewReader(secondGetResp.Body()))
-	if err != nil {
-		panic(fmt.Sprintf("解析HTML失败: %v", err))
-	}
-	// 找到最后一个pre
-	pre = doc.Find(`pre`).Last()
-	if pre.Length() > 0 {
-		return pre.Text()
+	urls = ParseSvpHtml(secondGetResp.Body())
+	if urls != "" {
+		return urls
 	}
 
 	/*
@@ -459,7 +432,6 @@ func getSvpDP1() string {
 		// JS更好的获取值，原生CSS selector和XPath不支持匹配到相同标签元素时获取第几个
 		chromedp.Evaluate(`document.querySelectorAll(".joe_container code")[1].innerText`, &res),
 	})
-	log.Println("getSvpDP1:", len(res))
 	return res
 }
 
@@ -524,7 +496,7 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done()
 		results[0] = getSvpGit()
-		//log.Println("getSvpGit() 结果：", len(results[0]))
+		log.Println("getSvpGit() 结果：", len(results[0]))
 	}()
 	go func() {
 		defer func() {
@@ -534,7 +506,7 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done()
 		results[1] = getSvpDP()
-		//log.Println("getSvpDP() 结果：", len(results[1]))
+		log.Println("getSvpDP() 结果：", len(results[1]))
 	}()
 	go func() {
 		defer func() {
@@ -544,7 +516,7 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done()
 		results[2] = getSvpDP1()
-		//log.Println("getSvpDP1() 结果：", len(results[2]))
+		log.Println("getSvpDP1() 结果：", len(results[2]))
 	}()
 	// 等待所有协程完成
 	wg.Wait()
