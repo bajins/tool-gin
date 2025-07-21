@@ -32,17 +32,17 @@ func main() {
 	// 通过WaitGroup管理两个协程，主协程等待两个子协程退出
 	/*noChan := make(chan int)
 	waiter := &sync.WaitGroup{}
-	waiter.Add(2)
+	waiter.Add(2) // WaitGroup 计数器+2
 	go func(ch chan int, wt *sync.WaitGroup) {
 		data := <-ch
 		log.Println("receive data ", data)
-		wt.Done()
+		wt.Done() // goroutine 结束时，计数器-1
 	}(noChan, waiter)
 
 	go func(ch chan int, wt *sync.WaitGroup) {
 		ch <- 5
 		log.Println("send data ", 5)
-		wt.Done()
+		wt.Done() // goroutine 结束时，计数器-1
 	}(noChan, waiter)
 	waiter.Wait()*/
 

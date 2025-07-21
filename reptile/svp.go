@@ -38,45 +38,71 @@ func getSvpGit() string {
 	re := regexp.MustCompile(`(?:(?:https?|ftp)://)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\[(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:[/?#]\S*)?`)
 	reu := regexp.MustCompile("https?:/+(.*)")
 	matches := re.FindAllString(result, -1)
-	uniqueURLs := make(map[string]bool)
 
-	header := map[string]string{
-		"User-Agent": "v2rayN/7.12.5",
-	}
-
-	var content string
+	// URL 预处理和去重
+	seen := make(map[string]struct{})
+	var urls []string
 	for _, match := range matches {
 		// 去除字符串中的空白字符
 		str := strings.TrimSpace(match)
 		if !reu.MatchString(str) {
 			str = "http://" + str
 		}
-		// 重复的不执行
-		if uniqueURLs[str] {
-			continue
+		// 若字符串未出现过，则添加到结果切片
+		if _, exists := seen[str]; !exists {
+			seen[str] = struct{}{} // 空结构体不占用额外空间
+			urls = append(urls, str)
 		}
-		uniqueURLs[str] = true
-		result, err := utils.HttpReadBodyString(http.MethodGet, str, "", nil, header)
-		if err != nil {
-			continue
-		}
-		// 去除字符串中的空白字符
-		str = strings.TrimSpace(result)
-		// 检查字符串长度是否为 4 的倍数，验证是否为BASE64编码
-		if len(str)%4 != 0 {
-			continue
-		}
-		// 解码字符串，检查是否出错
-		by, err := base64.StdEncoding.DecodeString(str)
-		if err != nil {
-			continue
-		}
-		if content != "" {
-			content += "\n"
-		}
-		content += string(by)
 	}
-	return content
+
+	header := map[string]string{
+		"User-Agent": "v2rayN/7.12.5",
+	}
+
+	// 并发执行：为每个URL启动一个goroutine
+	var wg sync.WaitGroup
+	resultsChan := make(chan string, len(urls))
+
+	for _, urlStr := range urls {
+		wg.Add(1) // WaitGroup 计数器+1
+
+		go func(u string) {
+			defer wg.Done() // goroutine 结束时，计数器-1
+
+			result, err := utils.HttpReadBodyString(http.MethodGet, urlStr, "", nil, header)
+			if err != nil {
+				return
+			}
+			// 去除字符串中的空白字符
+			urlStr = strings.TrimSpace(result)
+			// 检查字符串长度是否为 4 的倍数，验证是否为BASE64编码
+			if len(urlStr)%4 != 0 {
+				return
+			}
+			// 解码字符串，检查是否出错
+			by, err := base64.StdEncoding.DecodeString(urlStr)
+			if err != nil {
+				return
+			}
+			// 将成功的结果发送到 channel
+			resultsChan <- string(by)
+		}(url)
+	}
+	// 等待所有任务完成，然后关闭channel
+	wg.Wait()
+	close(resultsChan)
+
+	// 使用 strings.Builder 来高效地拼接字符串，避免性能损耗
+	var builder strings.Builder
+	for res := range resultsChan {
+		if res != "" {
+			if builder.Len() > 0 {
+				builder.WriteString("\n")
+			}
+			builder.WriteString(res)
+		}
+	}
+	return builder.String()
 }
 
 // getSvpDP 获取SVP
@@ -485,16 +511,18 @@ func GetSvpAll() string {
 	finalResult := result1 + "\n" + result2 + "\n" + result3*/
 
 	var wg sync.WaitGroup
+	// 创建一个带缓冲的channel来收集结果，大小和url数量一致
+	//resultsChan := make(chan string, len(urls))
 	results := make([]string, 3)
 	// 启动协程执行任务
-	wg.Add(len(results))
+	wg.Add(len(results)) // WaitGroup 计数器数量
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
 				log.Println("捕获 panic:", r)
 			}
 		}()
-		defer wg.Done()
+		defer wg.Done() // goroutine 结束时，计数器-1
 		results[0] = getSvpGit()
 		log.Println("getSvpGit() 结果：", len(results[0]))
 	}()
@@ -504,7 +532,7 @@ func GetSvpAll() string {
 				log.Println("捕获 panic:", r)
 			}
 		}()
-		defer wg.Done()
+		defer wg.Done() // goroutine 结束时，计数器-1
 		results[1] = getSvpDP()
 		log.Println("getSvpDP() 结果：", len(results[1]))
 	}()
@@ -514,12 +542,14 @@ func GetSvpAll() string {
 				log.Println("捕获 panic:", r)
 			}
 		}()
-		defer wg.Done()
+		defer wg.Done() // goroutine 结束时，计数器-1
 		results[2] = getSvpDP1()
 		log.Println("getSvpDP1() 结果：", len(results[2]))
 	}()
 	// 等待所有协程完成
 	wg.Wait()
+	// 关闭channel，表示所有结果都已经发送完毕
+	//close(resultsChan)
 	// 合并结果
 	finalResult := results[0] + "\n" + results[1] + "\n" + results[2]
 	//finalResult := getSvpGit() + "\n" + SvpMap[0] + "\n" + SvpMap[1]
