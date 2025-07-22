@@ -38,22 +38,21 @@ func init() {
 	if mailtmMerr != nil {
 		log.Println(mailtmMerr)
 	}
+
+	go utils.SchedulerFixedTicker(func() {
+		for _, app := range netsarangProduct {
+			_, err := NetsarangGetInfo(app)
+			if err != nil {
+				log.Println(err)
+			}
+		}
+		log.Println(netsarangMap)
+	}, time.Hour*24)
 }
 
 type NetsarangInfo struct {
 	Time time.Time
 	Url  string
-}
-
-// NetsarangDownloadAll 获取所有链接信息
-func NetsarangDownloadAll() {
-	for _, app := range netsarangProduct {
-		_, err := NetsarangGetInfo(app)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-	log.Println(netsarangMap)
 }
 
 // NetsarangGetInfo 获取链接信息

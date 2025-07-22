@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"time"
 )
 
@@ -138,18 +139,49 @@ func SchedulerIntervalsTimer(f func(), duration time.Duration) {
 	}
 }
 
+// SchedulerIntervalsTimerContext
+// 创建一个可以被取消的 context
+// ctx, cancel := context.WithCancel(context.Background())
+func SchedulerIntervalsTimerContext(ctx context.Context, f func(), duration time.Duration) {
+	ticker := time.NewTicker(duration)
+	// 在函数退出时，一定要调用 Stop() 来释放资源
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			// 等待一个 tick 到达后，再执行任务
+			// 这样就避免了立即执行，并且保证了任务不会堆积
+			f()
+		case <-ctx.Done():
+			// 如果外部的 context 发出了取消信号，则退出循环
+			return
+		}
+	}
+}
+
 // SchedulerFixedTicker 启动的时候执行一次，固定在每天的某个时间滚动执行
+// 首次执行：函数 f 会在 SchedulerFixedTicker 被调用的一瞬间就执行一次。
+// 第二次执行：会在下一个午夜0点左右执行。
+// 后续执行：从第二次执行开始，每次执行的间隔由传入的 duration 参数决定。
+// 如果 duration = 24 * time.Hour：那么它确实会近似于“每天执行一次”。但由于 timer.Reset 存在微小的漂移，长时间运行后，执行时间可能会偏离午夜0点。
+// 如果 duration = 1 * time.Hour：那么在第二次执行（午夜0点）之后，它会变成每小时执行一次。
+// 如果 duration 是其他值：它就会按该值的间隔执行。
 func SchedulerFixedTicker(f func(), duration time.Duration) {
 	now := time.Now()
 	// 计算下一个时间点
 	next := now.Add(duration)
+	// 设置目标时间为今天的指定时分秒
 	next = time.Date(next.Year(), next.Month(), next.Day(), 0, 0, 0, 0, next.Location())
+	// 如果目标时间已经过去，则设置为明天的这个时间
 	if next.Sub(now) <= 0 {
 		next = next.Add(time.Hour * 24)
 	}
+	// 计算第一次需要等待的时间
 	timer := time.NewTimer(next.Sub(now))
 	for {
 		go f()
+		// 等待定时器触发
 		<-timer.C
 		// Reset 使 ticker 重新开始计时，否则会导致通道堵塞，（本方法返回后再）等待时间段 d 过去后到期。
 		// 如果调用时t还在等待中会返回真；如果 t已经到期或者被停止了会返回假

@@ -151,9 +151,11 @@ func Port() (port string) {
 // 配置gin（路由、中间件）并监听运行
 func run() {
 
-	router := gin.Default()
+	router := NewEngine()
 
-	// 将全局中间件附加到路由器
+	// 将全局中间件附加到路由器，使用中间件处理通用、横切性的关注点
+	// Gin 自带的 panic 恢复中间件
+	router.Use(gin.Recovery())
 	router.Use(FilterNoCache)
 	//router.Use(Cors())
 	//router.Use(Authorize())

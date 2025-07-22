@@ -14,16 +14,16 @@ import (
 )
 
 // WebRoot 首页
-func WebRoot(c *gin.Context) {
+func WebRoot(ctx *Context) {
 	// 301重定向
-	//c.Redirect(http.StatusMovedPermanently, "/static")
+	//ctx.C.Redirect(http.StatusMovedPermanently, "/static")
 	// 返回HTML页面
-	//c.HTML(http.StatusOK, "index.html", nil)
-	c.HTML(http.StatusOK, "index.html", gin.H{})
+	//ctx.C.HTML(http.StatusOK, "index.html", nil)
+	ctx.C.HTML(http.StatusOK, "index.html", gin.H{})
 }
 
 // SystemInfo 获取系统信息
-func SystemInfo(c *gin.Context) {
+func SystemInfo(ctx *Context) {
 	data := make(map[string]interface{}, 0)
 	data["Version"] = utils.ToUpper(runtime.Version())
 	data["cpu"] = runtime.NumCPU()
@@ -41,28 +41,39 @@ func SystemInfo(c *gin.Context) {
 	// 获取当前存在的go协程数
 	data["NumGoroutine"] = runtime.NumGoroutine()
 
-	SuccessJSON(c, "获取系统信息成功", data)
+	ctx.SuccessJSON("获取系统信息成功", data)
+}
+
+// GetKeyInfo 定义了GetKey的 JSON 结构体
+type GetKeyInfo struct {
+	Company string `json:"company" binding:"required"`
+	App     string `json:"app" binding:"required"`
+	Version string `json:"version" binding:"required"`
 }
 
 // GetKey 获取key
-func GetKey(c *gin.Context) {
+func GetKey(ctx *Context) {
 	// GET 获取参数内容，没有则返回空字符串
-	//company := c.Query("company")
+	//company := ctx.C.Query("company")
 	// POST 获取的所有参数内容的类型都是 string
-	company := c.PostForm("company")
+	company := ctx.C.PostForm("company")
 
+	/*var getKeyInfo GetKeyInfo
+	if !ctx.C.BindAndValidate(&getKeyInfo) {
+		return
+	}*/
 	if utils.IsStringEmpty(company) {
-		ErrorJSON(c, 300, "请选择公司")
+		ctx.ErrorJSON(300, "请选择公司")
 		return
 	}
-	app := c.PostForm("app")
+	app := ctx.C.PostForm("app")
 	if utils.IsStringEmpty(app) {
-		ErrorJSON(c, 300, "请选择产品")
+		ctx.ErrorJSON(300, "请选择产品")
 		return
 	}
-	version := c.PostForm("version")
+	version := ctx.C.PostForm("version")
 	if utils.IsStringEmpty(version) {
-		ErrorJSON(c, 300, "请选择版本")
+		ctx.ErrorJSON(300, "请选择版本")
 		return
 	}
 	dir := TempDirPath + string(filepath.Separator)
@@ -85,38 +96,38 @@ func GetKey(c *gin.Context) {
 		ExecuteScriptError(err)
 		if err != nil {
 			log.Println(err)
-			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			ctx.ErrorJSON(http.StatusInternalServerError, "系统错误！")
 			return
 		}
-		SuccessJSON(c, "获取key成功", map[string]string{"key": out})
+		ctx.SuccessJSON("获取key成功", map[string]string{"key": out})
 
 	} else if company == "mobatek" {
 		curr, err := utils.OsPath()
 		if err != nil {
-			SystemErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			ctx.SystemErrorJSON(ERROR, "系统错误！")
 			return
 		}
 		_, err = utils.ExecutePython(dir+"moba_xterm_Keygen.py", curr, version)
 		ExecuteScriptError(err)
 		if err != nil {
-			SystemErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			ctx.SystemErrorJSON(ERROR, "系统错误！")
 			return
 		}
-		c.Header("Content-Type", "application/octet-stream")
-		c.Header("Content-Disposition", "attachment; filename=\"Custom.mxtpro\"")
-		//c.Writer.Header().Set("Content-Type", "application/octet-stream")
-		//c.Writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
+		ctx.C.Header("Content-Type", "application/octet-stream")
+		ctx.C.Header("Content-Disposition", "attachment; filename=\"Custom.mxtpro\"")
+		//ctx.C.Writer.Header().Set("Content-Type", "application/octet-stream")
+		//ctx.C.Writer.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", "Custom.mxtpro"))
 
-		c.FileAttachment(filepath.Join(curr, "Custom.mxtpro"), "Custom.mxtpro")
+		ctx.C.FileAttachment(filepath.Join(curr, "Custom.mxtpro"), "Custom.mxtpro")
 
 	} else if company == "torchsoft" {
 		out, err := utils.ExecutePython(dir+"reg_workshop_keygen.py", version)
 		ExecuteScriptError(err)
 		if err != nil {
-			ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+			ctx.ErrorJSON(http.StatusInternalServerError, "系统错误！")
 			return
 		}
-		SuccessJSON(c, "获取key成功", map[string]string{"key": out})
+		ctx.SuccessJSON("获取key成功", map[string]string{"key": out})
 	}
 }
 
@@ -133,9 +144,9 @@ func ExecuteScriptError(err error) {
 }
 
 // Upload 文件上传请求
-func Upload(c *gin.Context) {
+func Upload(ctx *Context) {
 	// 拿到上传的文件的信息
-	file, header, err := c.Request.FormFile("upload")
+	file, header, err := ctx.C.Request.FormFile("upload")
 	filename := header.Filename
 	log.Println(header.Filename)
 	out, err := os.Create("./tmp/" + filename + ".png")
@@ -156,10 +167,10 @@ func Upload(c *gin.Context) {
 }
 
 // Download 文件下载请求
-func Download(c *gin.Context) {
-	response, err := http.Get(c.Request.Host + "/static/public/favicon.ico")
+func Download(ctx *Context) {
+	response, err := http.Get(ctx.C.Request.Host + "/static/public/favicon.ico")
 	if err != nil || response.StatusCode != http.StatusOK {
-		c.Status(http.StatusServiceUnavailable)
+		ctx.C.Status(http.StatusServiceUnavailable)
 		return
 	}
 
@@ -167,70 +178,70 @@ func Download(c *gin.Context) {
 		"Content-Disposition": `attachment; filename="favicon.ico"`,
 	}
 
-	c.DataFromReader(http.StatusOK, response.ContentLength, response.Header.Get("Content-Type"), response.Body, extraHeaders)
+	ctx.C.DataFromReader(http.StatusOK, response.ContentLength, response.Header.Get("Content-Type"), response.Body, extraHeaders)
 }
 
 // GetNetSarangDownloadUrl 获取NetSarang下载url
-func GetNetSarangDownloadUrl(c *gin.Context) {
+func GetNetSarangDownloadUrl(ctx *Context) {
 	// POST 获取的所有参数内容的类型都是 string
-	app := c.PostForm("app")
+	app := ctx.C.PostForm("app")
 	if utils.IsStringEmpty(app) {
-		ErrorJSON(c, 300, "请选择产品")
+		ctx.ErrorJSON(300, "请选择产品")
 		return
 	}
-	version := c.PostForm("version")
+	version := ctx.C.PostForm("version")
 	if utils.IsStringEmpty(version) {
-		ErrorJSON(c, 300, "请选择版本")
+		ctx.ErrorJSON(300, "请选择版本")
 		return
 	}
 	url, err := reptile.NetsarangGetInfo(app)
 	if err != nil {
-		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		ctx.ErrorJSON(http.StatusInternalServerError, "系统错误！")
 		return
 	}
-	SuccessJSON(c, "获取"+app+"成功", map[string]string{"url": url})
+	ctx.SuccessJSON("获取"+app+"成功", map[string]string{"url": url})
 }
 
 // NginxFormatIndex NGINX格式化代码页面
-func NginxFormatIndex(c *gin.Context) {
+func NginxFormatIndex(ctx *Context) {
 	// 301重定向
-	//c.Redirect(http.StatusMovedPermanently, "/static")
+	//ctx.C.Redirect(http.StatusMovedPermanently, "/static")
 	// 返回HTML页面
-	//c.HTML(http.StatusOK, "index.html", nil)
-	c.HTML(http.StatusOK, "nginx-format.html", gin.H{})
+	//ctx.C.HTML(http.StatusOK, "index.html", nil)
+	ctx.C.HTML(http.StatusOK, "nginx-format.html", gin.H{})
 }
 
 // NginxFormatPython 格式化nginx配置代码
-func NginxFormatPython(c *gin.Context) {
+func NginxFormatPython(ctx *Context) {
 	// GET 获取参数内容，没有则返回空字符串
-	//code := c.Query("code")
+	//code := ctx.C.Query("code")
 	// POST 获取的所有参数内容的类型都是 string
-	code := c.PostForm("code")
+	code := ctx.C.PostForm("code")
 
 	if utils.IsStringEmpty(code) {
-		ErrorJSON(c, 300, "请输入配置代码")
+		ctx.ErrorJSON(300, "请输入配置代码")
 		return
 	}
 	out, err := utils.ExecutePython(TempDirPath+string(filepath.Separator)+"nginxfmt.py", code)
 	if err != nil {
 		log.Println(err)
-		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		ctx.ErrorJSON(http.StatusInternalServerError, "系统错误！")
 		return
 	}
 	res := make(map[string]string)
 	res["contents"] = out
-	SuccessJSON(c, "请求成功", res)
+	ctx.SuccessJSON("请求成功", res)
 }
 
 // GetNavicatDownloadUrl 获取navicat下载地址
-func GetNavicatDownloadUrl(c *gin.Context) {
-	location, isExist := c.GetQuery("location")
+func GetNavicatDownloadUrl(ctx *Context) {
+	location, isExist := ctx.C.GetQuery("location")
 	if location == "" || !isExist {
-		location = c.DefaultPostForm("location", "1")
+		location = ctx.C.DefaultPostForm("location", "1")
 	}
-	product, isExist := c.GetQuery("product")
+	product, isExist := ctx.C.GetQuery("product")
 	if product == "" || !isExist {
-		product = c.DefaultPostForm("product", "navicat_premium_cs_x64.exe")
+		product = ctx.C.DefaultPostForm("product", "navicat_premium_cs_x64.exe")
 	}
 
 	// POST 获取的所有参数内容的类型都是 string
@@ -244,19 +255,38 @@ func GetNavicatDownloadUrl(c *gin.Context) {
 	result, err := utils.HttpReadBodyJsonMap(http.MethodPost, url, utils.ContentTypeAXWFU, params, nil)
 
 	if result == nil || err != nil {
-		ErrorJSON(c, http.StatusInternalServerError, "系统错误！")
+		ctx.ErrorJSON(http.StatusInternalServerError, "系统错误！")
 		return
 	}
-	SuccessJSON(c, "获取下载地址成功", map[string]string{"url": result["download_link"].(string)})
+	ctx.SuccessJSON("获取下载地址成功", map[string]string{"url": result["download_link"].(string)})
 }
 
-func GetSvp(c *gin.Context) {
+func GetSvp(ctx *Context) {
 	defer func() { // 捕获panic
 		if r := recover(); r != nil {
 			log.Println("Recovered from panic:", r)
-			c.String(http.StatusOK, r.(string))
+			ctx.C.String(http.StatusOK, r.(string))
 		}
 	}()
-	log.Println("GetSvp Header：", c.Request.Header)
-	c.String(http.StatusOK, reptile.GetSvpAll())
+	//log.Println("GetSvp Header：", ctx.C.Request.Header)
+	ctx.C.String(http.StatusOK, reptile.GetSvpAllHandler(getClientIP(ctx.C.Request)))
+}
+
+// getClientIP 尝试从请求中获取真实的客户端IP
+func getClientIP(r *http.Request) string {
+	// 检查 X-Forwarded-For 头，这是代理服务器常用的方式
+	ip := r.Header.Get("X-Forwarded-For")
+	if ip != "" {
+		// X-Forwarded-For 可能包含多个IP，取第一个
+		return strings.Split(ip, ",")[0]
+	}
+	// 检查 X-Real-IP 头
+	ip = r.Header.Get("X-Real-IP")
+	if ip != "" {
+		return ip
+	}
+	// 如果都没有，则使用 RemoteAddr
+	// RemoteAddr 格式为 "IP:port"，我们需要去掉端口
+	ip, _, _ = strings.Cut(r.RemoteAddr, ":")
+	return ip
 }

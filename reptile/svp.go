@@ -19,13 +19,53 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 	"tool-gin/utils"
 )
 
+type RequestCounter struct {
+	count  int
+	expiry time.Time
+}
+
 var (
-	SvpMap = make([]string, 2)
+	svpCache atomic.Value // 存储预热的缓存数据
+	//ipTracker map[string]struct{} // 使用空结构体节省内存
+	//ipMutex   sync.Mutex          // 用于保护ipTracker的互斥锁
+
+	counter    = make(map[string]RequestCounter) // 创建一个计数器切片
+	cacheMutex sync.RWMutex                      // 用于保护缓存的读写锁
+	//cacheOnce sync.Map // map[string]*sync.Once
 )
+
+const expiryDuration = 3 * time.Minute
+
+func init() {
+
+	go utils.SchedulerIntervalsTimer(func() {
+		defer func() { // 捕获panic
+			if r := recover(); r != nil {
+				log.Println("Recovered from panic:", r)
+			}
+		}()
+		getSvpAll()
+	}, time.Minute*20)
+
+	go utils.SchedulerIntervalsTimer(func() { // 遍历并删除所有过期的条目
+		// 加写锁，因为我们要删除 map 中的元素
+		cacheMutex.Lock()
+		defer cacheMutex.Unlock()
+
+		now := time.Now()
+		for key, rc := range counter {
+			// time.Now().After(rc.expiry) 检查当前时间是否晚于记录的过期时间
+			if now.After(rc.expiry) {
+				delete(counter, key)
+			}
+		}
+	}, 30*time.Second)
+}
 
 // getSvpGit 获取SVP
 func getSvpGit() string {
@@ -461,18 +501,8 @@ func getSvpDP1() string {
 	return res
 }
 
-func GetSvpDP() {
-	defer func() { // 捕获panic
-		if r := recover(); r != nil {
-			log.Println("Recovered from panic:", r)
-		}
-	}()
-	SvpMap[0] = getSvpDP()
-	SvpMap[1] = getSvpDP1()
-}
-
-// GetSvpAll 获取SVP
-func GetSvpAll() string {
+// getSvpAll 获取SVP
+func getSvpAll() string {
 
 	// 创建 channel 用于接收结果
 	/*ch1 := make(chan string)
@@ -524,7 +554,7 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done() // goroutine 结束时，计数器-1
 		results[0] = getSvpGit()
-		log.Println("getSvpGit() 结果：", len(results[0]))
+		log.Println("getSvpGit() 结果：", strings.Count(results[0], "\n"))
 	}()
 	go func() {
 		defer func() {
@@ -534,7 +564,7 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done() // goroutine 结束时，计数器-1
 		results[1] = getSvpDP()
-		log.Println("getSvpDP() 结果：", len(results[1]))
+		log.Println("getSvpDP() 结果：", strings.Count(results[1], "\n"))
 	}()
 	go func() {
 		defer func() {
@@ -544,7 +574,7 @@ func GetSvpAll() string {
 		}()
 		defer wg.Done() // goroutine 结束时，计数器-1
 		results[2] = getSvpDP1()
-		log.Println("getSvpDP1() 结果：", len(results[2]))
+		log.Println("getSvpDP1() 结果：", strings.Count(results[2], "\n"))
 	}()
 	// 等待所有协程完成
 	wg.Wait()
@@ -552,11 +582,52 @@ func GetSvpAll() string {
 	//close(resultsChan)
 	// 合并结果
 	finalResult := results[0] + "\n" + results[1] + "\n" + results[2]
-	//finalResult := getSvpGit() + "\n" + SvpMap[0] + "\n" + SvpMap[1]
-	log.Println("finalResult:", strings.Count(finalResult, "\n"))
-	res := base64.StdEncoding.EncodeToString([]byte(finalResult))
-	if res == "" || len(res) == 0 {
+
+	if finalResult == "" || len(finalResult) == 0 {
 		panic("没有获取到内容")
 	}
+	res := base64.StdEncoding.EncodeToString([]byte(finalResult))
+	go func() {
+		svpCache.Store(res)
+	}()
 	return res
+}
+
+func GetSvpAllHandler(clientIP string) string {
+	now := time.Now()
+
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
+	counterEntry, exists := counter[clientIP]
+
+	// 清理过期的计数（比如超过 3 分钟不请求就重置）
+	if exists && now.After(counterEntry.expiry) {
+		delete(counter, clientIP)
+		exists = false
+	}
+	var finalResult string
+	if !exists {
+		// 第一次请求
+		counter[clientIP] = RequestCounter{count: 1, expiry: now.Add(expiryDuration)}
+		finalResult = svpCache.Load().(string)
+	} else {
+		// 第二次请求
+		finalResult = getSvpAll()
+		// 处理完后重置，下次再访问又是“第一次”
+		delete(counter, clientIP)
+	}
+
+	// 第一次访问：检查缓存
+	/*if val, ok := cache.Load(clientIP); ok {
+		return val, nil
+	}*/
+
+	// 首次加载：确保只执行一次
+	/*once, _ := cacheOnce.LoadOrStore(clientIP, &sync.Once{})
+	once.(*sync.Once).Do(func() {
+		cache.Store(clientIP, getSvpAll())
+	})*/
+
+	return finalResult
 }

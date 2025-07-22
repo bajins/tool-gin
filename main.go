@@ -6,22 +6,33 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
-	"tool-gin/reptile"
-	"tool-gin/utils"
 )
 
 // 初始化函数
 func init() {
-	// 设置日志初始化参数
+	// --- 设置日志初始化参数 开启文件名和行号显示 ---
+	// 使用 | (位或运算符) 来组合多个标志
+	// log.LstdFlags 包含了日期和时间 (log.Ldate | log.Ltime)
 	// log.Lshortfile 简要文件路径，log.Llongfile 完整文件路径
 	log.SetFlags(log.Lshortfile | log.LstdFlags)
+
+	// github.com/sirupsen/logrus
+	// 报告调用者的信息
+	//log.SetReportCaller(true)
+	// 自定义格式化器
+	/*log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+		// 让文件和行号信息更突出
+		CallerPrettyfier: func(f *log.Frame) (string, string) {
+			return "",
+				// f.Function,  // 这里可以返回函数名
+				// 格式化为 file:line
+				fmt.Sprintf(" <%s:%d>", f.File, f.Line)
+		},
+	})*/
+
 	// 设置项目为发布环境
 	//gin.SetMode(gin.ReleaseMode)
-
-	go utils.SchedulerFixedTicker(reptile.NetsarangDownloadAll, time.Hour*24)
-
-	go utils.SchedulerFixedTicker(reptile.GetSvpDP, time.Minute*20)
 }
 
 // 运行主体函数
