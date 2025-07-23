@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	cu "github.com/Davincible/chromedp-undetected"
 	"github.com/PuerkitoBio/goquery"
@@ -13,6 +15,7 @@ import (
 	"github.com/go-resty/resty/v2"
 	"github.com/guonaihong/gout"
 	"github.com/levigross/grequests/v2"
+	"github.com/parnurzeal/gorequest"
 	"log"
 	"net/http"
 	"regexp"
@@ -30,6 +33,10 @@ type RequestCounter struct {
 }
 
 var (
+	urlRegex     = regexp.MustCompile(`(?:(?:https?|ftp)://)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\[(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:[/?#]\S*)?`)
+	httpsRegex   = regexp.MustCompile("https?:/+(.*)")
+	detailsRegex = regexp.MustCompile("(?s)<details>(.*?)</details>")
+
 	svpCache atomic.Value // 存储预热的缓存数据
 	//ipTracker map[string]struct{} // 使用空结构体节省内存
 	//ipMutex   sync.Mutex          // 用于保护ipTracker的互斥锁
@@ -39,7 +46,9 @@ var (
 	//cacheOnce sync.Map // map[string]*sync.Once
 )
 
-const expiryDuration = 3 * time.Minute
+const (
+	expiryDuration = 3 * time.Minute
+)
 
 func init() {
 
@@ -75,9 +84,7 @@ func getSvpGit() string {
 		panic(err.Error())
 	}
 	// 匹配url
-	re := regexp.MustCompile(`(?:(?:https?|ftp)://)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\[(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:[/?#]\S*)?`)
-	reu := regexp.MustCompile("https?:/+(.*)")
-	matches := re.FindAllString(result, -1)
+	matches := urlRegex.FindAllString(result, -1)
 
 	// URL 预处理和去重
 	seen := make(map[string]struct{})
@@ -85,7 +92,7 @@ func getSvpGit() string {
 	for _, match := range matches {
 		// 去除字符串中的空白字符
 		str := strings.TrimSpace(match)
-		if !reu.MatchString(str) {
+		if !httpsRegex.MatchString(str) {
 			str = "http://" + str
 		}
 		// 若字符串未出现过，则添加到结果切片
@@ -501,13 +508,92 @@ func getSvpDP1() string {
 	return res
 }
 
-// getSvpAll 获取SVP
-func getSvpAll() string {
+// 获取 SVP
+// url 链接
+// base64Key 密钥
+func getSvpYse(url string, base64Key string) string {
+	// 准备密钥
+	key, err := base64.StdEncoding.DecodeString(base64Key)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("密钥 Base64 解码失败:%s", err)))
+	}
+	// 发起 HTTP GET 请求
+	request := gorequest.New()
+	/*jar, err := cookiejar.New(nil)
+	if err != nil {
+		log.Fatalf("Failed to create cookie jar: %v", err)
+	}
+	request.Client.Jar = jar*/
+
+	// 生成 cf-verify 请求头
+	// 获取当前时间戳（毫秒）并转为字符串
+	timestampStr := strconv.FormatInt(time.Now().UnixMilli(), 10)
+
+	// 对时间戳字符串进行 AES 加密
+	encryptedTimestamp, err := utils.EncryptAESECB([]byte(timestampStr), key)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("加密时间戳失败:%s", err)))
+	}
+	// 将加密结果进行 Base64 编码，得到最终的 header 值
+	cfVerifyValue := base64.StdEncoding.EncodeToString(encryptedTimestamp)
+
+	_, base64Ciphertext, errs := request.Get(url).
+		Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36").
+		Set("Accept", "*/*").
+		Set("origin", "https://v2rayse.com").
+		Set("referer", "https://v2rayse.com/").
+		Set("cf-verify", cfVerifyValue).
+		//Type("json").
+		End()
+	if errs != nil {
+		panic(errors.New(fmt.Sprintf("HTTP GET 请求失败:%s", errs)))
+	}
+	//fmt.Println("HTTP GET 响应状态:", resp.StatusCode)
+
+	// Base64 解码密文
+	ciphertext, err := base64.StdEncoding.DecodeString(base64Ciphertext)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("密文 Base64 解码失败:%s", err)))
+	}
+
+	// 执行解密 (AES/ECB/PKCS7)
+	decryptedPadded, err := utils.DecryptAESECB(ciphertext, key)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("AES 解密失败:%s", err)))
+	}
+
+	// 移除 PKCS#7 填充
+	decrypted, err := utils.Pkcs7Unpad(decryptedPadded)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("移除 PKCS7 填充失败:%s", err)))
+	}
+
+	var data map[string]interface{}
+	err = json.Unmarshal(decrypted, &data)
+	if err != nil {
+		panic(errors.New(fmt.Sprintf("反序列化 JSON 失败:%s", err)))
+	}
+	// 使用 strings.Builder 来高效地拼接字符串，避免性能损耗
+	var builder strings.Builder
+	for _, val := range data["proxies"].([]interface{}) {
+		share := val.(map[string]interface{})["share"].(string)
+		if share != "" {
+			if builder.Len() > 0 {
+				builder.WriteString("\n")
+			}
+			builder.WriteString(share)
+		}
+	}
+	return builder.String()
+}
+
+func getSvpYseAll() string {
+	// 密钥 (Base64)
+	base64Key := "plr4EY25bk1HbC6a+W76TQ=="
 
 	// 创建 channel 用于接收结果
-	/*ch1 := make(chan string)
+	ch1 := make(chan string)
 	ch2 := make(chan string)
-	ch3 := make(chan string)
 	// 启动协程执行任务
 	go func() {
 		defer func() {
@@ -515,7 +601,9 @@ func getSvpAll() string {
 				log.Println("捕获 panic:", r)
 			}
 		}()
-		ch1 <- getSvpGit()
+		url := "https://api.v2rayse.com/api/live"
+		ch1 <- getSvpYse(url, base64Key)
+		close(ch1)
 	}()
 	go func() {
 		defer func() {
@@ -523,23 +611,28 @@ func getSvpAll() string {
 				log.Println("捕获 panic:", r)
 			}
 		}()
-		ch2 <- getSvpDP()
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("捕获 panic:", r)
-			}
-		}()
-		ch3 <- getSvpDP1()
+		url := "https://api.v2rayse.com/api/live"
+		ch2 <- getSvpYse(url, base64Key)
+		close(ch2)
 	}()
 	// 等待并收集结果
-	result1 := <-ch1
-	result2 := <-ch2
-	result3 := <-ch3
-	// 合并结果
-	finalResult := result1 + "\n" + result2 + "\n" + result3*/
+	return <-ch1 + "\n" + <-ch2
+}
 
+func getSvpGitAgg() string {
+	// https://github.com/mahdibland/V2RayAggregator/tree/master/sub/splitted
+	url := "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/README.md"
+	result, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	// 匹配url
+	matches := detailsRegex.FindStringSubmatch(result)
+	return matches[1]
+}
+
+// getSvpAll 获取SVP
+func getSvpAll() string {
 	var wg sync.WaitGroup
 	// 创建一个带缓冲的channel来收集结果，大小和url数量一致
 	//resultsChan := make(chan string, len(urls))
@@ -581,11 +674,12 @@ func getSvpAll() string {
 	// 关闭channel，表示所有结果都已经发送完毕
 	//close(resultsChan)
 	// 合并结果
-	finalResult := results[0] + "\n" + results[1] + "\n" + results[2]
+	finalResult := results[0] + "\n" + results[1] + "\n" + results[2] + "\n" + getSvpYseAll()
 
 	if finalResult == "" || len(finalResult) == 0 {
 		panic("没有获取到内容")
 	}
+	finalResult = utils.RemoveDuplicateLines(finalResult)
 	res := base64.StdEncoding.EncodeToString([]byte(finalResult))
 	go func() {
 		svpCache.Store(res)

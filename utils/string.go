@@ -417,3 +417,99 @@ func RandomMixed(n int) string {
 	}
 	return string(b)
 }
+
+// RemoveDuplicateLines 删除重复行
+func RemoveDuplicateLines(text string) string {
+	lines := strings.Split(text, "\n")
+	seen := make(map[string]bool)
+	var result []string
+
+	for _, line := range lines {
+		if line != "" && !seen[line] {
+			seen[line] = true
+			result = append(result, line)
+		}
+	}
+	return strings.Join(result, "\n")
+}
+
+// RemoveDuplicateLinesKeepEmpty 删除重复行并保留空行
+func RemoveDuplicateLinesKeepEmpty(text string) string {
+	lines := strings.Split(text, "\n")
+	seen := make(map[string]bool)
+	var result []string
+
+	for _, line := range lines {
+		if !seen[line] {
+			seen[line] = true
+			result = append(result, line)
+		}
+	}
+	return strings.Join(result, "\n")
+}
+
+// RemoveDuplicateLinesOrdered 删除重复行并使用结构体保持插入顺序（更严格的顺序保证）
+func RemoveDuplicateLinesOrdered(text string) string {
+	lines := strings.Split(text, "\n")
+	seen := make(map[string]struct{})
+	var result []string
+
+	for _, line := range lines {
+		if line != "" {
+			if _, exists := seen[line]; !exists {
+				seen[line] = struct{}{}
+				result = append(result, line)
+			}
+		} else {
+			// 保留空行
+			result = append(result, line)
+		}
+	}
+	return strings.Join(result, "\n")
+}
+
+// RemoveDuplicateLinesUniversal 删除重复行并使用通用方法，处理 Windows 和 Unix 换行符
+func RemoveDuplicateLinesUniversal(text string) string {
+	// 使用正则表达式分割，支持不同的换行符
+	lines := regexp.MustCompile(`\r?\n`).Split(text, -1)
+	seen := make(map[string]bool)
+	var result []string
+
+	for _, line := range lines {
+		if line != "" && !seen[line] {
+			seen[line] = true
+			result = append(result, line)
+		}
+	}
+	// 使用 \n 作为连接符
+	return strings.Join(result, "\n")
+}
+
+// RemoveDuplicateLinesIgnoreCase 删除重复行并忽略大小写
+func RemoveDuplicateLinesIgnoreCase(text string) string {
+	lines := strings.Split(text, "\n")
+	seen := make(map[string]bool)
+	var result []string
+
+	for _, line := range lines {
+		lowerLine := strings.ToLower(line)
+		if line != "" && !seen[lowerLine] {
+			seen[lowerLine] = true
+			result = append(result, line)
+		}
+	}
+	return strings.Join(result, "\n")
+}
+
+// ExtractContent 提取正则()内的内容（不包括()前后内容）
+func ExtractContent(rex *regexp.Regexp, text string) []string {
+	matches := rex.FindAllStringSubmatch(text, -1)
+	var contents []string
+
+	for _, match := range matches {
+		if len(match) > 1 {
+			contents = append(contents, match[1])
+		}
+	}
+	return contents
+}
