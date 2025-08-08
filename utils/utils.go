@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
-	"github.com/axgle/mahonia"
 	"log"
 	"reflect"
 	"runtime"
 	"strings"
+
+	"github.com/axgle/mahonia"
 )
 
 // ParseBool 返回字符串表示的布尔值。

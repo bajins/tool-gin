@@ -3,14 +3,15 @@ package main
 import (
 	"embed"
 	"flag"
-	"github.com/gin-contrib/static"
-	"github.com/gin-gonic/gin"
 	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
 	"strings"
 	"tool-gin/utils"
+
+	"github.com/gin-contrib/static"
+	"github.com/gin-gonic/gin"
 )
 
 // 常量

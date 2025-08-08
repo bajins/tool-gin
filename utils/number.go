@@ -8,14 +8,14 @@ import (
 	"time"
 )
 
-// 截取小数位数
+// FloatRound 截取小数位数
 func FloatRound(f float64, n int) float64 {
 	format := "%." + strconv.Itoa(n) + "f"
 	res, _ := strconv.ParseFloat(fmt.Sprintf(format, f), 64)
 	return res
 }
 
-// 将任何数值转换为int64
+// ToInt64 将任何数值转换为int64
 func ToInt64(value interface{}) (d int64, err error) {
 	val := reflect.ValueOf(value)
 	switch value.(type) {
@@ -30,7 +30,7 @@ func ToInt64(value interface{}) (d int64, err error) {
 	return
 }
 
-// 生成随机数
+// RandIntn 生成随机数
 //
 // 首先要初始化随机种子，不然每次生成都是（指每次重新开始）相同的数
 // 系统每次都会先用Seed函数初始化系统资源，如果用户不提供seed参数，则默认用seed=1来初始化，这就是为什么每次都输出一样的值的原因

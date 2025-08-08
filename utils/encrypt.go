@@ -10,6 +10,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+
 	"golang.org/x/crypto/scrypt"
 )
 

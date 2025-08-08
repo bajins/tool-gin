@@ -13,13 +13,14 @@ package reptile
 
 import (
 	"fmt"
-	"github.com/chromedp/cdproto/target"
-	"github.com/chromedp/chromedp"
 	"log"
 	"regexp"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/chromedp/cdproto/target"
+	"github.com/chromedp/chromedp"
 )
 
 func TestApply(t *testing.T) {

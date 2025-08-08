@@ -5,6 +5,7 @@ import (
 	"reflect"
 )
 
+// StructToMapByReflect 结构体转map
 func StructToMapByReflect(s interface{}) map[string]interface{} {
 	elem := reflect.ValueOf(&s).Elem()
 	type_ := elem.Type()
@@ -17,6 +18,7 @@ func StructToMapByReflect(s interface{}) map[string]interface{} {
 	return map_
 }
 
+// StructToMapByJson 结构体转map
 func StructToMapByJson(s interface{}) map[string]interface{} {
 	m := make(map[string]interface{})
 	// 对象转换为JSON

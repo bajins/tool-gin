@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +10,8 @@ import (
 	"strings"
 	"tool-gin/reptile"
 	"tool-gin/utils"
+
+	"github.com/gin-gonic/gin"
 )
 
 // WebRoot 首页

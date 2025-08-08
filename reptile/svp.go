@@ -611,7 +611,7 @@ func getSvpYseAll() string {
 				log.Println("捕获 panic:", r)
 			}
 		}()
-		url := "https://api.v2rayse.com/api/live"
+		url := "https://api.v2rayse.com/api/batch"
 		ch2 <- getSvpYse(url, base64Key)
 		close(ch2)
 	}()

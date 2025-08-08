@@ -16,16 +16,17 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/cdproto/target"
-	"github.com/chromedp/chromedp"
-	mailtmM "github.com/msuny-c/mailtm"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
 	"time"
 	"tool-gin/utils"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/cdproto/target"
+	"github.com/chromedp/chromedp"
+	mailtmM "github.com/msuny-c/mailtm"
 )
 
 var (

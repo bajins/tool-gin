@@ -5,9 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/chromedp/chromedp"
-	mailtmF "github.com/felixstrobel/mailtm"
-	mailtmM "github.com/msuny-c/mailtm"
 	"log"
 	"math/big"
 	"net/http"
@@ -16,6 +13,10 @@ import (
 	"testing"
 	"time"
 	"tool-gin/utils"
+
+	"github.com/chromedp/chromedp"
+	mailtmF "github.com/felixstrobel/mailtm"
+	mailtmM "github.com/msuny-c/mailtm"
 )
 
 // https://pkg.go.dev/net/mail#ReadMessage

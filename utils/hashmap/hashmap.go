@@ -27,7 +27,7 @@ func CreateHashMap() *HashMap {
 	return hm
 }
 
-//获取key的hash
+// 获取key的hash
 func getHash(k int) int {
 	return k % nowCapacity
 }
@@ -36,7 +36,7 @@ func (hm *HashMap) GetSize() int {
 	return hm.size
 }
 
-//由key在hashMap中找到其Entry指针
+// GetEntry 由key在hashMap中找到其Entry指针
 func (hm *HashMap) GetEntry(k int) (*Entry, bool) {
 	p := hm.buckets[getHash(k)].next
 	for p != nil {
@@ -51,7 +51,7 @@ func (hm *HashMap) GetEntry(k int) (*Entry, bool) {
 	return nil, false
 }
 
-//不判断是否达到负载因子,直接往hashmap中插entry
+// 不判断是否达到负载因子,直接往hashmap中插entry
 func (hm *HashMap) insert(e *Entry) {
 
 	hash := getHash(e.key)
@@ -71,7 +71,7 @@ func (hm *HashMap) insert(e *Entry) {
 	hm.size++
 }
 
-//判断是否达到负载因子再insert
+// Put 判断是否达到负载因子再insert
 func (hm *HashMap) Put(k int, v string) {
 	e := &Entry{k, v, nil}
 	hm.insert(e)
@@ -111,7 +111,7 @@ func (hm *HashMap) Put(k int, v string) {
 	}
 }
 
-//删除指定Entry
+// DeleteEntry 删除指定Entry
 func (hm *HashMap) DeleteEntry(e *Entry) {
 	//注意这里不能是p:=hm.buckets[getHash(e.key)].next,因为表头存的指针不一定为nil
 	p := &hm.buckets[getHash(e.key)]
@@ -130,7 +130,7 @@ func (hm *HashMap) DeleteEntry(e *Entry) {
 	fmt.Println("删除失败")
 }
 
-//删除指定key的Entry
+// Delete 删除指定key的Entry
 func (hm *HashMap) Delete(k int) bool {
 	e, ok := hm.GetEntry(k)
 	if ok {
@@ -143,7 +143,7 @@ func (hm *HashMap) Delete(k int) bool {
 	}
 }
 
-//遍历hashMap
+// Traverse 遍历hashMap
 func (hm *HashMap) Traverse() {
 	var index int
 	for index = 0; index < nowCapacity; index++ {

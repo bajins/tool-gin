@@ -30,9 +30,9 @@ for item in ${os_arch_array}; do
   if [[ "$os" == "android" ]] || [[ "$os" == "ios" ]] || [[ "$os" == "darwin" && "$arch" == *arm* ]]; then
     continue
   fi
-  # if [ "$os" != "linux" ] || [ "$arch" != "amd64" ]; then
-    # continue
-  # fi
+#  if [ "$os" != "linux" ] || [ "$arch" != "amd64" ]; then
+#    continue
+#  fi
 
   # 设置变量
   export GOOS="$os" GOARCH="$arch"
@@ -48,24 +48,24 @@ for item in ${os_arch_array}; do
   if [ "$os" == "android" ]; then
     # 开启 CGO
     # export CGO_ENABLED=1
-    # flags="-w -linkmode=external -extldflags=-pie"
+    # flags="-s -w -linkmode=external -extldflags=-pie"
     : # 占位
   elif [ "$os" == "darwin" ]; then
     # 开启 CGO
     # export CGO_ENABLED=1
-    flags="-w"
+    flags="-s -w"
   elif [ "$os" == "windows" ]; then
     # 交叉编译不支持 CGO 所以要禁用它
     # export CGO_ENABLED=0
-    # flags="-w -H windowsgui"
+    # flags="-s -w -H windowsgui"
     : # 占位
   else
     # 交叉编译不支持 CGO 所以要禁用它
     export CGO_ENABLED=0
-    flags="-w"
+    flags="-s -w"
   fi
   # 编译二进制文件并输出到build目录
-  go build -ldflags=$flags -o "build/$binary_file" -buildvcs=false
+  go build -ldflags=$flags -o "build/$binary_file" -buildvcs=false -trimpath
 done
 
 # 还原默认分隔符

@@ -5,8 +5,6 @@ import (
 	crand "crypto/rand"
 	"encoding/json"
 	"fmt"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 	"io"
 	"math/big"
 	"math/rand"
@@ -15,6 +13,9 @@ import (
 	"strings"
 	"time"
 	"unicode"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // ToString 将任何类型转换为字符串

@@ -15,14 +15,15 @@ package reptile
 import (
 	"encoding/base64"
 	"errors"
-	"github.com/antchfx/htmlquery"
-	"github.com/chromedp/chromedp"
 	"math"
 	"net/http"
 	"net/mail"
 	"strings"
 	"time"
 	"tool-gin/utils"
+
+	"github.com/antchfx/htmlquery"
+	"github.com/chromedp/chromedp"
 )
 
 // DecodeMail 解码邮件内容 https://github.com/alexcesaro/quotedprintable

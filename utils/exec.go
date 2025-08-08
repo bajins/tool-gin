@@ -6,8 +6,8 @@ import (
 	"os/exec"
 )
 
-// 执行python脚本
-// string: 要执行的Python脚本，应该是完整的路径
+// ExecutePython 执行python脚本
+// script: 要执行的Python脚本，应该是完整路径
 // args: 	参数
 func ExecutePython(script string, args ...string) (string, error) {
 	if !IsFileExist(script) {
@@ -24,7 +24,7 @@ func ExecutePython(script string, args ...string) (string, error) {
 	return Execute(name, args...)
 }
 
-// 执行dos或shell命令
+// Execute 执行dos或shell命令
 // program: 程序名称
 // args: 	参数
 func Execute(program string, args ...string) (string, error) {
