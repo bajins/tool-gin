@@ -104,3 +104,8 @@ func TestSchedulerFixedTimer(t *testing.T) {
 func fmtp() {
 	fmt.Println(TimeToString(time.Now()))
 }
+
+func TestStringJoiner(t *testing.T) {
+	joiner := NewStringJoiner(",").SetPrefix("[").SetSuffix("]")
+	fmt.Println(joiner.Add("1").Add("2").Add("3").String())
+}

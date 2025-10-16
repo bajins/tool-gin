@@ -148,7 +148,7 @@ func ToCamelCaseRegexp(str string) string {
 
 // UnderscoreName 驼峰式写法转为下划线写法
 func UnderscoreName(name string) string {
-	buffer := NewBuffer()
+	buffer := NewStringBuffer()
 	for i, r := range name {
 		if unicode.IsUpper(r) {
 			if i != 0 {

@@ -21,12 +21,12 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	mailtmM "tool-gin/mailtm"
 	"tool-gin/utils"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/target"
 	"github.com/chromedp/chromedp"
-	mailtmM "github.com/msuny-c/mailtm"
 )
 
 var (

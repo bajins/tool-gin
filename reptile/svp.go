@@ -7,24 +7,23 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	cu "github.com/Davincible/chromedp-undetected"
-	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/cdproto/network"
-	"github.com/chromedp/cdproto/page"
-	"github.com/chromedp/chromedp"
-	"github.com/go-resty/resty/v2"
-	"github.com/guonaihong/gout"
-	"github.com/levigross/grequests/v2"
-	"github.com/parnurzeal/gorequest"
 	"log"
 	"net/http"
 	"regexp"
+	"runtime/debug"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 	"tool-gin/utils"
+
+	cu "github.com/Davincible/chromedp-undetected"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/chromedp/cdproto/network"
+	"github.com/chromedp/cdproto/page"
+	"github.com/chromedp/chromedp"
+	"github.com/go-resty/resty/v2"
 )
 
 type RequestCounter struct {
@@ -37,11 +36,14 @@ var (
 	httpsRegex   = regexp.MustCompile("https?:/+(.*)")
 	detailsRegex = regexp.MustCompile("(?s)<details>(.*?)</details>")
 
-	svpCache atomic.Value // 存储预热的缓存数据
+	vnVersion   atomic.Value // 存储预热的缓存数据
+	smTime      sync.Map     // 存储时间
+	svpMapCache sync.Map     // 存储预热的缓存数据
+	svpCache    atomic.Value // 存储预热的缓存数据
 	//ipTracker map[string]struct{} // 使用空结构体节省内存
 	//ipMutex   sync.Mutex          // 用于保护ipTracker的互斥锁
 
-	counter    = make(map[string]RequestCounter) // 创建一个计数器切片
+	ipCounter  = make(map[string]RequestCounter) // 创建一个计数器切片
 	cacheMutex sync.RWMutex                      // 用于保护缓存的读写锁
 	//cacheOnce sync.Map // map[string]*sync.Once
 )
@@ -51,6 +53,22 @@ const (
 )
 
 func init() {
+	{
+		response, err := resty.New().R().
+			Get("https://api.github.com/repos/2dust/v2rayN/releases/latest")
+		if err != nil {
+			log.Println(err)
+		}
+		if response.StatusCode() == 200 {
+			var data map[string]interface{}
+			err := json.Unmarshal(response.Body(), &data)
+			if err != nil {
+				log.Println(err)
+			} else {
+				vnVersion.Store("v2rayN/" + data["tag_name"].(string))
+			}
+		}
+	}
 
 	go utils.SchedulerIntervalsTimer(func() {
 		defer func() { // 捕获panic
@@ -67,21 +85,24 @@ func init() {
 		defer cacheMutex.Unlock()
 
 		now := time.Now()
-		for key, rc := range counter {
+		for key, rc := range ipCounter {
 			// time.Now().After(rc.expiry) 检查当前时间是否晚于记录的过期时间
 			if now.After(rc.expiry) {
-				delete(counter, key)
+				delete(ipCounter, key)
 			}
 		}
 	}, 30*time.Second)
 }
 
 // getSvpGit 获取SVP
-func getSvpGit() string {
+func getSvpAbshareGit() string {
 	url := "https://raw.githubusercontent.com/abshare/abshare.github.io/main/README.md"
 	result, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
 	if err != nil {
 		panic(err.Error())
+	}
+	if !isLatestTime(1, result) {
+		return ""
 	}
 	// 匹配url
 	matches := urlRegex.FindAllString(result, -1)
@@ -103,7 +124,7 @@ func getSvpGit() string {
 	}
 
 	header := map[string]string{
-		"User-Agent": "v2rayN/7.12.5",
+		"User-Agent": vnVersion.Load().(string),
 	}
 
 	// 并发执行：为每个URL启动一个goroutine
@@ -139,21 +160,17 @@ func getSvpGit() string {
 	wg.Wait()
 	close(resultsChan)
 
-	// 使用 strings.Builder 来高效地拼接字符串，避免性能损耗
-	var builder strings.Builder
+	joiner := utils.NewStringJoiner("\n")
 	for res := range resultsChan {
 		if res != "" {
-			if builder.Len() > 0 {
-				builder.WriteString("\n")
-			}
-			builder.WriteString(res)
+			joiner.Add(res)
 		}
 	}
-	return builder.String()
+	return joiner.String()
 }
 
 // getSvpDP 获取SVP
-func getSvpDP() string {
+func getSvpAbshareDP() string {
 	url := "https://tuijianvpn.com/1044"
 
 	/*
@@ -164,6 +181,9 @@ func getSvpDP() string {
 	if err != nil {
 		panic(err.Error())
 	}
+	if !isLatestTime(2, result) {
+		return ""
+	}
 	urls := ParseSvpHtml([]byte(result))
 	if urls != "" {
 		return urls
@@ -172,47 +192,41 @@ func getSvpDP() string {
 		模拟浏览器
 	*/
 
-	sess := grequests.NewSession(nil)
-	/*jar, err := cookiejar.New(nil)
-	if err != nil {
-		log.Fatalf("Failed to create cookie jar: %v", err)
-	}
-	sess.HTTPClient.Jar = jar*/
-	resp, err := sess.Get(context.Background(), url, nil)
+	client := resty.New()
+	req := client.NewRequest()
+	resp, err := req.Get(url)
 	if err != nil {
 		panic(err.Error())
 	}
 	//log.Println(resp.String())
-
 	// Step 2: 模拟表单提交评论
-	resp, err = sess.Post(context.Background(),
-		"https://tuijianvpn.com/wp-admin/admin-ajax.php",
-		&grequests.RequestOptions{
-			Data: map[string]string{
-				"action":              "wpdAddComment",
-				"wc_comment":          utils.RandomLower(5),
-				"wc_name":             "csbxdh",
-				"wc_email":            "hskdcbf@gmail.com",
-				"wc_website":          "",
-				"submit":              "发表评论",
-				"wpdiscuz_unique_id":  "0_0",
-				"comment_mail_notify": "comment_mail_notify",
-				"wpd_comment_depth":   "1",
-				"postId":              "1044",
-			},
-		})
+	resp, err = req.SetFormData(map[string]string{
+		"action":              "wpdAddComment",
+		"wc_comment":          utils.RandomLower(5),
+		"wc_name":             "csbxdh",
+		"wc_email":            "hskdcbf@gmail.com",
+		"wc_website":          "",
+		"submit":              "发表评论",
+		"wpdiscuz_unique_id":  "0_0",
+		"comment_mail_notify": "comment_mail_notify",
+		"wpd_comment_depth":   "1",
+		"postId":              "1044",
+	}).Post("https://tuijianvpn.com/wp-admin/admin-ajax.php")
 	if err != nil {
 		//fmt.Printf("表单提交失败: %v\n", err)
 		panic(err.Error())
 	}
 
 	// Step 3: 再次 GET 请求获取内容
-	resp, err = sess.Get(context.Background(), url, nil)
+	resp, err = req.Get(url)
 	if err != nil {
 		//fmt.Printf("获取内容失败: %v\n", err)
 		panic(err.Error())
 	}
-	urls = ParseSvpHtml(resp.Bytes())
+	if !isLatestTime(2, string(resp.Body())) {
+		return ""
+	}
+	urls = ParseSvpHtml(resp.Body())
 	if urls != "" {
 		return urls
 	}
@@ -325,7 +339,7 @@ func getSvpDP() string {
 	return res
 }
 
-func getSvpDP1() string {
+func getSvpAbshareDP1() string {
 	url := "https://vpnea.com/mfjd.html"
 
 	/*
@@ -341,15 +355,17 @@ func getSvpDP1() string {
 		Name:  "92d9977e3c8736e482bb9e23ef9e1c3b__typecho_remember_mail",
 		Value: "hskdcbf%40gmail.com",
 	})
-	s := ""
-	err := gout.GET(url).
-		SetCookies(cookies...).
-		BindBody(&s). //解析响应body内容
-		Do()          // 自动存储 Cookie
+	response, err := resty.New().R().SetCookies(cookies).Get(url)
 	if err != nil {
-		panic(err.Error())
+		panic(err)
 	}
-	urls := ParseSvpHtml([]byte(s))
+	if response.StatusCode() != 200 {
+		panic(fmt.Sprintf("请求失败: %v", response.Status()))
+	}
+	if !isLatestTime(3, string(response.Body())) {
+		return ""
+	}
+	urls := ParseSvpHtml(response.Body())
 	if urls != "" {
 		return urls
 	}
@@ -366,9 +382,9 @@ func getSvpDP1() string {
 	}
 	client.SetCookieJar(jar)*/
 	client.SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36")
-
+	req := client.NewRequest()
 	// 1. 首次 GET 请求（获取 Cookie）
-	firstGetResp, err := client.R().Get(url) // 替换为目标 URL
+	firstGetResp, err := req.Get(url) // 替换为目标 URL
 	if err != nil {
 		panic(fmt.Sprintf("首次 GET 请求失败: %v", err))
 	}
@@ -392,7 +408,7 @@ func getSvpDP1() string {
 	fmt.Println(caction, ckb)
 
 	// 2. 模拟表单提交（自动携带 Cookie）
-	_, err = client.R().
+	_, err = req.
 		//SetDebug(true).
 		//SetCookies(firstGetResp.Cookies()).
 		SetHeader("referer", url).
@@ -420,12 +436,15 @@ func getSvpDP1() string {
 	}*/
 
 	// 3. 再次 GET 请求验证评论
-	secondGetResp, err := client.R().Get(url) // 同首次 URL
+	secondGetResp, err := req.Get(url) // 同首次 URL
 	if err != nil {
 		panic(fmt.Sprintf("二次 GET 请求失败: %v", err))
 	}
 	//fmt.Printf("二次 GET 响应状态: %d\n", secondGetResp.StatusCode())
 	//fmt.Println("页面内容:", secondGetResp.String())
+	if !isLatestTime(3, string(secondGetResp.Body())) {
+		return ""
+	}
 	urls = ParseSvpHtml(secondGetResp.Body())
 	if urls != "" {
 		return urls
@@ -518,13 +537,7 @@ func getSvpYse(url string, base64Key string) string {
 		panic(errors.New(fmt.Sprintf("密钥 Base64 解码失败:%s", err)))
 	}
 	// 发起 HTTP GET 请求
-	request := gorequest.New()
-	/*jar, err := cookiejar.New(nil)
-	if err != nil {
-		log.Fatalf("Failed to create cookie jar: %v", err)
-	}
-	request.Client.Jar = jar*/
-
+	client := resty.New()
 	// 生成 cf-verify 请求头
 	// 获取当前时间戳（毫秒）并转为字符串
 	timestampStr := strconv.FormatInt(time.Now().UnixMilli(), 10)
@@ -537,35 +550,37 @@ func getSvpYse(url string, base64Key string) string {
 	// 将加密结果进行 Base64 编码，得到最终的 header 值
 	cfVerifyValue := base64.StdEncoding.EncodeToString(encryptedTimestamp)
 
-	_, base64Ciphertext, errs := request.Get(url).
-		Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36").
-		Set("Accept", "*/*").
-		Set("origin", "https://v2rayse.com").
-		Set("referer", "https://v2rayse.com/").
-		Set("cf-verify", cfVerifyValue).
-		//Type("json").
-		End()
+	resp, errs := client.R().
+		SetHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36").
+		SetHeader("Accept", "*/*").
+		SetHeader("origin", "https://v2rayse.com").
+		SetHeader("referer", "https://v2rayse.com/").
+		SetHeader("cf-verify", cfVerifyValue).
+		Get(url)
 	if errs != nil {
 		panic(errors.New(fmt.Sprintf("HTTP GET 请求失败:%s", errs)))
 	}
-	//fmt.Println("HTTP GET 响应状态:", resp.StatusCode)
+	if resp.StatusCode() != 200 {
+		panic(fmt.Sprintf("请求失败: %v", resp.Status()))
+	}
 
 	// Base64 解码密文
-	ciphertext, err := base64.StdEncoding.DecodeString(base64Ciphertext)
+	dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(resp.Body())))
+	n, err := base64.StdEncoding.Decode(dbuf, resp.Body())
 	if err != nil {
-		panic(errors.New(fmt.Sprintf("密文 Base64 解码失败:%s", err)))
+		panic(errors.New(fmt.Sprintf("密文：%s， Base64 解码失败:%s", resp.Body(), err)))
 	}
 
 	// 执行解密 (AES/ECB/PKCS7)
-	decryptedPadded, err := utils.DecryptAESECB(ciphertext, key)
+	decryptedPadded, err := utils.DecryptAESECB(dbuf[:n], key)
 	if err != nil {
-		panic(errors.New(fmt.Sprintf("AES 解密失败:%s", err)))
+		panic(errors.New(fmt.Sprintf("密文：%s， AES 解密失败:%s", dbuf[:n], err)))
 	}
 
 	// 移除 PKCS#7 填充
 	decrypted, err := utils.Pkcs7Unpad(decryptedPadded)
 	if err != nil {
-		panic(errors.New(fmt.Sprintf("移除 PKCS7 填充失败:%s", err)))
+		panic(errors.New(fmt.Sprintf("密文：%s，移除 PKCS7 填充失败:%s", decryptedPadded, err)))
 	}
 
 	var data map[string]interface{}
@@ -573,50 +588,14 @@ func getSvpYse(url string, base64Key string) string {
 	if err != nil {
 		panic(errors.New(fmt.Sprintf("反序列化 JSON 失败:%s", err)))
 	}
-	// 使用 strings.Builder 来高效地拼接字符串，避免性能损耗
-	var builder strings.Builder
+	joiner := utils.NewStringJoiner("\n")
 	for _, val := range data["proxies"].([]interface{}) {
 		share := val.(map[string]interface{})["share"].(string)
 		if share != "" {
-			if builder.Len() > 0 {
-				builder.WriteString("\n")
-			}
-			builder.WriteString(share)
+			joiner.Add(share)
 		}
 	}
-	return builder.String()
-}
-
-func getSvpYseAll() string {
-	// 密钥 (Base64)
-	base64Key := "plr4EY25bk1HbC6a+W76TQ=="
-
-	// 创建 channel 用于接收结果
-	ch1 := make(chan string)
-	ch2 := make(chan string)
-	// 启动协程执行任务
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("捕获 panic:", r)
-			}
-		}()
-		url := "https://api.v2rayse.com/api/live"
-		ch1 <- getSvpYse(url, base64Key)
-		close(ch1)
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("捕获 panic:", r)
-			}
-		}()
-		url := "https://api.v2rayse.com/api/batch"
-		ch2 <- getSvpYse(url, base64Key)
-		close(ch2)
-	}()
-	// 等待并收集结果
-	return <-ch1 + "\n" + <-ch2
+	return joiner.String()
 }
 
 func getSvpGitAgg() string {
@@ -631,59 +610,69 @@ func getSvpGitAgg() string {
 	return matches[1]
 }
 
+func getSvpGoroutine(wg *sync.WaitGroup, typ int, fun func() string) {
+	go func() {
+		defer func() {
+			wg.Done() // goroutine 结束时，计数器-1
+			if r := recover(); r != nil {
+				log.Println("捕获 panic:", r, string(debug.Stack()))
+				//if err, ok := r.(error); ok && strings.Contains(err.Error(), "403") {
+				t, b := smTime.Load(typ)
+				if b {
+					smTime.Store(typ, t.(time.Time).Add(time.Hour*3))
+				}
+				//}
+			}
+		}()
+		result := fun()
+		if result != "" && len(result) > 0 {
+			svpMapCache.Store(typ, result)
+		}
+		log.Println("SVP ", typ, "结果：", strings.Count(result, "\n"))
+	}()
+}
+
 // getSvpAll 获取SVP
 func getSvpAll() string {
 	var wg sync.WaitGroup
-	// 创建一个带缓冲的channel来收集结果，大小和url数量一致
-	//resultsChan := make(chan string, len(urls))
-	results := make([]string, 3)
 	// 启动协程执行任务
-	wg.Add(len(results)) // WaitGroup 计数器数量
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("捕获 panic:", r)
-			}
-		}()
-		defer wg.Done() // goroutine 结束时，计数器-1
-		results[0] = getSvpGit()
-		log.Println("getSvpGit() 结果：", strings.Count(results[0], "\n"))
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("捕获 panic:", r)
-			}
-		}()
-		defer wg.Done() // goroutine 结束时，计数器-1
-		results[1] = getSvpDP()
-		log.Println("getSvpDP() 结果：", strings.Count(results[1], "\n"))
-	}()
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				log.Println("捕获 panic:", r)
-			}
-		}()
-		defer wg.Done() // goroutine 结束时，计数器-1
-		results[2] = getSvpDP1()
-		log.Println("getSvpDP1() 结果：", strings.Count(results[2], "\n"))
-	}()
+	wg.Add(5) // WaitGroup 计数器数量
+	getSvpGoroutine(&wg, 1, getSvpAbshareGit)
+	getSvpGoroutine(&wg, 2, getSvpAbshareDP)
+	getSvpGoroutine(&wg, 3, getSvpAbshareDP1)
+	// 密钥 (Base64)
+	base64Key := "plr4EY25bk1HbC6a+W76TQ=="
+	getSvpGoroutine(&wg, 4, func() string {
+		value, ok := smTime.Load(4)
+		if (ok && time.Now().After(value.(time.Time))) || !ok {
+			smTime.Store(4, time.Now())
+		}
+		return getSvpYse("https://api.v2rayse.com/api/live", base64Key)
+	})
+	getSvpGoroutine(&wg, 5, func() string {
+		value, ok := smTime.Load(5)
+		if (ok && time.Now().After(value.(time.Time))) || !ok {
+			smTime.Store(5, time.Now())
+		}
+		return getSvpYse("https://api.v2rayse.com/api/batch", base64Key)
+	})
 	// 等待所有协程完成
 	wg.Wait()
-	// 关闭channel，表示所有结果都已经发送完毕
-	//close(resultsChan)
-	// 合并结果
-	finalResult := results[0] + "\n" + results[1] + "\n" + results[2] + "\n" + getSvpYseAll()
 
-	if finalResult == "" || len(finalResult) == 0 {
+	// 合并结果
+	joiner := utils.NewStringJoiner("\n")
+	svpMapCache.Range(func(key, value interface{}) bool {
+		joiner.Add(value)
+		return true
+	})
+	// joiner.Add(getSvpGitAgg())
+
+	if joiner.Empty() {
 		panic("没有获取到内容")
 	}
-	finalResult = utils.RemoveDuplicateLines(finalResult)
+	finalResult := utils.RemoveDuplicateLines(joiner.String())
 	res := base64.StdEncoding.EncodeToString([]byte(finalResult))
-	go func() {
-		svpCache.Store(res)
-	}()
+	svpCache.Store(res)
 	return res
 }
 
@@ -693,23 +682,23 @@ func GetSvpAllHandler(clientIP string) string {
 	cacheMutex.Lock()
 	defer cacheMutex.Unlock()
 
-	counterEntry, exists := counter[clientIP]
+	counterEntry, exists := ipCounter[clientIP]
 
 	// 清理过期的计数（比如超过 3 分钟不请求就重置）
 	if exists && now.After(counterEntry.expiry) {
-		delete(counter, clientIP)
+		delete(ipCounter, clientIP)
 		exists = false
 	}
 	var finalResult string
-	if !exists {
+	if !exists { // IP不存在
 		// 第一次请求
-		counter[clientIP] = RequestCounter{count: 1, expiry: now.Add(expiryDuration)}
+		ipCounter[clientIP] = RequestCounter{count: 1, expiry: now.Add(expiryDuration)}
 		finalResult = svpCache.Load().(string)
-	} else {
+	} else { // IP存在
 		// 第二次请求
 		finalResult = getSvpAll()
 		// 处理完后重置，下次再访问又是“第一次”
-		delete(counter, clientIP)
+		delete(ipCounter, clientIP)
 	}
 
 	// 第一次访问：检查缓存

@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strings"
+	"runtime/debug"
 	"testing"
 	"time"
 
@@ -57,12 +57,53 @@ func TestNetsarang(t *testing.T) {
 	}()
 }
 
-func TestGetSvpGit(t *testing.T) {
+func TestGetSvp(t *testing.T) {
+	defer func() { // 捕获panic
+		if r := recover(); r != nil {
+			// https://pkg.go.dev/runtime#Stack
+			// https://pkg.go.dev/runtime/debug#PrintStack
+			log.Println("panic:", string(debug.Stack()))
+			log.Println("Recovered from panic:", r)
+		}
+	}()
 	//fmt.Println(getSvpGit())
 	//fmt.Println(getSvpDP())
 	//fmt.Println(getSvpDP1())
-	//fmt.Println(len(strings.Split(getSvpYseAll(), "\n")))
-	fmt.Println(len(strings.Split(getSvpGitAgg(), "\n")))
+	//fmt.Println(getSvpYse())
+	//fmt.Println(len(strings.Split(getSvpGitAgg(), "\n")))
+	fmt.Println(getSvpAll())
+}
+
+func TestGetSvpYes(t *testing.T) {
+	// 密钥 (Base64)
+	base64Key := "plr4EY25bk1HbC6a+W76TQ=="
+
+	// 创建 channel 用于接收结果
+	ch1 := make(chan string)
+	ch2 := make(chan string)
+	// 启动协程执行任务
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("捕获 panic:", r, string(debug.Stack()))
+			}
+		}()
+		url := "https://api.v2rayse.com/api/live"
+		ch1 <- getSvpYse(url, base64Key)
+		close(ch1)
+	}()
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Println("捕获 panic:", r, string(debug.Stack()))
+			}
+		}()
+		url := "https://api.v2rayse.com/api/batch"
+		ch2 <- getSvpYse(url, base64Key)
+		close(ch2)
+	}()
+	// 等待并收集结果
+	fmt.Println(<-ch1 + "\n" + <-ch2)
 }
 
 func TestUrlRegx(t *testing.T) {

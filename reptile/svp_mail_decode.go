@@ -2,13 +2,17 @@ package reptile
 
 import (
 	"bytes"
+	"encoding/base64"
+	"errors"
 	"fmt"
 	"log"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/go-resty/resty/v2"
 	"golang.org/x/net/html"
 )
 
@@ -189,6 +193,28 @@ func ParseSvpHtml(htmlContent []byte) string {
 		if err != nil {
 			log.Printf("An error occurred: %v\n", err)
 		}
+		// 解析HTML
+		doc, err = goquery.NewDocumentFromReader(bytes.NewReader([]byte(ret)))
+		if err == nil {
+			ret = doc.Text()
+		}
+		if urlRegex.MatchString(ret) {
+			client := resty.New()
+			client.SetHeader("User-Agent", vnVersion.Load().(string))
+			resp, err := client.R().Get(ret)
+			if err != nil {
+				panic(err.Error())
+			}
+			if resp.IsError() {
+				panic(errors.New(fmt.Sprintf("请求错误，url：%v，响应状态: %v，响应内容：%v\n", ret, resp.Status(), string(resp.Body()))))
+			}
+			dbuf := make([]byte, base64.StdEncoding.DecodedLen(len(resp.Body())))
+			n, err := base64.StdEncoding.Decode(dbuf, resp.Body())
+			if err != nil {
+				panic(err.Error())
+			}
+			return string(dbuf[:n])
+		}
 		decodedHTML, err := processSvpLinks(ret)
 		if err != nil {
 			log.Fatalf("An error occurred: %v", err)
@@ -202,4 +228,35 @@ func ParseSvpHtml(htmlContent []byte) string {
 		}
 	}
 	return ""
+}
+
+// isLatestTime 判断是否是最新的时间
+func isLatestTime(tp int, text string) bool {
+	re := regexp.MustCompile(`最后更新时间:\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})`)
+
+	matches := re.FindStringSubmatch(text)
+	if len(matches) < 2 {
+		return true
+	}
+
+	timeStr := matches[1] // 使用第一个捕获组
+	log.Println("提取到的时间字符串:", timeStr)
+
+	// 解析时间
+	parsedTime, err := time.Parse(time.DateTime, timeStr)
+	if err != nil {
+		return true
+	}
+
+	value, ok := smTime.Load(tp)
+	if ok {
+		if parsedTime.After(value.(time.Time)) {
+			smTime.Store(tp, parsedTime)
+		} else {
+			return false
+		}
+	} else {
+		smTime.Store(tp, parsedTime)
+	}
+	return true
 }

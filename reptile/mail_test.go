@@ -12,11 +12,11 @@ import (
 	"strings"
 	"testing"
 	"time"
+	mailtmM "tool-gin/mailtm"
 	"tool-gin/utils"
 
 	"github.com/chromedp/chromedp"
 	mailtmF "github.com/felixstrobel/mailtm"
-	mailtmM "github.com/msuny-c/mailtm"
 )
 
 // https://pkg.go.dev/net/mail#ReadMessage

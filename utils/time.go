@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"time"
 )
 
@@ -20,7 +21,7 @@ func FormatDateString(timestamp uint32, format string) string {
 	}
 	tm := time.Unix(int64(timestamp), 0)
 	if IsStringEmpty(format) {
-		return tm.Format("2006-01-02")
+		return tm.Format(time.DateOnly)
 	}
 	return tm.Format(format)
 }
@@ -32,7 +33,7 @@ func FormatDateTimeString(timestamp uint32, format string) string {
 	}
 	tm := time.Unix(int64(timestamp), 0)
 	if IsStringEmpty(format) {
-		return tm.Format("2006-01-02 15:04:00")
+		return tm.Format(time.DateTime)
 	}
 	return tm.Format(format)
 }
@@ -42,37 +43,39 @@ func TimeToString(t time.Time) string {
 	if IsTimeEmpty(t) {
 		t = time.Now()
 	}
-	return t.Format("2006-01-02 15:04:05")
+	return t.Format(time.DateTime)
 }
 
 // StringToTime 字符串转时间
-func StringToTime(str string) time.Time {
+func StringToTime(str string) (time.Time, error) {
 	if IsStringEmpty(str) {
-		return time.Now()
+		return time.Now(), nil
 	}
-	local, _ := time.LoadLocation("Local")
-	t, _ := time.ParseInLocation("2006-01-02 15:04:05", "2017-06-20 18:16:15", local)
-	return t
-}
-
-// ParseTime 解析字符串时间为系统格式
-func ParseTime(times string) int64 {
-	if "" == times {
-		return 0
+	local, err := time.LoadLocation("Local")
+	if err != nil {
+		return time.Time{}, err
 	}
-	loc, _ := time.LoadLocation("Local")
-	parse, _ := time.ParseInLocation("2006-01-02 15:04", times, loc)
-	return parse.Unix()
+	t, err := time.ParseInLocation(time.DateTime, str, local)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return t, nil
 }
 
 // ParseDate 解析字符串日期为系统格式
-func ParseDate(dates string) int64 {
-	if "" == dates {
-		return 0
+func ParseDate(dates string) (time.Time, error) {
+	if IsStringEmpty(dates) {
+		return time.Time{}, errors.New("参数错误")
 	}
-	loc, _ := time.LoadLocation("Local")
-	parse, _ := time.ParseInLocation("2006-01-02", dates, loc)
-	return parse.Unix()
+	loc, err := time.LoadLocation("Local")
+	if err != nil {
+		return time.Time{}, err
+	}
+	parse, err := time.ParseInLocation(time.DateOnly, dates, loc)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return parse, nil
 }
 
 // DateEqual 判断两个日期是否相等
@@ -97,7 +100,7 @@ func GetDate(timestamp uint32) string {
 		return ""
 	}
 	tm := time.Unix(int64(timestamp), 0)
-	return tm.Format("2006-01-02")
+	return tm.Format(time.DateOnly)
 }
 
 // GetyyyyMMddHHmm 获取时间，格式yyyy-MM-dd HH:mm
@@ -106,7 +109,7 @@ func GetyyyyMMddHHmm(timestamp uint32) string {
 		return ""
 	}
 	tm := time.Unix(int64(timestamp), 0)
-	return tm.Format("2006-01-02 15:04")
+	return tm.Format(time.DateOnly + " 15:04")
 }
 
 // GetTimeParse 解析字符串时间为系统格式
@@ -115,7 +118,7 @@ func GetTimeParse(times string) int64 {
 		return 0
 	}
 	loc, _ := time.LoadLocation("Local")
-	parse, _ := time.ParseInLocation("2006-01-02 15:04", times, loc)
+	parse, _ := time.ParseInLocation(time.DateOnly+" 15:04", times, loc)
 	return parse.Unix()
 }
 
@@ -125,7 +128,7 @@ func GetDateParse(dates string) int64 {
 		return 0
 	}
 	loc, _ := time.LoadLocation("Local")
-	parse, _ := time.ParseInLocation("2006-01-02", dates, loc)
+	parse, _ := time.ParseInLocation(time.DateOnly, dates, loc)
 	return parse.Unix()
 }
 
