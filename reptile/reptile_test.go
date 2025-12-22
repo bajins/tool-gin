@@ -71,7 +71,9 @@ func TestGetSvp(t *testing.T) {
 	//fmt.Println(getSvpDP1())
 	//fmt.Println(getSvpYse())
 	//fmt.Println(len(strings.Split(getSvpGitAgg(), "\n")))
-	fmt.Println(getSvpAll())
+	//fmt.Println(getSvpAll())
+	//fmt.Println(getSvpYse1("https://v2rayse.com/live-node"))
+	fmt.Println(getSvpYouneed())
 }
 
 func TestGetSvpYes(t *testing.T) {

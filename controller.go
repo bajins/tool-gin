@@ -711,8 +711,20 @@ func GetSvp(ctx *Context) {
 			ctx.C.String(http.StatusOK, r.(string))
 		}
 	}()
+	id := ctx.C.Param("id")
+	if id == "/" || id == "" {
+		// 无 ID
+	} else {
+		// 移除开头的斜杠
+		/*if strings.HasPrefix(id, "/") {
+			id = id[1:]
+		}*/
+		id = strings.TrimPrefix(id, "/")
+		// 处理 ID
+	}
 	//log.Println("GetSvp Header：", ctx.C.Request.Header)
-	ctx.C.String(http.StatusOK, reptile.GetSvpAllHandler(getClientIP(ctx.C.Request)))
+	//ctx.C.String(http.StatusOK, reptile.GetSvpAll(getClientIP(ctx.C.Request)))
+	ctx.C.String(http.StatusOK, reptile.GetSvpAll(id))
 }
 
 // getClientIP 尝试从请求中获取真实的客户端IP

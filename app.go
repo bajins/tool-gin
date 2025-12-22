@@ -180,8 +180,17 @@ func run() {
 	router.Any("/nginx-format", NginxFormatIndex)
 	router.POST("/nginx-format-py", NginxFormatPython)
 	router.Any("/navicat", GetNavicatDownloadUrl)
-	router.Any("/svp", GetSvp)
-
+	router.GET("/svp", GetSvp)
+	router.GET("/svp/:id", GetSvp)
+	//router.GET("/svp/*id", GetSvp) // 使用通配符
+	// 创建路由组
+	/*svpGroup := router.Group("/svp")
+	{
+		// 处理 /svp
+		svpGroup.GET("", GetSvp)
+		// 处理 /svp/:id
+		svpGroup.GET("/:id", GetSvp)
+	}*/
 	/*
 		//router.POST("/upload", UnifiedUpload)
 		//router.POST("/download", UnifiedDownload)

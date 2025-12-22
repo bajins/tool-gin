@@ -247,7 +247,10 @@ func isLatestTime(tp int, text string) bool {
 	if err != nil {
 		return true
 	}
+	return isLatestTimeSimple(tp, parsedTime)
+}
 
+func isLatestTimeSimple(tp int, parsedTime time.Time) bool {
 	value, ok := smTime.Load(tp)
 	if ok {
 		if parsedTime.After(value.(time.Time)) {
@@ -259,4 +262,61 @@ func isLatestTime(tp int, text string) bool {
 		smTime.Store(tp, parsedTime)
 	}
 	return true
+}
+
+// 从指定标题提取链接
+func extractLinksFromSection(content, sectionName string) []string {
+	// 简单状态机：找到标题后开始录制，遇到下一个标题停止
+	lines := strings.Split(content, "\n")
+	var links []string
+	inSection := false
+
+	// 匹配 http 或 https 开头的链接
+	urlRegex := regexp.MustCompile(`https?://[^\s)"\]]+`)
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		// 检测标题行 (Markdown # 或 ## ...)
+		if strings.HasPrefix(trimmed, "#") {
+			if strings.Contains(trimmed, sectionName) {
+				inSection = true
+				continue
+			} else if inSection {
+				// 遇到下一个标题，退出
+				break
+			}
+		}
+
+		if inSection {
+			// 提取行内的 URL
+			matches := urlRegex.FindAllString(trimmed, -1)
+			for _, match := range matches {
+				links = append(links, match)
+			}
+		}
+	}
+	return links
+}
+
+func youneedTodayLinks() []string {
+	// https://github.com/freevpn2025/freevpn2025.github.io/raw/refs/heads/main/assets/website/js/frontend/G.js
+	// 获取当前时间
+	now := time.Now()
+
+	// 日期部分: year, month (2位), day (2位)
+	year := fmt.Sprintf("%d", now.Year())
+	month := fmt.Sprintf("%02d", now.Month())
+	day := fmt.Sprintf("%02d", now.Day())
+
+	// 基础 URL
+	baseUrl := "https://node.freeclashnode.com/uploads"
+
+	var links []string
+	for i := 0; i < 5; i++ {
+		filename := fmt.Sprintf("%d-%s%s%s.txt", i, year, month, day)
+		fullUrl := fmt.Sprintf("%s/%s/%s/%s", baseUrl, year, month, filename)
+		links = append(links, fullUrl)
+	}
+	return links
 }
