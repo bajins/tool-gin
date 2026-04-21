@@ -224,25 +224,22 @@ func BytesToIntS(b []byte) (int, error) {
 func IntToBytes(n int, b byte) ([]byte, error) {
 	switch b {
 	case 1:
-		tmp := int8(n)
 		bytesBuffer := bytes.NewBuffer([]byte{})
-		err := binary.Write(bytesBuffer, binary.BigEndian, &tmp)
+		err := binary.Write(bytesBuffer, binary.BigEndian, new(int8(n)))
 		if err != nil {
 			return nil, err
 		}
 		return bytesBuffer.Bytes(), nil
 	case 2:
-		tmp := int16(n)
 		bytesBuffer := bytes.NewBuffer([]byte{})
-		err := binary.Write(bytesBuffer, binary.BigEndian, &tmp)
+		err := binary.Write(bytesBuffer, binary.BigEndian, new(int16(n)))
 		if err != nil {
 			return nil, err
 		}
 		return bytesBuffer.Bytes(), nil
 	case 3, 4:
-		tmp := int32(n)
 		bytesBuffer := bytes.NewBuffer([]byte{})
-		err := binary.Write(bytesBuffer, binary.BigEndian, &tmp)
+		err := binary.Write(bytesBuffer, binary.BigEndian, new(int32(n)))
 		if err != nil {
 			return nil, err
 		}

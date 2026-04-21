@@ -133,11 +133,9 @@ func listenForNetworkEvent(ctx context.Context) {
 // 任务 主要用来设置cookie ，获取登录账号后的页面
 func visitWeb(url string) chromedp.Tasks {
 	return chromedp.Tasks{
-		chromedp.ActionFunc(func(ctxt context.Context) error {
-			expr := cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour))
-			// 设置cookie
+		chromedp.ActionFunc(func(ctxt context.Context) error { // 设置cookie
 			err := network.SetCookie("ASP.NET_SessionId", "这里是值").
-				WithExpires(&expr).
+				WithExpires(new(cdp.TimeSinceEpoch(time.Now().Add(180 * 24 * time.Hour)))).
 				// 访问网站主体
 				WithDomain(url).
 				WithHTTPOnly(true).
