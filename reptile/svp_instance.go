@@ -25,6 +25,26 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
+func getSvpUrlReg(url string) string {
+	result, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// 合并结果
+	joiner := utils.NewStringJoiner("\n")
+	// -1 表示查找所有匹配项
+	matches := schemeReg.FindAllStringSubmatch(result, -1)
+	for _, match := range matches {
+		content := match[0]
+
+		// 建议去除首尾多余空白，看起来更整洁
+		url := strings.TrimSpace(content)
+		joiner.Add(url)
+	}
+	return joiner.String()
+}
+
 // getSvpGit 获取SVP
 func getSvpAbshareGit() string {
 	url := "https://raw.githubusercontent.com/abshare/abshare.github.io/main/README.md"
@@ -560,6 +580,7 @@ func getSvpYse1(url string) string {
 	if err != nil {
 		panic(errors.New(fmt.Sprintf("反序列化 JSON 失败:%s", err)))
 	}
+	re := regexp.MustCompile(`^.*:(//|\\u002F\\u002)`)
 	// 遍历切片并使用 type switch 判断每个元素的类型
 	for _, raw := range data {
 		// 尝试将元素解析为字符串
@@ -567,13 +588,17 @@ func getSvpYse1(url string) string {
 		if json.Unmarshal(raw, &s) != nil {
 			continue
 		}
+		if s == "" || len(re.FindStringSubmatch(s)) <= 1 {
+			continue
+		}
+		log.Println("YSE：", s)
 		// 尝试标准Base64
 		decoded, err := base64.StdEncoding.DecodeString(s)
 		if err != nil {
 			// 尝试URL安全的Base64
 			decoded, err = base64.URLEncoding.DecodeString(s)
 		}
-		if err != nil || len(decoded) <= 0 || !strings.Contains(string(decoded), "://") {
+		if err != nil || len(decoded) <= 0 || len(re.FindStringSubmatch(string(decoded))) <= 1 {
 			continue
 		}
 		/*var st time.Time
@@ -595,18 +620,6 @@ func getSvpYse1(url string) string {
 		return string(decoded)
 	}
 	return ""
-}
-
-func getSvpGitAgg() string {
-	// https://github.com/mahdibland/V2RayAggregator/tree/master/sub/splitted
-	url := "https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/README.md"
-	result, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
-	if err != nil {
-		panic(err.Error())
-	}
-	// 匹配url
-	matches := detailsRegex.FindStringSubmatch(result)
-	return matches[1]
 }
 
 func getSvpYouneed() string {
@@ -689,40 +702,6 @@ func getSvpYouneed() string {
 	// 主线程直接遍历读取，直到通道被关闭
 	for res := range results {
 		joiner.Add(res) // 合并结果
-	}
-	return joiner.String()
-}
-
-func getSvpAlvin(url string) string {
-	result, err := utils.HttpReadBodyString(http.MethodGet, url, "", nil, nil)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	// 合并结果
-	joiner := utils.NewStringJoiner("\n")
-	// 正则解释：
-	// (?s)       开启点号匹配换行模式
-	// ```        匹配起始的三个反引号
-	// [^\n]*     匹配语言标识符（忽略它，匹配直到行尾）
-	// \s+        匹配标识符后的换行符（防止内容头部有空行）
-	// (.*?)      核心捕获组：非贪婪匹配内容
-	// ```        匹配结束的三个反引号
-	var pattern = "(?s)```[^\\n]*\\s+(.*?)```"
-	re := regexp.MustCompile(pattern)
-	// -1 表示查找所有匹配项
-	matches := re.FindAllStringSubmatch(result, -1)
-	for _, match := range matches {
-		// match[0] 是整个匹配串（包含 ```）
-		// match[1] 是我们在 (.*?) 中捕获的内容
-		content := match[1]
-
-		// 建议去除首尾多余空白，看起来更整洁
-		cleanContent := strings.TrimSpace(content)
-
-		// 匹配url
-		url := detailsRegex.FindStringSubmatch(cleanContent)[1]
-		joiner.Add(url)
 	}
 	return joiner.String()
 }

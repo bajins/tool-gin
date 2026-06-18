@@ -1,6 +1,7 @@
 package reptile
 
 import (
+	"bufio"
 	"encoding/base64"
 	"encoding/json"
 	"log"
@@ -21,9 +22,10 @@ type RequestCounter struct {
 }
 
 var (
-	urlRegex     = regexp.MustCompile(`(?:(?:https?|ftp)://)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\[(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:[/?#]\S*)?`)
-	httpsRegex   = regexp.MustCompile("https?:/+(.*)")
-	detailsRegex = regexp.MustCompile("(?s)<details>(.*?)</details>")
+	urlRegex   = regexp.MustCompile(`(?:(?:https?|ftp)://)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\[(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:[/?#]\S*)?`)
+	httpsRegex = regexp.MustCompile("https?:/+(.*)")
+	// 匹配协议开头的正则
+	schemeReg = regexp.MustCompile(`(?i)(ss|ssr|vmess|trojan|vless|hysteria2?|hy2|tuic)://\S+`)
 
 	vnVersion   atomic.Value // 存储预热的缓存数据
 	smTime      sync.Map     // 存储时间
@@ -103,7 +105,23 @@ func getSvpGoroutine(wg *sync.WaitGroup, typ int, fun func() string) {
 		}()
 		result := fun()
 		if result != "" && len(result) > 0 {
-			svpMapCache.Store(typ, result)
+			var builder strings.Builder
+			// 使用 Scanner 逐行读取
+			scanner := bufio.NewScanner(strings.NewReader(result))
+			isFirstLine := true
+			for scanner.Scan() {
+				line := scanner.Text()
+				// 判断如果不包含 127.0.0.1 则写入 Builder
+				if !strings.Contains(line, "127.0.0.1") {
+					if !isFirstLine {
+						builder.WriteString("\n")
+					}
+					builder.WriteString(line)
+					isFirstLine = false
+				}
+			}
+			output := builder.String()
+			svpMapCache.Store(typ, output)
 		}
 		log.Println("SVP ", typ, "结果：", strings.Count(result, "\n"))
 	}()
@@ -126,11 +144,11 @@ func GetSvpAll(id string) string {
 	// errgroup.Group 可返回 error；任意 goroutine 出错会取消其余
 	var wg sync.WaitGroup
 	// 启动协程执行任务
-	//getSvpGoroutine(&wg, 1, getSvpAbshareGit)
-	//getSvpGoroutine(&wg, 2, getSvpAbshareDP)
-	//getSvpGoroutine(&wg, 3, func() string {
-	//	return getSvpAbshareDP1(false)
-	//})
+	getSvpGoroutine(&wg, 1, getSvpAbshareGit)
+	getSvpGoroutine(&wg, 2, getSvpAbshareDP)
+	getSvpGoroutine(&wg, 3, func() string {
+		return getSvpAbshareDP1(false)
+	})
 	// 密钥 (Base64)
 	/*base64Key := "plr4EY25bk1HbC6a+W76TQ=="
 	getSvpGoroutine(&wg, 4, func() string {
@@ -139,17 +157,22 @@ func GetSvpAll(id string) string {
 	getSvpGoroutine(&wg, 5, func() string {
 		return getSvpYse("https://api.v2rayse.com/api/batch", base64Key)
 	})*/
-	getSvpGoroutine(&wg, 6, func() string {
-		return getSvpYse1("https://v2rayse.com/live-node")
-	})
+	//getSvpGoroutine(&wg, 6, func() string {
+	//	return getSvpYse1("https://v2rayse.com/live-node")
+	//})
 	getSvpGoroutine(&wg, 7, func() string {
-		return getSvpYse1("https://v2rayse.com/free-node")
+		return getSvpYse1("https://nodebuf.com/free-node")
 	})
 	getSvpGoroutine(&wg, 8, func() string {
-		return getSvpAlvin("https://raw.githubusercontent.com/wiki/Alvin9999/new-pac/ss%E5%85%8D%E8%B4%B9%E8%B4%A6%E5%8F%B7.md")
+		// https://gitlab.com/zhifan999/fq
+		return getSvpUrlReg("https://raw.githubusercontent.com/wiki/Alvin9999-newpac/fanqiang/ss免费账号.md")
 	})
 	getSvpGoroutine(&wg, 9, func() string {
-		return getSvpAlvin("https://raw.githubusercontent.com/wiki/Alvin9999/new-pac/v2ray%E5%85%8D%E8%B4%B9%E8%B4%A6%E5%8F%B7.md")
+		return getSvpUrlReg("https://raw.githubusercontent.com/wiki/Alvin9999-newpac/fanqiang/v2ray免费账号.md")
+	})
+	getSvpGoroutine(&wg, 9, func() string {
+		// https://github.com/mahdibland/V2RayAggregator/tree/master/sub/splitted
+		return getSvpUrlReg("https://raw.githubusercontent.com/mahdibland/V2RayAggregator/master/README.md")
 	})
 	getSvpGoroutine(&wg, 10, getSvpYouneed)
 	// 等待所有协程完成
