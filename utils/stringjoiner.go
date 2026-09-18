@@ -44,7 +44,7 @@ func (sj *StringJoiner) SetEmptyValue(emptyValue string) *StringJoiner {
 
 // Add 添加一个新的元素到 StringJoiner。
 // 它使用 type switch 为常见类型提供高性能转换。
-func (sj *StringJoiner) Add(val interface{}) *StringJoiner {
+func (sj *StringJoiner) Add(val any) *StringJoiner {
 	if sj.isFirst {
 		sj.builder.WriteString(sj.prefix)
 		sj.isFirst = false

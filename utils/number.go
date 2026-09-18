@@ -16,7 +16,7 @@ func FloatRound(f float64, n int) float64 {
 }
 
 // ToInt64 将任何数值转换为int64
-func ToInt64(value interface{}) (d int64, err error) {
+func ToInt64(value any) (d int64, err error) {
 	val := reflect.ValueOf(value)
 	switch value.(type) {
 	case int, int8, int16, int32, int64:

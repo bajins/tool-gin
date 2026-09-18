@@ -34,13 +34,13 @@ func GetMsg(code int) string {
 
 // Response 是返回给前端的统一结构体
 type Response struct {
-	Code    int         `json:"code"`    // 业务状态码
-	Message string      `json:"message"` // 提示信息
-	Data    interface{} `json:"data"`    // 数据
+	Code    int    `json:"code"`    // 业务状态码
+	Message string `json:"message"` // 提示信息
+	Data    any    `json:"data"`    // 数据
 }
 
 // Result 是一个辅助函数，用于发送统一格式的响应
-func Result(c *gin.Context, code int, msg string, data interface{}) {
+func Result(c *gin.Context, code int, msg string, data any) {
 	c.JSON(http.StatusOK, Response{
 		Code:    code,
 		Message: msg,
@@ -49,13 +49,13 @@ func Result(c *gin.Context, code int, msg string, data interface{}) {
 	/*var d = &struct {
 		code    int
 		message string
-		data    interface{}
+		data    any
 	}{code:code,message:msg,data:""}*/
 	//c.JSON(code, gin.H{"code": code, "message": msg, "data": ""})
 }
 
 // respond 是一个内部方法，用于发送 JSON 响应
-func (ctx *Context) respond(httpStatus int, code int, msg string, data interface{}) {
+func (ctx *Context) respond(httpStatus int, code int, msg string, data any) {
 	ctx.C.JSON(httpStatus, Response{
 		Code:    code,
 		Message: msg,
@@ -63,7 +63,7 @@ func (ctx *Context) respond(httpStatus int, code int, msg string, data interface
 	})
 }
 
-func (ctx *Context) SuccessJSON(msg string, data interface{}) {
+func (ctx *Context) SuccessJSON(msg string, data any) {
 	ctx.respond(http.StatusOK, http.StatusOK, msg, data)
 }
 
@@ -83,7 +83,7 @@ func (ctx *Context) ErrorByCode(code int) {
 
 // BindAndValidate 方法，封装了参数绑定和验证逻辑
 // 如果出错，它会自动发送错误响应
-func (ctx *Context) BindAndValidate(obj interface{}) bool {
+func (ctx *Context) BindAndValidate(obj any) bool {
 	if err := ctx.C.ShouldBind(obj); err != nil {
 		// 如果绑定或验证失败，直接返回参数错误
 		ctx.ErrorByCode(ErrInvalidParams)

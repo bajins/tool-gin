@@ -36,7 +36,7 @@ func WebRoot(ctx *Context) {
 
 // SystemInfo 获取系统信息
 func SystemInfo(ctx *Context) {
-	data := make(map[string]interface{}, 0)
+	data := make(map[string]any, 0)
 	data["Version"] = utils.ToUpper(runtime.Version())
 	data["cpu"] = runtime.NumCPU()
 	memStatus := runtime.MemStats{}

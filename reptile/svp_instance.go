@@ -220,7 +220,7 @@ func getSvpAbshareDP() string {
 	name := utils.RandomMixed(5)
 
 	// 监听 JavaScript 对话框事件
-	chromedp.ListenTarget(ctx, func(ev interface{}) {
+	chromedp.ListenTarget(ctx, func(ev any) {
 		switch e := ev.(type) {
 		//case *runtime.EventInspectRequested:
 		//case *runtime.EventConsoleAPICalled:
@@ -442,7 +442,7 @@ func getSvpAbshareDP1(active bool) string {
 	name := utils.RandomMixed(5)
 
 	// 监听 JavaScript 对话框事件
-	chromedp.ListenTarget(ctx, func(ev interface{}) {
+	chromedp.ListenTarget(ctx, func(ev any) {
 		switch e := ev.(type) {
 		//case *runtime.EventInspectRequested:
 		//case *runtime.EventConsoleAPICalled:
@@ -537,14 +537,14 @@ func getSvpYse(url string, base64Key string) string {
 		panic(errors.New(fmt.Sprintf("密文：%s，移除 PKCS7 填充失败:%s", decryptedPadded, err)))
 	}
 
-	var data map[string]interface{}
+	var data map[string]any
 	err = json.Unmarshal(decrypted, &data)
 	if err != nil {
 		panic(errors.New(fmt.Sprintf("反序列化 JSON 失败:%s", err)))
 	}
 	joiner := utils.NewStringJoiner("\n")
-	for _, val := range data["proxies"].([]interface{}) {
-		share := val.(map[string]interface{})["share"].(string)
+	for _, val := range data["proxies"].([]any) {
+		share := val.(map[string]any)["share"].(string)
 		if share != "" {
 			joiner.Add(share)
 		}

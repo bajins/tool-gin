@@ -137,3 +137,15 @@ func TestUrlRegx(t *testing.T) {
 		log.Println(url, "|||||||||||", urlRegex.MatchString(url))
 	}
 }
+
+func TestFetchProtocolPattern(t *testing.T) {
+	defer func() { // 捕获panic
+		if r := recover(); r != nil {
+			// https://pkg.go.dev/runtime#Stack
+			// https://pkg.go.dev/runtime/debug#PrintStack
+			log.Println("panic:", string(debug.Stack()))
+			log.Println("Recovered from panic:", r)
+		}
+	}()
+	fmt.Println(FetchProtocolPattern(""))
+}

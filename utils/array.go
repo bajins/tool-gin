@@ -6,7 +6,7 @@ import (
 )
 
 // Shuffle 随机打乱数组顺序
-func Shuffle(slice []interface{}) {
+func Shuffle(slice []any) {
 	r := rand.New(rand.NewSource(time.Now().Unix()))
 	for len(slice) > 0 {
 		n := len(slice)

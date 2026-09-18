@@ -304,7 +304,7 @@ func HttpReadBodyString(method, urlText, contentType string, params, header map[
 }
 
 // HttpReadBodyJsonObject 请求并读取返回内容为json对象
-func HttpReadBodyJsonObject(method, urlText, contentType string, params, header map[string]string, obj *interface{}) error {
+func HttpReadBodyJsonObject(method, urlText, contentType string, params, header map[string]string, obj *any) error {
 	res, err := HttpReadBody(method, urlText, contentType, params, header)
 	if err != nil {
 		return err
@@ -317,12 +317,12 @@ func HttpReadBodyJsonObject(method, urlText, contentType string, params, header 
 }
 
 // HttpReadBodyJsonMap 请求并读取返回内容为json map
-func HttpReadBodyJsonMap(method, urlText, contentType string, params, header map[string]string) (map[string]interface{}, error) {
+func HttpReadBodyJsonMap(method, urlText, contentType string, params, header map[string]string) (map[string]any, error) {
 	res, err := HttpReadBody(method, urlText, contentType, params, header)
 	if err != nil {
 		return nil, err
 	}
-	var data map[string]interface{}
+	var data map[string]any
 	err = json.Unmarshal(res, &data)
 	if err != nil {
 		return nil, err
@@ -332,12 +332,12 @@ func HttpReadBodyJsonMap(method, urlText, contentType string, params, header map
 
 // HttpReadBodyJsonMapArray 请求并读取返回内容为json Map数组
 func HttpReadBodyJsonMapArray(method, urlText, contentType string, params,
-	header map[string]string) ([]map[string]interface{}, error) {
+	header map[string]string) ([]map[string]any, error) {
 	res, err := HttpReadBody(method, urlText, contentType, params, header)
 	if err != nil {
 		return nil, err
 	}
-	var data []map[string]interface{}
+	var data []map[string]any
 	err = json.Unmarshal(res, &data)
 	if err != nil {
 		return nil, err
@@ -346,12 +346,12 @@ func HttpReadBodyJsonMapArray(method, urlText, contentType string, params,
 }
 
 // HttpReadBodyJsonArray 请求并读取返回内容为json数组
-func HttpReadBodyJsonArray(method, urlText, contentType string, params, header map[string]string) ([]interface{}, error) {
+func HttpReadBodyJsonArray(method, urlText, contentType string, params, header map[string]string) ([]any, error) {
 	res, err := HttpReadBody(method, urlText, contentType, params, header)
 	if err != nil {
 		return nil, err
 	}
-	var data []interface{}
+	var data []any
 	err = json.Unmarshal(res, &data)
 	if err != nil {
 		return nil, err
@@ -379,19 +379,19 @@ func (hc *HttpClient) ReadBodyString() (string, error) {
 	return HttpReadBodyString(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header)
 }
 
-func (hc *HttpClient) HttpReadBodyJsonObject(obj *interface{}) error {
+func (hc *HttpClient) HttpReadBodyJsonObject(obj *any) error {
 	return HttpReadBodyJsonObject(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header, obj)
 }
 
-func (hc *HttpClient) HttpReadBodyJsonMap() (map[string]interface{}, error) {
+func (hc *HttpClient) HttpReadBodyJsonMap() (map[string]any, error) {
 	return HttpReadBodyJsonMap(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header)
 }
 
-func (hc *HttpClient) HttpReadBodyJsonMapArray() ([]map[string]interface{}, error) {
+func (hc *HttpClient) HttpReadBodyJsonMapArray() ([]map[string]any, error) {
 	return HttpReadBodyJsonMapArray(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header)
 }
 
-func (hc *HttpClient) ReadBodyJsonArray() ([]interface{}, error) {
+func (hc *HttpClient) ReadBodyJsonArray() ([]any, error) {
 	return HttpReadBodyJsonArray(hc.Method, hc.UrlText, hc.ContentType, hc.Params, hc.Header)
 }
 

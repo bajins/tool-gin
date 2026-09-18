@@ -22,7 +22,7 @@ func NewStringBuffer() *StringBuffer {
 // Append 将任意类型的值转换为字符串并追加到缓冲区。
 // 它使用 type switch 为常见类型提供高性能转换。
 // 这是一个线程安全的操作，并支持链式调用。
-func (sb *StringBuffer) Append(val interface{}) *StringBuffer {
+func (sb *StringBuffer) Append(val any) *StringBuffer {
 	sb.mu.Lock()
 	defer sb.mu.Unlock()
 

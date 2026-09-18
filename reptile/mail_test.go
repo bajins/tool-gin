@@ -67,7 +67,7 @@ func TestGetSecmail(t *testing.T) {
 	// 获取邮箱
 	/*res, err := utils.HttpReadBodyString(http.MethodGet, secmail1+"?action=genRandomMailbox&count=1", "",
 		nil, nil)
-	var data []interface{}
+	var data []any
 	err = json.Unmarshal([]byte(res), &data)
 	fmt.Println(res, err)
 	r := strings.Split(data[0].(string), "@") // 获取用户名和域名*/

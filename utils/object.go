@@ -6,7 +6,7 @@ import (
 )
 
 // TypeJudgment 判断数据类型
-func TypeJudgment(f interface{}) {
+func TypeJudgment(f any) {
 	switch vv := f.(type) {
 	case string:
 		if f != nil {
@@ -24,7 +24,7 @@ func TypeJudgment(f interface{}) {
 		if !f.(time.Time).IsZero() {
 			fmt.Println("is time.Time ", vv)
 		}
-	case []interface{}:
+	case []any:
 		fmt.Println("is array:")
 		for i, j := range vv {
 			fmt.Println(i, j)

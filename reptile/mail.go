@@ -68,7 +68,7 @@ func LinShiYouXiangSuffix() (string, error) {
 
 // LinShiYouXiangApply 获取邮箱号
 // prefix： 邮箱前缀
-func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
+func LinShiYouXiangApply(prefix string) (map[string]any, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/keepalive"
 	param := map[string]string{
 		"force_change": "1",
@@ -81,7 +81,7 @@ func LinShiYouXiangApply(prefix string) (map[string]interface{}, error) {
 
 // LinShiYouXiangList 获取邮件列表
 // prefix： 邮箱前缀
-func LinShiYouXiangList(prefix string) ([]map[string]interface{}, error) {
+func LinShiYouXiangList(prefix string) ([]map[string]any, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix
 	return utils.HttpReadBodyJsonMapArray(http.MethodGet, url, "", nil, nil)
 }
@@ -111,7 +111,7 @@ func LinShiYouXiangGetMail(prefix, id string) (*mail.Message, error) {
 // LinShiYouXiangDelete 删除邮件
 // prefix： 邮箱前缀
 // id:  	邮件编号
-func LinShiYouXiangDelete(prefix, id string) (map[string]interface{}, error) {
+func LinShiYouXiangDelete(prefix, id string) (map[string]any, error) {
 	url := LinShiYouXiang + "/api/v1/mailbox/" + prefix + "/" + id
 	return utils.HttpReadBodyJsonMap(http.MethodDelete, url, "", nil, nil)
 }

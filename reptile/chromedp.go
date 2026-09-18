@@ -107,7 +107,7 @@ func Apply(debug bool) (context.Context, context.CancelFunc) {
 
 // 监听
 func listenForNetworkEvent(ctx context.Context) {
-	chromedp.ListenTarget(ctx, func(ev interface{}) {
+	chromedp.ListenTarget(ctx, func(ev any) {
 		switch ev := ev.(type) {
 		case *network.EventResponseReceived:
 			resp := ev.Response

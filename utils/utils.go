@@ -13,7 +13,7 @@ import (
 // ParseBool 返回字符串表示的布尔值。
 // 它接受1,1.0，t，T，TRUE，true，True，YES，yes，Yes，Y，y，ON，on，On，0,0.0，f，F，FALSE，false，False，NO，no，No，N，n，OFF，off，Off。
 // 任何其他值都会返回错误。
-func ParseBool(val interface{}) (value bool, err error) {
+func ParseBool(val any) (value bool, err error) {
 	if val != nil {
 		switch v := val.(type) {
 		case bool:
@@ -45,14 +45,14 @@ func ParseBool(val interface{}) (value bool, err error) {
 }
 
 // Type 返回参数的类型
-func Type(v interface{}) string {
+func Type(v any) string {
 	t := reflect.TypeOf(v)
 	k := t.Kind()
 	return k.String()
 }
 
 // InArray 判断是否在数组中
-func InArray(in interface{}, list interface{}) bool {
+func InArray(in any, list any) bool {
 	ret := false
 	if in == nil {
 		in = ""

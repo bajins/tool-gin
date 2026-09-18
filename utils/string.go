@@ -19,7 +19,7 @@ import (
 )
 
 // ToString 将任何类型转换为字符串
-func ToString(value interface{}) (s string) {
+func ToString(value any) (s string) {
 	switch v := value.(type) {
 	case bool:
 		s = strconv.FormatBool(v)
@@ -375,9 +375,9 @@ func RandomCustomizeNumber(len int, numbers []byte) (s int, err error) {
 }
 
 // JsonToMap 解析json为map
-func JsonToMap(data string) (map[string]interface{}, error) {
+func JsonToMap(data string) (map[string]any, error) {
 	str := []byte(data)
-	stu := make(map[string]interface{})
+	stu := make(map[string]any)
 
 	err := json.Unmarshal(str, &stu)
 	if err != nil {
@@ -387,8 +387,8 @@ func JsonToMap(data string) (map[string]interface{}, error) {
 }
 
 // ParseJsonReader 反序列化为map
-func ParseJsonReader(input io.Reader) (map[string]interface{}, error) {
-	var m map[string]interface{}
+func ParseJsonReader(input io.Reader) (map[string]any, error) {
+	var m map[string]any
 	decoder := json.NewDecoder(input)
 	err := decoder.Decode(&m)
 	if err != nil {

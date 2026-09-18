@@ -4,7 +4,11 @@ import (
 	"bufio"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"io"
 	"log"
+	"net/http"
+	"net/url"
 	"regexp"
 	"runtime/debug"
 	"strings"
@@ -25,7 +29,7 @@ var (
 	urlRegex   = regexp.MustCompile(`(?:(?:https?|ftp)://)?(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,63}|\[(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|(?:[0-9a-fA-F]{1,4}:){1,7}:|::|localhost|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?::\d+)?(?:[/?#]\S*)?`)
 	httpsRegex = regexp.MustCompile("https?:/+(.*)")
 	// 匹配协议开头的正则
-	schemeReg = regexp.MustCompile(`(?i)(ss|ssr|vmess|trojan|vless|hysteria2?|hy2|tuic)://\S+`)
+	schemeReg = regexp.MustCompile(`(?i)(http|https|socks|socks5|v2rayn|hy2|hysteria2\+realm|hysteria2\+realm\+http|naive\+https|naive\+quic|socks4|vmess|ssr|ss|vless|trojan|hysteria2|tuic|wireguard|anytls|naive)://\S+`)
 
 	vnVersion   atomic.Value // 存储预热的缓存数据
 	smTime      sync.Map     // 存储时间
@@ -53,7 +57,7 @@ func init() {
 			log.Println(err)
 		}
 		if response.StatusCode() == 200 {
-			var data map[string]interface{}
+			var data map[string]any
 			err := json.Unmarshal(response.Body(), &data)
 			if err != nil {
 				log.Println(err)
@@ -111,6 +115,22 @@ func getSvpGoroutine(wg *sync.WaitGroup, typ int, fun func() string) {
 			isFirstLine := true
 			for scanner.Scan() {
 				line := scanner.Text()
+				u, err := url.Parse(strings.TrimSpace(line))
+				if err == nil {
+					scheme := strings.ToLower(u.Scheme)
+					// 判断 HTTP / HTTPS 是否为普通网页
+					if scheme == "http" || scheme == "https" {
+						// 如果有明确的 User 认证信息（如 http://user:pass@host:port）
+						// 或者有非默认端口且没有复杂 path（如 http://1.1.1.1:8080#备注）
+						isExplicitPort := (scheme == "http" && u.Port() != "" && u.Port() != "80") || (scheme == "https" && u.Port() != "" && u.Port() != "443")
+						hasAuth := u.User != nil
+						isFlatPath := u.Path == "" || u.Path == "/"
+
+						if !isFlatPath || (!hasAuth && !isExplicitPort) {
+							continue
+						}
+					}
+				}
 				// 判断如果不包含 127.0.0.1 则写入 Builder
 				if !strings.Contains(line, "127.0.0.1") {
 					if !isFirstLine {
@@ -180,7 +200,7 @@ func GetSvpAll(id string) string {
 
 	// 合并结果
 	joiner := utils.NewStringJoiner("\n")
-	svpMapCache.Range(func(key, value interface{}) bool {
+	svpMapCache.Range(func(key, value any) bool {
 		joiner.Add(value)
 		return true
 	})
@@ -234,3 +254,88 @@ func GetSvpAll(id string) string {
 //
 //	return finalResult
 //}
+
+// FetchProtocolPattern 从 GitHub 获取最新的 Global.cs 并返回正则表达式字符串
+// token 可选：若频繁调用可传入 GitHub Personal Access Token 避免 60次/小时 速率限制，不需要传 "" 即可
+func FetchProtocolPattern(token string) (string, error) {
+	apiURL := "https://api.github.com/repos/2dust/v2rayN/contents/v2rayN/ServiceLib/Global.cs?ref=master"
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("创建请求失败: %w", err)
+	}
+
+	// GitHub API 必备请求头
+	req.Header.Set("User-Agent", "Go-Protocol-Extractor")
+	// 直接获取原始纯文本内容，避免解析 JSON 和 base64 解码
+	req.Header.Set("Accept", "application/vnd.github.raw")
+
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("请求 GitHub API 失败: %w", err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			log.Print(err)
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("GitHub API 响应异常 (HTTP %d): %s", resp.StatusCode, string(body))
+	}
+
+	contentBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("读取响应内容失败: %w", err)
+	}
+
+	// 从 Global.cs 文本中提取所有 ProtocolShare 相关的协议名（已去掉 ://）
+	var protocols []string
+	content := string(contentBytes)
+	seen := make(map[string]bool)
+
+	addProto := func(p string) {
+		p = strings.TrimSpace(p)
+		if p != "" && !seen[p] {
+			seen[p] = true
+			protocols = append(protocols, p)
+		}
+	}
+
+	// 1. 匹配常量定义，如: public const string Hysteria2ProtocolShare = "hy2://";
+	constRegex := regexp.MustCompile(`const\s+string\s+\w*Protocol\w*\s*=\s*"([^"]+)://"`)
+	for _, m := range constRegex.FindAllStringSubmatch(content, -1) {
+		if len(m) > 1 {
+			addProto(m[1])
+		}
+	}
+
+	// 2. 匹配 ProtocolShares 字典块内部的 "xxx://"
+	dictBlockRegex := regexp.MustCompile(`ProtocolShares\s*=\s*new[^{]*\{([\s\S]*?)\};`)
+	if dictBlock := dictBlockRegex.FindStringSubmatch(content); len(dictBlock) > 1 {
+		itemRegex := regexp.MustCompile(`"([^"]+)://"`)
+		for _, m := range itemRegex.FindAllStringSubmatch(dictBlock[1], -1) {
+			if len(m) > 1 {
+				addProto(m[1])
+			}
+		}
+	}
+	if len(protocols) == 0 {
+		return "", fmt.Errorf("未在源码中解析到任何协议定义")
+	}
+
+	var escaped []string
+	for _, p := range protocols {
+		// 对 "+" 等正则特殊符号做转义（如 naive+https 转为 naive\+https）
+		escaped = append(escaped, regexp.QuoteMeta(p))
+	}
+	// 将提取出的协议名列表组装为已转义的正则模式串
+	return fmt.Sprintf("(?i)(%s)://\\S+", strings.Join(escaped, "|")), nil
+}
